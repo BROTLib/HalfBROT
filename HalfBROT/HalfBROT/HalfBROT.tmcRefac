@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactors>
+  <Renames>
+    <RenamedType>
+      <Type guid="febe04fb-b0fe-4b52-a725-1c7655537933">FB_3COVERCONTROL</Type>
+      <From>FB_CoverControl</From>
+      <To>FB_CoverControl</To>
+    </RenamedType>
+  </Renames>
+</Refactors>

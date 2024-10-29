@@ -1,0 +1,162 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FB_CoverControl" Id="{febe04fb-b0fe-4b52-a725-1c7655537933}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_CoverControl IMPLEMENTS I_MirrorCover
+VAR_INPUT
+
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	// resets all drives after an error has occured
+	reset							: BOOL;
+	// open the cover in proper order
+	open							: BOOL;
+	// close the cover in proper order
+	close							: BOOL;
+	// actual active cover in manual mode, 0 for automatic = all covers active
+	active_cover					: INT;
+	
+	// limit switches
+	limit_cover1_open		AT%I*	: BOOL;
+	// DIN34 4.1
+	limit_cover1_closed		AT%I*	: BOOL;
+	// DIN35 4.2
+	limit_cover2_open		AT%I*	: BOOL;
+	// DIN36 4.3
+	limit_cover2_closed		AT%I*	: BOOL;
+	// DIN37 4.4
+	limit_cover3_open		AT%I*	: BOOL;
+	// DIN38 4.5
+	limit_cover3_closed		AT%I*	: BOOL;	
+	
+	// open cover1 command
+	open_cover1				AT%Q*	: BOOL;
+	close_cover1			AT%Q*	: BOOL;
+	open_cover2				AT%Q*	: BOOL;
+	close_cover2			AT%Q*	: BOOL;
+	open_cover3				AT%Q*	: BOOL;
+	close_cover3			AT%Q*	: BOOL;
+	
+	// cover1 is open
+	cover1_opened					: BOOL; 
+	// cover1 is closed
+	cover1_closed					: BOOL;
+	// cover2 is open
+	cover2_opened					: BOOL;
+	// cover2 is closed
+	cover2_closed					: BOOL;
+	// cover3 is open
+	cover3_opened					: BOOL;
+	// cover3 is closed
+	cover3_closed					: BOOL;
+	// cover1 has error
+	cover1_error					: BOOL;
+	// cover2 has error
+	cover2_error					: BOOL;
+	// cover3 has error
+	cover3_error					: BOOL;	
+	
+	// delay timer for opening cover2
+	open2_delay						: TON := (PT:=T#1S);
+	// dely timer for closing cover3
+	close3_delay 					: TON := (PT:=T#3S);	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*
+This is the control for the two (three) telescope covers. 
+The correct order for opening is 1->3->2 and for closing 2->3->1.
+GVL Open and close signals are inverted
+*)
+
+// close has precedence over open
+IF close THEN
+	open := FALSE;
+END_IF
+
+// limit switches are inverted
+cover1_opened := NOT limit_cover1_open;
+cover2_opened := NOT limit_cover2_open;
+cover3_opened := NOT limit_cover3_open;
+cover1_closed := NOT limit_cover1_closed;
+cover2_closed := NOT limit_cover2_closed;
+cover3_closed := NOT limit_cover3_closed;
+
+// errors occur if covers are both opened and closed
+cover1_error := cover1_opened AND cover1_closed;
+cover2_error := cover2_opened AND cover2_closed;
+cover3_error := cover3_opened AND cover3_closed;
+
+// wait for cover2 until cover3 has left the closed state
+open2_delay(IN := open AND NOT cover3_closed);
+// wait for cover3 until cover2 has left the open state
+close3_delay(IN := close AND NOT cover2_opened);
+
+// commands
+IF close THEN
+	close_cover1 := cover1_closed AND NOT cover3_closed;
+	close_cover2 := cover2_closed;
+	close_cover3 := cover3_closed AND close3_delay.Q;
+ELSIF open THEN
+	open_cover1 := cover1_opened;
+	open_cover2 := cover2_opened AND open2_delay.Q;
+	open_cover3 := cover3_opened;			
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="Close" Id="{da11c9a0-3757-4491-b03d-01cf2bd99294}">
+      <Declaration><![CDATA[METHOD Close : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[open := FALSE;
+close := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Open" Id="{bb6e1357-2f21-45f8-bb34-0ba057923977}">
+      <Declaration><![CDATA[METHOD Open : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[open := TRUE;
+close := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Reset" Id="{3fcca07c-1b9c-4f16-918b-5d284513a3d3}">
+      <Declaration><![CDATA[METHOD Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[reset := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_CoverControl">
+      <LineId Id="40" Count="8" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="82" Count="6" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="89" Count="1" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="95" Count="3" />
+      <LineId Id="94" Count="0" />
+      <LineId Id="114" Count="0" />
+      <LineId Id="105" Count="8" />
+      <LineId Id="104" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.Close">
+      <LineId Id="6" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.Open">
+      <LineId Id="5" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.Reset">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
