@@ -3,28 +3,26 @@
   <POU Name="FB_CoverControl" Id="{febe04fb-b0fe-4b52-a725-1c7655537933}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_CoverControl IMPLEMENTS I_MirrorCover
 VAR_INPUT
-	// resets all drives after an error has occured
-	reset							: BOOL;
-	// open the cover in proper order
-	open							: BOOL;
-	// close the cover in proper order
-	close							: BOOL;
+	reset					: BOOL;		// resets all drives after an error has occured
+	open					: BOOL;		// open the cover in proper order
+	close					: BOOL;		// close the cover in proper order
+	comm					: I_Comm;
+	
+	open_cover1		AT%Q*	: BOOL;	// open cover1 command
+	close_cover1	AT%Q*	: BOOL; // close cover1 command
+	open_cover2		AT%Q*	: BOOL; // open cover2 command
+	close_cover2	AT%Q*	: BOOL; // close cover2 command
+	open_cover3		AT%Q*	: BOOL; // open cover3 command
+	close_cover3	AT%Q*	: BOOL; // close cover3 command
 END_VAR
 VAR_OUTPUT
-	// is TRUE, if all covers are open
-	isopen							: BOOL;
-	// is TRUE, if all covers are closed
-	isclosed						: BOOL;
-	
-	// is TRUE if any cover-driver reports an error
-	error							: BOOL;
-
-	// warning state of the DC drives
-	warning							: BOOL;
+	isopen				: BOOL;		// all covers are open
+	isclosed			: BOOL;		// all covers are closed
+	error				: BOOL;		// any cover-driver reports an error
+	warning				: BOOL;		// warning state of the DC drives
 END_VAR
 VAR
-	// actual active cover in manual mode, 0 for automatic = all covers active
-	active_cover					: INT;
+	active_cover		: INT;		// actual active cover in manual mode, 0 for automatic = all covers active
 	
 	// limit switches
 	limit_cover1_open		AT%I*	: BOOL;
@@ -38,14 +36,6 @@ VAR
 	limit_cover3_open		AT%I*	: BOOL;
 	// DIN38 4.5
 	limit_cover3_closed		AT%I*	: BOOL;	
-	
-	open_cover1				AT%Q*	: BOOL;	// open cover1 command
-	close_cover1			AT%Q*	: BOOL; // close cover1 command
-	open_cover2				AT%Q*	: BOOL; // open cover2 command
-	close_cover2			AT%Q*	: BOOL; // close cover2 command
-	open_cover3				AT%Q*	: BOOL; // open cover3 command
-	close_cover3			AT%Q*	: BOOL; // close cover3 command
-	
 	
 	cover1_open	  					: BOOL;	// cover1 is open 
 	cover1_closed					: BOOL; // cover1 is closed
@@ -78,7 +68,7 @@ VAR
 	
 	covers_opened_event				: FB_EventLog; // log if covers are open
 	covers_closed_event				: FB_EventLog; // log if covers are closed
-	covers_error_event				: FB_EventLog; //  Event log for a generic drive error
+	covers_error_event				: FB_EventLog; // Event log for a generic drive error
 	covers_warning_event			: FB_EventLog; // Event log for a generic drive warning
 	
 END_VAR
@@ -198,33 +188,33 @@ covers_closed_event(Trigger   := isclosed,
 					OnMessage := 'All covers are closed');
 ]]></ST>
     </Implementation>
-    <Method Name="Close" Id="{da11c9a0-3757-4491-b03d-01cf2bd99294}">
-      <Declaration><![CDATA[METHOD Close : BOOL
+    <Method Name="CloseCover" Id="{da11c9a0-3757-4491-b03d-01cf2bd99294}">
+      <Declaration><![CDATA[METHOD CloseCover : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[open := FALSE;
-close := TRUE;]]></ST>
+CloseCover := TRUE;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Open" Id="{bb6e1357-2f21-45f8-bb34-0ba057923977}">
-      <Declaration><![CDATA[METHOD Open : BOOL
+    <Method Name="OpenCover" Id="{bb6e1357-2f21-45f8-bb34-0ba057923977}">
+      <Declaration><![CDATA[METHOD OpenCover : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[open := TRUE;
+        <ST><![CDATA[OpenCover := TRUE;
 close := FALSE;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Reset" Id="{3fcca07c-1b9c-4f16-918b-5d284513a3d3}">
-      <Declaration><![CDATA[METHOD Reset : BOOL
+    <Method Name="ResetCover" Id="{3fcca07c-1b9c-4f16-918b-5d284513a3d3}">
+      <Declaration><![CDATA[METHOD ResetCover : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[reset := TRUE;]]></ST>
+        <ST><![CDATA[ResetCover := TRUE;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_CoverControl">
@@ -235,14 +225,15 @@ END_VAR
       <LineId Id="409" Count="7" />
       <LineId Id="115" Count="0" />
     </LineIds>
-    <LineIds Name="FB_CoverControl.Close">
+    <LineIds Name="FB_CoverControl.CloseCover">
       <LineId Id="6" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
-    <LineIds Name="FB_CoverControl.Open">
-      <LineId Id="5" Count="1" />
+    <LineIds Name="FB_CoverControl.OpenCover">
+      <LineId Id="7" Count="0" />
+      <LineId Id="6" Count="0" />
     </LineIds>
-    <LineIds Name="FB_CoverControl.Reset">
+    <LineIds Name="FB_CoverControl.ResetCover">
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>

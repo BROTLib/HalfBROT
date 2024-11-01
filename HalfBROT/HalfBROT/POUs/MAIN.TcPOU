@@ -1,13 +1,31 @@
-<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1">
-  <POU Name="MAIN" Id="{bc9c3e96-a690-4690-b444-ea9323d20ce0}">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+  <POU Name="MAIN" Id="{bc9c3e96-a690-4690-b444-ea9323d20ce0}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
+	CoverControl	: FB_CoverControl;
+	comm			: FB_Comm_MQTT_Influx;
 END_VAR
-]]>
-    </Declaration>
+]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[CoverControl(
+	comm				:= comm
+);
+
+comm(	
+	sHostName		:= '10.129.129.76',
+    nHostPort   	:= 1883,
+    nKeepAlive  	:= 60,
+	sTopicSub   	:= 'MONETN',
+	sTopicLog		:= 'MONETN/Log',
+	sTopicPublish	:= 'MONETN/Telemetry'
+);
+]]></ST>
     </Implementation>
+    <LineIds Name="MAIN">
+      <LineId Id="6" Count="0" />
+      <LineId Id="14" Count="10" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
   </POU>
 </TcPlcObject>
