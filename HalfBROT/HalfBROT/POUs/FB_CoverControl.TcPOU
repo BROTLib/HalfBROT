@@ -164,28 +164,32 @@ cover2_event(Trigger   := cover2_open AND cover2_closed,
 cover3_event(Trigger   := cover3_open AND cover3_closed,
 			 Level     := ADSLOG_MSGTYPE_ERROR, 
 			 OnMessage := 'Cover3: limit switch error');
-
 //trigger an event, if we encounter a timeout
 // handle RoboTel differently
 
 cover1_timeout_event(Trigger   := FALSE,
 					 Level     := ADSLOG_MSGTYPE_ERROR, 
-					 OnMessage := 'Cover1: Timeout');
+					 OnMessage := 'Cover1: Timeout',
+					 Comm := comm);
 cover2_timeout_event(Trigger   := FALSE,
 					 Level     := ADSLOG_MSGTYPE_ERROR, 
-					 OnMessage := 'Cover2: Timeout');
+					 OnMessage := 'Cover2: Timeout',
+					 Comm := comm);
 cover3_timeout_event(Trigger   := FALSE,
 					 Level     := ADSLOG_MSGTYPE_ERROR, 
-					 OnMessage := 'Cover3: Timeout');
-					 
+					 OnMessage := 'Cover3: Timeout',
+					 Comm := comm);
+
 // Log if we are opened
 covers_opened_event(Trigger   := isopen,
 					Level     := ADSLOG_MSGTYPE_WARN,
-					OnMessage := 'All covers are open');
+					OnMessage := 'All covers are open',
+					Comm := comm);
 //log if we are closed
 covers_closed_event(Trigger   := isclosed,
 					Level     := ADSLOG_MSGTYPE_HINT,
-					OnMessage := 'All covers are closed');
+					OnMessage := 'All covers are closed',
+					Comm := comm);
 ]]></ST>
     </Implementation>
     <Method Name="CloseCover" Id="{da11c9a0-3757-4491-b03d-01cf2bd99294}">
@@ -218,11 +222,20 @@ END_VAR
       </Implementation>
     </Method>
     <LineIds Name="FB_CoverControl">
-      <LineId Id="304" Count="96" />
+      <LineId Id="304" Count="4" />
+      <LineId Id="418" Count="0" />
+      <LineId Id="310" Count="83" />
+      <LineId Id="395" Count="5" />
+      <LineId Id="421" Count="0" />
       <LineId Id="402" Count="2" />
+      <LineId Id="422" Count="0" />
       <LineId Id="406" Count="2" />
+      <LineId Id="423" Count="0" />
       <LineId Id="417" Count="0" />
-      <LineId Id="409" Count="7" />
+      <LineId Id="409" Count="3" />
+      <LineId Id="424" Count="0" />
+      <LineId Id="413" Count="3" />
+      <LineId Id="425" Count="0" />
       <LineId Id="115" Count="0" />
     </LineIds>
     <LineIds Name="FB_CoverControl.CloseCover">
