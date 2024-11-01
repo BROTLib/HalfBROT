@@ -3,12 +3,38 @@
   <POU Name="MAIN" Id="{bc9c3e96-a690-4690-b444-ea9323d20ce0}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
-	CoverControl	: FB_CoverControl;
-	comm			: FB_Comm_MQTT_Influx;
+	CoverControl		: FB_CoverControl;
+	HydraulicsControl	: FB_HydraulicsControl;
+	comm				: FB_Comm_MQTT_Influx;
+	
+	// Safety Error Condition
+	Error		AT%I*:	BOOL;
+	// Run/Stop Safety
+	Run			AT%Q*:	BOOL;
+	// Restart Safety
+	Restart		AT%Q*:	BOOL;
+	// Error Acknowledgement 
+	ErrAck		AT%Q*:	BOOL;
+	// Stop signal coming from Safety
+	// Stop		AT%I*:	BOOL;
+	// state variable
+	State		AT%I*:	USINT;
+	
+	Reset_STO_Azimuth		AT%Q*: BOOL;
+	Reset_STO_Elevation		AT%Q*: BOOL;
+	Reset_STO_Derotator		AT%Q*: BOOL;	
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[CoverControl(
+      <ST><![CDATA[Run := TRUE;
+
+CoverControl(
+	comm				:= comm
+);
+
+HydraulicsControl(
+	pan_min_percent		:= 26.0,
+	pan_max_percent		:= 56.0,
 	comm				:= comm
 );
 
@@ -23,8 +49,15 @@ comm(
 ]]></ST>
     </Implementation>
     <LineIds Name="MAIN">
+      <LineId Id="29" Count="1" />
       <LineId Id="6" Count="0" />
-      <LineId Id="14" Count="10" />
+      <LineId Id="14" Count="1" />
+      <LineId Id="25" Count="1" />
+      <LineId Id="31" Count="1" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="17" Count="7" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

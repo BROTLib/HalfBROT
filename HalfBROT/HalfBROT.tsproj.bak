@@ -1433,6 +1433,552 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
+			<Name GUID="{B05FDAB7-3241-ACD3-D16C-0FDAF8825BC9}" AutoDeleteType="true">FSOE_7</Name>
+			<BitSize>56</BitSize>
+			<SubItem>
+				<Name>FSoE CMD</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE Data 0</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000033}">BITARR16</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE CRC_0</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>24</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE ConnID</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>40</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{2438F91B-E188-4ED7-8594-54354F9ED6A4}" Namespace="Safety" TcBaseType="true">FSOE_6</Name>
+			<BitSize>48</BitSize>
+			<SubItem>
+				<Name>FSoE CMD</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE Data</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000032}">BITARR8</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE CRC_0</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE ConnID</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{0994ABA9-6F32-EEB9-4362-7774F7A1F4F4}" AutoDeleteType="true">FSOE_11</Name>
+			<BitSize>88</BitSize>
+			<SubItem>
+				<Name>FSoE CMD</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE Data 0</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000033}">BITARR16</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE CRC_0</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>24</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE Data 1</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000033}">BITARR16</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>40</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE CRC_1</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>56</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>FSoE ConnID</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>72</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{18071995-0000-0000-0000-002000000005}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..4] OF BIT</Name>
+			<BitSize>5</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000010}">BIT</BaseType>
+			<ArrayInfo>
+				<LBound>0</LBound>
+				<Elements>5</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{18071995-0000-0000-0000-002000000002}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..1] OF BIT</Name>
+			<BitSize>2</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000010}">BIT</BaseType>
+			<ArrayInfo>
+				<LBound>0</LBound>
+				<Elements>2</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
+			<Name GUID="{2B008623-51EE-EF6A-ACDE-0017707F5BB8}" AutoDeleteType="true">INFODATA_FB_3</Name>
+			<BitSize>24</BitSize>
+			<SubItem>
+				<Name>State</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Diag</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000005}">UINT</Type>
+				<BitSize>16</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{0DE0A6FC-5623-3232-5938-18BD97C1D1FF}" AutoDeleteType="true">INFODATA_3892733135</Name>
+			<BitSize>48</BitSize>
+			<SubItem>
+				<Name>State</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Diag</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 STO</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SSM(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>17</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SSM(2)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>18</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SOS(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>19</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SSR(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>20</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SDI_p</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>21</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SDI_n</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>22</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 Error</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>23</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 STO</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SS1(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>33</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SS2(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>34</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SOS(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>35</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SSR(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>36</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SDI_p</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>37</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SDI_n</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>38</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 Error_Ack</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>39</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{2D18A473-33C5-DC53-F2C0-288B149B532F}" AutoDeleteType="true">INFODATA_2542655572</Name>
+			<BitSize>24</BitSize>
+			<SubItem>
+				<Name>State</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Diag</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data InputChannel1</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data InputChannel2</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>17</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data InputChannel3</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>18</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data InputChannel4</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>19</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{CBF8AE7B-680B-65B5-733B-13321DDFA478}" AutoDeleteType="true">INFODATA_162409835</Name>
+			<BitSize>24</BitSize>
+			<SubItem>
+				<Name>State</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Diag</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data OutputChannel1</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data OutputChannel2</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>17</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data OutputChannel3</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>18</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data OutputChannel4</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>19</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{3E3046B6-6534-9EEA-8363-FB50E634C35C}" AutoDeleteType="true">INFODATA_3473041101</Name>
+			<BitSize>80</BitSize>
+			<SubItem>
+				<Name>State</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Diag</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 STO</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>16</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SSM(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>17</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SSM(2)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>18</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SOS(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>19</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SSR(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>20</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SDI_p</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>21</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 SDI_n</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>22</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 1 Error</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>23</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 2 STO</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>32</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 2 SSM(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>33</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 2 SSM(2)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>34</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 2 SOS(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>35</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 2 SSR(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>36</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 2 SDI_p</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>37</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 2 SDI_n</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>38</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Input Safe Data Axis 2 Error</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>39</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 STO</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>48</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SS1(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>49</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SS2(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>50</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SOS(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>51</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SSR(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>52</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SDI_p</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>53</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 SDI_n</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>54</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 1 Error_Ack</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>55</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 2 STO</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>64</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 2 SS1(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>65</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 2 SS2(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>66</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 2 SOS(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>67</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 2 SSR(1)</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>68</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 2 SDI_p</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>69</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 2 SDI_n</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>70</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Output Safe Data Axis 2 Error_Ack</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
+				<BitSize>1</BitSize>
+				<BitOffs>71</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
+			<Name GUID="{1553EE7F-0490-4879-4F41-423085C83887}" AutoDeleteType="true">INFODATA_GRP_3</Name>
+			<BitSize>16</BitSize>
+			<SubItem>
+				<Name>State</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>0</BitOffs>
+			</SubItem>
+			<SubItem>
+				<Name>Diag</Name>
+				<Type GUID="{18071995-0000-0000-0000-000000000002}">USINT</Type>
+				<BitSize>8</BitSize>
+				<BitOffs>8</BitOffs>
+			</SubItem>
+		</DataType>
+		<DataType>
 			<Name GUID="{18071995-0000-0000-0000-002000000010}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..1] OF BYTE</Name>
 			<BitSize>16</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000001}">BYTE</BaseType>
@@ -1469,15 +2015,6 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
-			<Name GUID="{18071995-0000-0000-0000-002000000002}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..1] OF BIT</Name>
-			<BitSize>2</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000010}">BIT</BaseType>
-			<ArrayInfo>
-				<LBound>0</LBound>
-				<Elements>2</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
 			<Name GUID="{18071995-0000-0000-0000-002000000001}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..0] OF BIT</Name>
 			<BitSize>1</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000010}">BIT</BaseType>
@@ -1487,7 +2024,7 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
-			<Name GUID="{18071995-0000-0000-0000-002000000003}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..2] OF BIT</Name>
+			<Name GUID="{18071995-0000-0000-0000-002000000003}" IecBaseType="true" BitType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..2] OF BIT</Name>
 			<BitSize>3</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000010}">BIT</BaseType>
 			<ArrayInfo>
@@ -1496,21 +2033,12 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
-			<Name GUID="{18071995-0000-0000-0000-002000000006}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..5] OF BIT</Name>
+			<Name GUID="{18071995-0000-0000-0000-002000000006}" IecBaseType="true" BitType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..5] OF BIT</Name>
 			<BitSize>6</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000010}">BIT</BaseType>
 			<ArrayInfo>
 				<LBound>0</LBound>
 				<Elements>6</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
-			<Name GUID="{18071995-0000-0000-0000-002000000005}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..4] OF BIT</Name>
-			<BitSize>5</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000010}">BIT</BaseType>
-			<ArrayInfo>
-				<LBound>0</LBound>
-				<Elements>5</Elements>
 			</ArrayInfo>
 		</DataType>
 		<DataType>
@@ -2435,11 +2963,21 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{363DA9F7-A2C1-43F1-A4FF-717FB38D77B2}" Name="HalfBROT" PrjFilePath="HalfBROT\HalfBROT.plcproj" TmcFilePath="HalfBROT\HalfBROT.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{27679F80-66A5-256C-0CB8-081E3DEB452E}" TmcPath="HalfBROT\HalfBROT.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{3CCE4082-6779-D778-0001-DB3F91B26A8B}" TmcPath="HalfBROT\HalfBROT.tmc">
 					<Name>HalfBROT Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
 						<Name>PlcTask Outputs</Name>
+						<Var>
+							<Name>MAIN.Run</Name>
+							<Comment><![CDATA[ Run/Stop Safety]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.Restart</Name>
+							<Comment><![CDATA[ Restart Safety]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
 						<Var>
 							<Name>MAIN.CoverControl.open_cover1</Name>
 							<Comment><![CDATA[ open cover1 command]]></Comment>
@@ -2470,9 +3008,41 @@ External Setpoint Generation:
 							<Comment><![CDATA[ close cover3 command]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
+						<Var>
+							<Name>MAIN.ErrAck</Name>
+							<Comment><![CDATA[ Error Acknowledgement ]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.Reset_STO_Azimuth</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.Reset_STO_Elevation</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.Reset_STO_Derotator</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.out_oil_pump_enable</Name>
+							<Comment><![CDATA[DOUT4 0.3]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.out_oil_suction_enable</Name>
+							<Comment><![CDATA[DOUT5 0.4	]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
 					</Vars>
 					<Vars VarGrpType="1">
 						<Name>PlcTask Inputs</Name>
+						<Var>
+							<Name>MAIN.Error</Name>
+							<Comment><![CDATA[ Safety Error Condition]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
 						<Var>
 							<Name>MAIN.CoverControl.limit_cover1_open</Name>
 							<Comment><![CDATA[ limit switches]]></Comment>
@@ -2503,6 +3073,68 @@ External Setpoint Generation:
 							<Comment><![CDATA[ DIN38 4.5]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
+						<Var>
+							<Name>MAIN.State</Name>
+							<Comment><![CDATA[ Stop signal coming from Safety
+ Stop		AT%I*:	BOOL;
+ state variable]]></Comment>
+							<Type>USINT</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_oil_low</Name>
+							<Comment><![CDATA[ 2.1]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_oil_high</Name>
+							<Comment><![CDATA[ ?]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_oil_pressure_OK</Name>
+							<Comment><![CDATA[ 2.3]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_oil_overtemperature</Name>
+							<Comment><![CDATA[ 2.4]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_oil_undertemperature</Name>
+							<Comment><![CDATA[ 2.5]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_oilfilter_dirty</Name>
+							<Comment><![CDATA[ 2.6]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_pump_running</Name>
+							<Comment><![CDATA[ 2.7]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_suction_running</Name>
+							<Comment><![CDATA[ 2.8]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_oil_level</Name>
+							<Comment><![CDATA[BT2]]></Comment>
+							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_oilpan_maximum</Name>
+							<Comment><![CDATA[DIN39 4.6]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.HydraulicsControl.in_oil_reserve</Name>
+							<Comment><![CDATA[DIN40 4.7]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
 					</Vars>
 					<Contexts>
 						<Context>
@@ -2521,6 +3153,23 @@ External Setpoint Generation:
 				</Instance>
 			</Project>
 		</Plc>
+		<Safety>
+			<Project GUID="{0F3883E8-36C1-494D-8014-A8C4D7F11FA1}" Name="MONETNTwinSAFE" PrjFilePath="MONETNTwinSAFE\MONETNTwinSAFE.splcproj" TmcFilePath="MONETNTwinSAFE\MONETNTwinSAFE.tmc" GeneralArchiveSettings="#x000f" TargetArchiveSettings="#x0007" FileArchiveSettings="#x000e">
+				<Instance Id="#x01010010" KeepUnrestoredLinks="2">
+					<Name>MONETNTwinSAFE Instance</Name>
+					<TmcDesc GUID="{72A6D5B8-E98C-4604-8B90-09D1F8AB38A9}">
+						<Name>Safety</Name>
+						<InitSequence>PO</InitSequence>
+						<Contexts>
+							<Context>
+								<Id>1</Id>
+								<Name>Default</Name>
+							</Context>
+						</Contexts>
+					</TmcDesc>
+				</Instance>
+			</Project>
+		</Safety>
 		<Io>
 			<Device Id="1" DevType="111" DevFlags="#x0003" AmsPort="28673" AmsNetId="5.131.251.159.2.1" RemoteName="Device 1 (EtherCAT)" InfoImageId="2">
 				<Name>Device 1 (EtherCAT)</Name>
@@ -2694,8 +3343,8 @@ External Setpoint Generation:
 						<EtherCAT SlaveType="2" PdiType="#x0005" MboxDataLinkLayer="true" StateMBoxPolling="true" CycleMBoxPollingTime="0" CoeType="3" FoeType="1" VendorId="#x00000002" ProductCode="#x1afe3052" RevisionNo="#x00140000" BIC="1P135389SBTNsee COE!1KEL6910                        Q1    " InfoDataAddr="true" RepeatSupport="true" TimeoutStateChange1="5000" TimeoutMailbox2="10000" TComSupport="true" PortPhys="51" DebugMemory="8" SafetyLogicSupported="true" MaxSlotCount="256" MaxSlotGroupCount="1" SlotPdoIncrement="1" SlotIndexIncrement="16" Type="EL6910, TwinSAFE PLC" Desc="EL6910" PortABoxInfo="#x01000004">
 							<SyncMan>001000012600010001000000000100010001001026010000</SyncMan>
 							<SyncMan>001100012200010002000000000100010001001122010000</SyncMan>
-							<SyncMan>001202002400010003000000000000000200001224010000</SyncMan>
-							<SyncMan>001d02002000010004000000000000000200001d20010000</SyncMan>
+							<SyncMan>001228002400010003000000000000000200001224010000</SyncMan>
+							<SyncMan>001d4f002000010004000000000000000200001d20010000</SyncMan>
 							<SyncMan>002e00002400000003000000000000000000002e24000000</SyncMan>
 							<SyncMan>002f00002000000004000000000000000000002f20000000</SyncMan>
 							<Fmmu>0000000000000000001200020100000001000000060000000200000000000000</Fmmu>
@@ -2705,6 +3354,112 @@ External Setpoint Generation:
 							<Fmmu>0000000000000000000000010000000002000000060000000500010000000000</Fmmu>
 							<BootStrapData>0010f400f410f400</BootStrapData>
 							<MBoxUserCmdData>004003000a00000000000000030010000000000000000000000000000000000020f3100502000000010000</MBoxUserCmdData>
+							<Pdo Name="ConnectionInputs" Index="#x1a00" Flags="#x2011" SyncMan="3">
+								<Entry Name="Message_5 TxPDO" Index="#x7000" Sub="#x01">
+									<Type GUID="{B05FDAB7-3241-ACD3-D16C-0FDAF8825BC9}">FSOE_7</Type>
+								</Entry>
+								<Entry Name="Message_6 TxPDO" Index="#x7000" Sub="#x02">
+									<Type GUID="{B05FDAB7-3241-ACD3-D16C-0FDAF8825BC9}">FSOE_7</Type>
+								</Entry>
+								<Entry Name="Message_7 TxPDO" Index="#x7000" Sub="#x03">
+									<Type GUID="{2438F91B-E188-4ED7-8594-54354F9ED6A4}" Namespace="Safety">FSOE_6</Type>
+								</Entry>
+								<Entry Name="Message_8 TxPDO" Index="#x7000" Sub="#x04">
+									<Type GUID="{2438F91B-E188-4ED7-8594-54354F9ED6A4}" Namespace="Safety">FSOE_6</Type>
+								</Entry>
+								<Entry Name="Message_17 TxPDO" Index="#x7000" Sub="#x05">
+									<Type GUID="{0994ABA9-6F32-EEB9-4362-7774F7A1F4F4}">FSOE_11</Type>
+								</Entry>
+							</Pdo>
+							<Pdo Name="ConnectionOutputs" Index="#x1600" InOut="1" Flags="#x2011" SyncMan="2">
+								<Entry Name="Message_5 RxPDO" Index="#x6000" Sub="#x01">
+									<Type GUID="{B05FDAB7-3241-ACD3-D16C-0FDAF8825BC9}">FSOE_7</Type>
+								</Entry>
+								<Entry Name="Message_6 RxPDO" Index="#x6000" Sub="#x02">
+									<Type GUID="{B05FDAB7-3241-ACD3-D16C-0FDAF8825BC9}">FSOE_7</Type>
+								</Entry>
+								<Entry Name="Message_7 RxPDO" Index="#x6000" Sub="#x03">
+									<Type GUID="{2438F91B-E188-4ED7-8594-54354F9ED6A4}" Namespace="Safety">FSOE_6</Type>
+								</Entry>
+								<Entry Name="Message_8 RxPDO" Index="#x6000" Sub="#x04">
+									<Type GUID="{2438F91B-E188-4ED7-8594-54354F9ED6A4}" Namespace="Safety">FSOE_6</Type>
+								</Entry>
+								<Entry Name="Message_17 RxPDO" Index="#x6000" Sub="#x05">
+									<Type GUID="{0994ABA9-6F32-EEB9-4362-7774F7A1F4F4}">FSOE_11</Type>
+								</Entry>
+							</Pdo>
+							<Pdo Name="StandardInputs" Index="#x1bf0" Flags="#x2011" SyncMan="3">
+								<Entry Name="Standard Out Var 18" Index="#x7000" Sub="#x01">
+									<Type>BIT</Type>
+								</Entry>
+								<Entry Name="Standard Out Var 19" Index="#x7000" Sub="#x02">
+									<Type>BIT</Type>
+								</Entry>
+								<Entry Name="Standard Out Var 20" Index="#x7000" Sub="#x03">
+									<Type>BIT</Type>
+								</Entry>
+								<Entry>
+									<Type GUID="{18071995-0000-0000-0000-002000000005}">ARRAY [0..4] OF BIT</Type>
+								</Entry>
+							</Pdo>
+							<Pdo Name="StandardOutputs" Index="#x17f0" InOut="1" Flags="#x2011" SyncMan="2">
+								<Entry Name="Standard In Var 1" Index="#x6000" Sub="#x01">
+									<Type>BIT</Type>
+								</Entry>
+								<Entry Name="Standard In Var 2" Index="#x6000" Sub="#x02">
+									<Type>BIT</Type>
+								</Entry>
+								<Entry Name="Standard In Var 3" Index="#x6000" Sub="#x03">
+									<Type>BIT</Type>
+								</Entry>
+								<Entry Name="Standard In Var 22" Index="#x6000" Sub="#x04">
+									<Type>BIT</Type>
+								</Entry>
+								<Entry Name="Standard In Var 25" Index="#x6000" Sub="#x05">
+									<Type>BIT</Type>
+								</Entry>
+								<Entry Name="Standard In Var 26" Index="#x6000" Sub="#x06">
+									<Type>BIT</Type>
+								</Entry>
+								<Entry>
+									<Type GUID="{18071995-0000-0000-0000-002000000002}">ARRAY [0..1] OF BIT</Type>
+								</Entry>
+							</Pdo>
+							<Pdo Name="Function Block Info Data" Index="#x1bf8" Flags="#x2011" SyncMan="3">
+								<Entry Name="TwinSafeGroup1.Network1.FBEstop1 Info Data" Index="#x7000" Sub="#x01">
+									<Type GUID="{2B008623-51EE-EF6A-ACDE-0017707F5BB8}">INFODATA_FB_3</Type>
+								</Entry>
+							</Pdo>
+							<Pdo Name="Connection Info Data" Index="#x1bf9" Flags="#x2011" SyncMan="3">
+								<Entry Name="Message_5 Info Data" Index="#x7000" Sub="#x01">
+									<Type GUID="{0DE0A6FC-5623-3232-5938-18BD97C1D1FF}">INFODATA_3892733135</Type>
+								</Entry>
+								<Entry Name="Message_6 Info Data" Index="#x7000" Sub="#x02">
+									<Type GUID="{0DE0A6FC-5623-3232-5938-18BD97C1D1FF}">INFODATA_3892733135</Type>
+								</Entry>
+								<Entry Name="Message_7 Info Data" Index="#x7000" Sub="#x03">
+									<Type GUID="{2D18A473-33C5-DC53-F2C0-288B149B532F}">INFODATA_2542655572</Type>
+								</Entry>
+								<Entry Name="Message_8 Info Data" Index="#x7000" Sub="#x04">
+									<Type GUID="{CBF8AE7B-680B-65B5-733B-13321DDFA478}">INFODATA_162409835</Type>
+								</Entry>
+								<Entry Name="Message_17 Info Data" Index="#x7000" Sub="#x05">
+									<Type GUID="{3E3046B6-6534-9EEA-8363-FB50E634C35C}">INFODATA_3473041101</Type>
+								</Entry>
+							</Pdo>
+							<Pdo Name="TwinSAFE Group Info Data" Index="#x1bfa" Flags="#x2011" SyncMan="3">
+								<Entry Name="TwinSafeGroup1 Info Data" Index="#x7000" Sub="#x01">
+									<Type GUID="{1553EE7F-0490-4879-4F41-423085C83887}">INFODATA_GRP_3</Type>
+								</Entry>
+							</Pdo>
+							<Pdo Name="Device Info Data" Index="#x1bfe" Flags="#x2011" SyncMan="3">
+								<Entry Name="Project CRC" Index="#x7000" Sub="#x01">
+									<Type>WORD</Type>
+								</Entry>
+								<Entry Name="Serial Number" Index="#x7000" Sub="#x02">
+									<Type>UDINT</Type>
+								</Entry>
+							</Pdo>
 							<Pdo Name="FSLOGIC Inputs" Index="#x1bff" Flags="#x0011" SyncMan="3">
 								<Entry Name="Safe Logic State" Index="#xf100" Sub="#x01">
 									<Type>USINT</Type>
@@ -2890,8 +3645,9 @@ External Setpoint Generation:
 							<SyncMan>000f01004400010003000000000000000000000f44090000</SyncMan>
 							<Fmmu>0000000000000000000f00020100000001000000000000000000000000000000</Fmmu>
 							<Pdo Name="Channel 1" Index="#x1600" InOut="1" Flags="#x0011" SyncMan="0">
-								<Entry Name="Output" Index="#x7000" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.out_oil_pump_enable" Index="#x7000" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[DOUT4 0.3]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 2" Index="#x1601" InOut="1" Flags="#x0011" SyncMan="0">
@@ -2900,8 +3656,9 @@ External Setpoint Generation:
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 3" Index="#x1602" InOut="1" Flags="#x0011" SyncMan="0">
-								<Entry Name="Output" Index="#x7020" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.out_oil_suction_enable" Index="#x7020" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[DOUT5 0.4	]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 4" Index="#x1603" InOut="1" Flags="#x0011" SyncMan="0">
@@ -2938,13 +3695,15 @@ External Setpoint Generation:
 							<SyncMan>001001000000010004000000000000000100001000010000</SyncMan>
 							<Fmmu>0000000000000000001000010100000002000000000000000000000000000000</Fmmu>
 							<Pdo Name="Channel 1" Index="#x1a00" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6000" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.in_pump_running" Index="#x6000" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[ 2.7]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 2" Index="#x1a01" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6010" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.in_suction_running" Index="#x6010" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[ 2.8]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 3" Index="#x1a02" Flags="#x0011" SyncMan="0">
@@ -2986,43 +3745,51 @@ External Setpoint Generation:
 							<SyncMan>001001000000010004000000000000000100001000010000</SyncMan>
 							<Fmmu>0000000000000000001000010100000002000000000000000000000000000000</Fmmu>
 							<Pdo Name="Channel 1" Index="#x1a00" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6000" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.in_oil_low" Index="#x6000" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[ 2.1]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 2" Index="#x1a01" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6010" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.in_oil_high" Index="#x6010" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[ ?]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 3" Index="#x1a02" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6020" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.in_oil_pressure_OK" Index="#x6020" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[ 2.3]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 4" Index="#x1a03" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6030" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.in_oil_overtemperature" Index="#x6030" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[ 2.4]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 5" Index="#x1a04" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6040" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.in_oil_undertemperature" Index="#x6040" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[ 2.5]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 6" Index="#x1a05" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6050" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.in_oilfilter_dirty" Index="#x6050" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[ 2.6]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 7" Index="#x1a06" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6060" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.in_oilpan_maximum" Index="#x6060" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[DIN39 4.6]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 8" Index="#x1a07" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6070" Sub="#x01">
+								<Entry Name="MAIN.HydraulicsControl.in_oil_reserve" Index="#x6070" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[DIN40 4.7]]></Comment>
 								</Entry>
 							</Pdo>
 						</EtherCAT>
@@ -4081,6 +4848,7 @@ Bit1: Value smaller than Limit2]]></Comment>
 								</Entry>
 								<Entry Name="Value" Index="#x6010" Sub="#x11" Flags="#x00020000">
 									<Type>INT</Type>
+									<Comment><![CDATA[BT2]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="AI Compact Channel 2" Index="#x1a03" Flags="#x0010">
@@ -4128,8 +4896,9 @@ Bit1: Value smaller than Limit2]]></Comment>
 								<Entry Name="Status__TxPDO Toggle" Index="#x6020" Sub="#x10">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="Value" Index="#x6020" Sub="#x11" Flags="#x00020000">
+								<Entry Name="MAIN.HydraulicsControl.in_oil_level" Index="#x6020" Sub="#x11" Flags="#x00020000">
 									<Type>INT</Type>
+									<Comment><![CDATA[BT2]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="AI Compact Channel 3" Index="#x1a05" Flags="#x0010">
@@ -4752,6 +5521,138 @@ Bit1: Value smaller than Limit2]]></Comment>
 				<Box Id="26" BoxType="9099" BoxFlags="#x00000020">
 					<Name>Drive 26 (AX5125-0000-0214)</Name>
 					<ImageId>1009</ImageId>
+					<Xml>
+						<AX5XXXDriveTool>
+							<InitCmds>
+								<InitCmd DriveNo="0" IDN="30" MotorDataLevel="0" DisableMode="0">
+									<RetainData>3e003e004669726d776172653a2076322e313420284275696c64203030303629202f20426f6f746c6f616465723a2076322e303220284275696c6420303030322900</RetainData>
+								</InitCmd>
+								<InitCmd DriveNo="0" IDN="432" MotorDataLevel="0" DisableMode="0">
+									<RetainData>1200120053657269616c233a20303030353330353936</RetainData>
+								</InitCmd>
+								<InitCmd DriveNo="0" IDN="33088" MotorDataLevel="0" DisableMode="0">
+									<RetainData>24002400d6000600ca0002002c9d5b002c9d5b00c8000500660000001b534c002260000000000000</RetainData>
+								</InitCmd>
+								<InitCmd DriveNo="0" IDN="33093" MotorDataLevel="0" DisableMode="0">
+									<RetainData>160016004a756e2020322032303232202c2031363a32303a3538</RetainData>
+								</InitCmd>
+							</InitCmds>
+							<StatusBar>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>135</Index>
+								</Element>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>390</Index>
+									<Width>85</Width>
+								</Element>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>95</Index>
+									<Width>100</Width>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>32821</Index>
+								</Element>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>32973</Index>
+									<SubItem>Bit0</SubItem>
+								</Element>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>32973</Index>
+									<SubItem>Bit3</SubItem>
+								</Element>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>384</Index>
+								</Element>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>135</Index>
+									<SubItem>ActualOperationMode</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33080</Index>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>32865</Index>
+									<SubItem>MotorBrakeUnlocked</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>380</Index>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>381</Index>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>32831</Index>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33221</Index>
+									<SubItem>Active</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33221</Index>
+									<SubItem>ReadyToEnable</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33221</Index>
+									<SubItem>IGreaterThanInom</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33221</Index>
+									<SubItem>IPeakLimitReached</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33221</Index>
+									<SubItem>IreductionActive</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33221</Index>
+									<SubItem>UmaxReached</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33221</Index>
+									<SubItem>FieldWeakeningActive</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33271</Index>
+									<SubItem>Active</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33271</Index>
+									<SubItem>ReadyToEnable</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33271</Index>
+									<SubItem>PosDirectionEnabled</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33271</Index>
+									<SubItem>NegDirectionEnabled</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33271</Index>
+									<SubItem>AccDecLimitationActive</SubItem>
+								</Element>
+								<Element option="1" SortOder="0" SubIdx="0">
+									<Index>33271</Index>
+									<SubItem>vLimitationActive</SubItem>
+								</Element>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>33271</Index>
+									<SubItem>vZeroReached</SubItem>
+								</Element>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>33271</Index>
+									<SubItem>CmdMovPositive</SubItem>
+								</Element>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>33271</Index>
+									<SubItem>CmdMovNegative</SubItem>
+								</Element>
+								<Element option="0" SortOder="0" SubIdx="0">
+									<Index>32983</Index>
+								</Element>
+							</StatusBar>
+						</AX5XXXDriveTool>
+					</Xml>
 					<EtherCAT SlaveType="2" PdiType="#x0c08" MboxDataLinkLayer="true" StateMBoxPolling="true" CfgModeSafeOp="true" DownloadPdoCfg="true" CycleMBoxPollingTime="0" FoeType="1" SoeChannels="1" VendorId="#x00000002" ProductCode="#x14056012" RevisionNo="#x00d60000" InfoDataAddr="true" InfoDataSoeDS401="true" InfoDataDcTimes="true" TimeoutStateChange2="15000" TimeoutStateChange3="10000" TimeoutStateChange4="500" AutoRestoreAfterWcOk="true" CheckRevisionNoType="4" PortPhys="12305" IdentificationAdo="308" MaxSlotCount="256" MaxSlotGroupCount="1" SlotPdoIncrement="1" SlotIndexIncrement="16" Type="AX5125-0000-0214 EtherCAT Drive (SoE, 1 Ch.)" Desc="AX5125-0000-0214" PortABoxInfo="#x00ffffff">
 						<SyncMan>001880002600010001000000800080008000001826010000</SyncMan>
 						<SyncMan>001a80002200010002000000800080008000001a22010000</SyncMan>
@@ -4774,6 +5675,7 @@ Bit1: Value smaller than Limit2]]></Comment>
 						<MBoxUserCmdData>020005000a0000001700000000000000000000000000000000000000000000000340020000000000d0075473637963202d20436f6d6d206379636c652074696d6500</MBoxUserCmdData>
 						<MBoxUserCmdData>020005000a0000000e000000000000000000000000000000000000000000000003402000000000000b004f7065726174696f6e206d6f646500</MBoxUserCmdData>
 						<MBoxUserCmdData>004005000a0000001e0000000000000000000000000000000000000000000000034030810000000001005265706f727420646961676e6f737469637320696e666f726d6174696f6e00</MBoxUserCmdData>
+						<MBoxUserCmdData>020005000a0000001800000000000000000000000000000000000000000000000340d087000000000200436f6e6669677572656420736166657479206f7074696f6e00</MBoxUserCmdData>
 						<Pdo Name="AT" Index="#x0010" Flags="#x0001" SyncMan="3">
 							<Entry Name="Drive status word" Index="#x0087" Flags="#x00000800">
 								<Type>UINT</Type>
@@ -4806,138 +5708,195 @@ Bit1: Value smaller than Limit2]]></Comment>
 							<Fmmu>0000000000000000001900010100000002000000000000000000000000000000</Fmmu>
 							<Fmmu>00000000000000000d0800010100000003000000000000000000000000000000</Fmmu>
 							<BootStrapData>0010f400f410f400</BootStrapData>
-							<MBoxUserCmdData>004003000c00000000000000030000000400090300000000000000000000000020102f00040000001703010000</MBoxUserCmdData>
-							<Pdo Name="Inputs (Statusword)" Index="#x1a00" Flags="#x0081" SyncMan="3">
-								<Entry Name="FSOE__FSOE Command" Index="#xe600" Sub="#x01">
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030002000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000300120002200000010000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030022000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301020000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000301120000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301220000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301320000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301420000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c0000001700000000004000000000000000000000000000000000003020200004000000b4000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000302120000400000014000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030222000010000000a646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030302000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030402000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304120000100000001646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304320000100000064646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030002f000100000001646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030012f000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030022f000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030032f000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304266000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003051660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000305366002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003054660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000306a66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003071660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003072660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000b0000001700000000004000000000000000000000000000000000003076660003000000080000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000307966002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003081660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000308366002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000308566002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003086660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000308a66002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003091660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000309366002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003094660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000309866002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a266002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a466002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a566002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030aa66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ac66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ad66000400000001004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ba66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030bc66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030bd66002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c266002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c466002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c566002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ca66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030cc66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030cd66000400000001004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030d366000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030e266002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030e466002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ea66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ec66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>004003000c00000000000000000000000500090300000000000000000000000020102f00040000001703010000</MBoxUserCmdData>
+							<Pdo Name="Inputs (Statusword)" Index="#x1a00" Flags="#x00c1" SyncMan="3">
+								<Entry Name="FSOE__FSOE Command" BitLen="8" Index="#xe600" Sub="#x01">
 									<Type>USINT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 STO" Index="#x6640">
+								<Entry Name="FSOE__Axis 1 STO" BitLen="1" Index="#x6640">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSM(1)" Index="#x66e0" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SSM(1)" BitLen="1" Index="#x66e0" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSM(2)" Index="#x66e0" Sub="#x02">
+								<Entry Name="FSOE__Axis 1 SSM(2)" BitLen="1" Index="#x66e0" Sub="#x02">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SOS(1)" Index="#x6668" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SOS(1)" BitLen="1" Index="#x6668" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSR(1)" Index="#x6680" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SSR(1)" BitLen="1" Index="#x6680" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_p" Index="#x66d0">
+								<Entry Name="FSOE__Axis 1 SDI_p" BitLen="1" Index="#x66d0">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_n" Index="#x66d1">
+								<Entry Name="FSOE__Axis 1 SDI_n" BitLen="1" Index="#x66d1">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 Error" Index="#x6632">
+								<Entry Name="FSOE__Axis 1 Error" BitLen="1" Index="#x6632">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE Slave CRC_0" Index="#xe600" Sub="#x03">
+								<Entry Name="FSOE__FSOE Slave CRC_0" BitLen="16" Index="#xe600" Sub="#x03">
 									<Type>UINT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE ConnID" Index="#xe600" Sub="#x02">
+								<Entry Name="FSOE__FSOE ConnID" BitLen="16" Index="#xe600" Sub="#x02">
 									<Type>UINT</Type>
 								</Entry>
 							</Pdo>
-							<Pdo Name="Outputs (Controlword)" Index="#x1600" InOut="1" Flags="#x0081" SyncMan="2">
-								<Entry Name="FSOE__FSOE Command" Index="#xe700" Sub="#x01">
+							<Pdo Name="Outputs (Controlword)" Index="#x1600" InOut="1" Flags="#x00c1" SyncMan="2">
+								<Entry Name="FSOE__FSOE Command" BitLen="8" Index="#xe700" Sub="#x01">
 									<Type>USINT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 STO" Index="#x6640">
+								<Entry Name="FSOE__Axis 1 STO" BitLen="1" Index="#x6640">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SS1(1)" Index="#x6650" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SS1(1)" BitLen="1" Index="#x6650" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SS2(1)" Index="#x6670" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SS2(1)" BitLen="1" Index="#x6670" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SOS(1)" Index="#x6668" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SOS(1)" BitLen="1" Index="#x6668" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSR(1)" Index="#x6680" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SSR(1)" BitLen="1" Index="#x6680" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_p" Index="#x66d0">
+								<Entry Name="FSOE__Axis 1 SDI_p" BitLen="1" Index="#x66d0">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_n" Index="#x66d1">
+								<Entry Name="FSOE__Axis 1 SDI_n" BitLen="1" Index="#x66d1">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 Error_Ack" Index="#x6632">
+								<Entry Name="FSOE__Axis 1 Error_Ack" BitLen="1" Index="#x6632">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE Master CRC_0" Index="#xe700" Sub="#x03">
+								<Entry Name="FSOE__FSOE Master CRC_0" BitLen="16" Index="#xe700" Sub="#x03">
 									<Type>UINT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE ConnID" Index="#xe700" Sub="#x02">
+								<Entry Name="FSOE__FSOE ConnID" BitLen="16" Index="#xe700" Sub="#x02">
 									<Type>UINT</Type>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Standard Inputs Channel 1" Index="#x1a01" Flags="#x0091" SyncMan="3">
-								<Entry Name="Position Actual Value" Index="#x6611">
+								<Entry Name="Position Actual Value" BitLen="32" Index="#x6611">
 									<Type>DINT</Type>
 								</Entry>
-								<Entry Name="Velocity Actual Value" Index="#x6613">
+								<Entry Name="Velocity Actual Value" BitLen="32" Index="#x6613">
 									<Type>DINT</Type>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Standard Outputs Channel 1" Index="#x1601" InOut="1" Flags="#x0091" SyncMan="2">
-								<Entry Name="Position Actual Value" Index="#x2050">
+								<Entry Name="Position Actual Value" BitLen="32" Index="#x2050">
 									<Type>DINT</Type>
 								</Entry>
-								<Entry Name="Velocity Actual Value" Index="#x2051">
+								<Entry Name="Velocity Actual Value" BitLen="32" Index="#x2051">
 									<Type>DINT</Type>
 								</Entry>
 							</Pdo>
@@ -4995,6 +5954,7 @@ Bit1: Value smaller than Limit2]]></Comment>
 						<MBoxUserCmdData>020005000a0000001700000000000000000000000000000000000000000000000340020000000000d0075473637963202d20436f6d6d206379636c652074696d6500</MBoxUserCmdData>
 						<MBoxUserCmdData>020005000a0000000e000000000000000000000000000000000000000000000003402000000000000b004f7065726174696f6e206d6f646500</MBoxUserCmdData>
 						<MBoxUserCmdData>004005000a0000001e0000000000000000000000000000000000000000000000034030810000000001005265706f727420646961676e6f737469637320696e666f726d6174696f6e00</MBoxUserCmdData>
+						<MBoxUserCmdData>020005000a0000001800000000000000000000000000000000000000000000000340d087000000000200436f6e6669677572656420736166657479206f7074696f6e00</MBoxUserCmdData>
 						<Pdo Name="AT" Index="#x0010" Flags="#x0001" SyncMan="3">
 							<Entry Name="Drive status word" Index="#x0087" Flags="#x00000800">
 								<Type>UINT</Type>
@@ -5027,138 +5987,195 @@ Bit1: Value smaller than Limit2]]></Comment>
 							<Fmmu>0000000000000000001900010100000002000000000000000000000000000000</Fmmu>
 							<Fmmu>00000000000000000d0800010100000003000000000000000000000000000000</Fmmu>
 							<BootStrapData>0010f400f410f400</BootStrapData>
-							<MBoxUserCmdData>004003000c00000000000000030000000600090300000000000000000000000020102f00040000001703010000</MBoxUserCmdData>
-							<Pdo Name="Inputs (Statusword)" Index="#x1a00" Flags="#x0081" SyncMan="3">
-								<Entry Name="FSOE__FSOE Command" Index="#xe600" Sub="#x01">
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030002000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000300120002200000010000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030022000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301020000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000301120000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301220000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301320000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301420000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c0000001700000000004000000000000000000000000000000000003020200004000000b4000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000302120000400000014000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030222000010000000a646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030302000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030402000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304120000100000001646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304320000100000064646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030002f000100000001646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030012f000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030022f000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030032f000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304266000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003051660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000305366002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003054660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000306a66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003071660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003072660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000b0000001700000000004000000000000000000000000000000000003076660003000000080000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000307966002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003081660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000308366002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000308566002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003086660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000308a66002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003091660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000309366002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003094660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000309866002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a266002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a466002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a566002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030aa66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ac66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ad66000400000001004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ba66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030bc66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030bd66002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c266002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c466002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c566002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ca66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030cc66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030cd66000400000001004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030d366000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030e266002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030e466002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ea66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ec66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>004003000c00000000000000000000000700090300000000000000000000000020102f00040000001703010000</MBoxUserCmdData>
+							<Pdo Name="Inputs (Statusword)" Index="#x1a00" Flags="#x00c1" SyncMan="3">
+								<Entry Name="FSOE__FSOE Command" BitLen="8" Index="#xe600" Sub="#x01">
 									<Type>USINT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 STO" Index="#x6640">
+								<Entry Name="FSOE__Axis 1 STO" BitLen="1" Index="#x6640">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSM(1)" Index="#x66e0" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SSM(1)" BitLen="1" Index="#x66e0" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSM(2)" Index="#x66e0" Sub="#x02">
+								<Entry Name="FSOE__Axis 1 SSM(2)" BitLen="1" Index="#x66e0" Sub="#x02">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SOS(1)" Index="#x6668" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SOS(1)" BitLen="1" Index="#x6668" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSR(1)" Index="#x6680" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SSR(1)" BitLen="1" Index="#x6680" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_p" Index="#x66d0">
+								<Entry Name="FSOE__Axis 1 SDI_p" BitLen="1" Index="#x66d0">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_n" Index="#x66d1">
+								<Entry Name="FSOE__Axis 1 SDI_n" BitLen="1" Index="#x66d1">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 Error" Index="#x6632">
+								<Entry Name="FSOE__Axis 1 Error" BitLen="1" Index="#x6632">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE Slave CRC_0" Index="#xe600" Sub="#x03">
+								<Entry Name="FSOE__FSOE Slave CRC_0" BitLen="16" Index="#xe600" Sub="#x03">
 									<Type>UINT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE ConnID" Index="#xe600" Sub="#x02">
+								<Entry Name="FSOE__FSOE ConnID" BitLen="16" Index="#xe600" Sub="#x02">
 									<Type>UINT</Type>
 								</Entry>
 							</Pdo>
-							<Pdo Name="Outputs (Controlword)" Index="#x1600" InOut="1" Flags="#x0081" SyncMan="2">
-								<Entry Name="FSOE__FSOE Command" Index="#xe700" Sub="#x01">
+							<Pdo Name="Outputs (Controlword)" Index="#x1600" InOut="1" Flags="#x00c1" SyncMan="2">
+								<Entry Name="FSOE__FSOE Command" BitLen="8" Index="#xe700" Sub="#x01">
 									<Type>USINT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 STO" Index="#x6640">
+								<Entry Name="FSOE__Axis 1 STO" BitLen="1" Index="#x6640">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SS1(1)" Index="#x6650" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SS1(1)" BitLen="1" Index="#x6650" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SS2(1)" Index="#x6670" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SS2(1)" BitLen="1" Index="#x6670" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SOS(1)" Index="#x6668" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SOS(1)" BitLen="1" Index="#x6668" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSR(1)" Index="#x6680" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SSR(1)" BitLen="1" Index="#x6680" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_p" Index="#x66d0">
+								<Entry Name="FSOE__Axis 1 SDI_p" BitLen="1" Index="#x66d0">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_n" Index="#x66d1">
+								<Entry Name="FSOE__Axis 1 SDI_n" BitLen="1" Index="#x66d1">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 Error_Ack" Index="#x6632">
+								<Entry Name="FSOE__Axis 1 Error_Ack" BitLen="1" Index="#x6632">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE Master CRC_0" Index="#xe700" Sub="#x03">
+								<Entry Name="FSOE__FSOE Master CRC_0" BitLen="16" Index="#xe700" Sub="#x03">
 									<Type>UINT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE ConnID" Index="#xe700" Sub="#x02">
+								<Entry Name="FSOE__FSOE ConnID" BitLen="16" Index="#xe700" Sub="#x02">
 									<Type>UINT</Type>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Standard Inputs Channel 1" Index="#x1a01" Flags="#x0091" SyncMan="3">
-								<Entry Name="Position Actual Value" Index="#x6611">
+								<Entry Name="Position Actual Value" BitLen="32" Index="#x6611">
 									<Type>DINT</Type>
 								</Entry>
-								<Entry Name="Velocity Actual Value" Index="#x6613">
+								<Entry Name="Velocity Actual Value" BitLen="32" Index="#x6613">
 									<Type>DINT</Type>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Standard Outputs Channel 1" Index="#x1601" InOut="1" Flags="#x0091" SyncMan="2">
-								<Entry Name="Position Actual Value" Index="#x2050">
+								<Entry Name="Position Actual Value" BitLen="32" Index="#x2050">
 									<Type>DINT</Type>
 								</Entry>
-								<Entry Name="Velocity Actual Value" Index="#x2051">
+								<Entry Name="Velocity Actual Value" BitLen="32" Index="#x2051">
 									<Type>DINT</Type>
 								</Entry>
 							</Pdo>
@@ -5218,6 +6235,7 @@ Bit1: Value smaller than Limit2]]></Comment>
 						<MBoxUserCmdData>020005000a0000000e000000000000000000000000000000000000000000000023402000000000000b004f7065726174696f6e206d6f646500</MBoxUserCmdData>
 						<MBoxUserCmdData>004005000a0000001e0000000000000000000000000000000000000000000000034030810000000001005265706f727420646961676e6f737469637320696e666f726d6174696f6e00</MBoxUserCmdData>
 						<MBoxUserCmdData>004005000a0000001e0000000000000000000000000000000000000000000000234030810000000001005265706f727420646961676e6f737469637320696e666f726d6174696f6e00</MBoxUserCmdData>
+						<MBoxUserCmdData>020005000a0000001800000000000000000000000000000000000000000000000340d087000000000200436f6e6669677572656420736166657479206f7074696f6e00</MBoxUserCmdData>
 						<Pdo Name="AT 1" Index="#x0010" Flags="#x0001" SyncMan="3">
 							<Entry Name="Drive status word" Index="#x0087" Flags="#x00000800">
 								<Type>UINT</Type>
@@ -5269,256 +6287,366 @@ Bit1: Value smaller than Limit2]]></Comment>
 							<Fmmu>0000000000000000001900010100000002000000000000000000000000000000</Fmmu>
 							<Fmmu>00000000000000000d0800010100000003000000000000000000000000000000</Fmmu>
 							<BootStrapData>0010f400f410f400</BootStrapData>
-							<MBoxUserCmdData>004003000c00000000000000030000000800090300000000000000000000000020102f00040000001703020000</MBoxUserCmdData>
-							<Pdo Name="Inputs (Statusword)" Index="#x1a00" Flags="#x0081" SyncMan="3">
-								<Entry Name="FSOE__FSOE Command" Index="#xe600" Sub="#x01">
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030002000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000300120002200000010000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030022000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301020000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000301120000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301220000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301320000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301420000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c0000001700000000004000000000000000000000000000000000003020200004000000b4000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000302120000400000014000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030222000010000000a646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030302000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030402000020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304120000100000001646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304320000100000064646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030002f000100000002646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030012f000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030022f000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030032f000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304266000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003051660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000305366002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003054660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000306a66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003071660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003072660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000b0000001700000000004000000000000000000000000000000000003076660003000000080000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000307966002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003081660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000308366002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000308566002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003086660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000308a66002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003091660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000309366002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a0000001700000000004000000000000000000000000000000000003094660012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000309866002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a266002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a466002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a566002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030aa66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ac66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ad66000400000001004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ba66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030bc66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030bd66002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c266002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c466002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c566002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ca66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030cc66000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030cd66000400000001004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030d366000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030e266002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030e466002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ea66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ec66002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030002800020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000300128002200000010000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030022800020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301028000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000301128000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301228000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301328000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000301428000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c0000001700000000004000000000000000000000000000000000003020280004000000b4000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c000000170000000000400000000000000000000000000000000000302128000400000014000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030222800010000000a646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030302800020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000017000000000040000000000000000000000000000000000030402800020000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304128000100000001646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>0200030009000000170000000000400000000000000000000000000000000000304328000100000064646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000900000017000000000040000000000000000000000000000000000030426e000100000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a00000017000000000040000000000000000000000000000000000030516e0012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030536e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a00000017000000000040000000000000000000000000000000000030546e0012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000306a6e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a00000017000000000040000000000000000000000000000000000030716e0012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a00000017000000000040000000000000000000000000000000000030726e0012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000b00000017000000000040000000000000000000000000000000000030766e0003000000080000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030796e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a00000017000000000040000000000000000000000000000000000030816e0012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030836e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030856e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a00000017000000000040000000000000000000000000000000000030866e0012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a000000170000000000400000000000000000000000000000000000308a6e002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a00000017000000000040000000000000000000000000000000000030916e0012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030936e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003001a00000017000000000040000000000000000000000000000000000030946e0012000000080000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030986e002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a26e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a46e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030a56e002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030aa6e000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ac6e000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ad6e000400000001004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ba6e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030bc6e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030bd6e002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c26e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c46e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030c56e002200000008000100406601004066010040660100406601004066010040660100406601004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030ca6e000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030cc6e000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030cd6e000400000001004066646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000017000000000040000000000000000000000000000000000030d36e000400000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030e26e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030e46e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ea6e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>020003002a00000017000000000040000000000000000000000000000000000030ec6e002200000008000000000000000000000000000000000000000000000000000000000000000000646f776e6c6f6164205361666520506172616d6574657200</MBoxUserCmdData>
+							<MBoxUserCmdData>004003000c00000000000000000000000900090300000000000000000000000020102f00040000001703020000</MBoxUserCmdData>
+							<Pdo Name="Inputs (Statusword)" Index="#x1a00" Flags="#x00c1" SyncMan="3">
+								<Entry Name="FSOE__FSOE Command" BitLen="8" Index="#xe600" Sub="#x01">
 									<Type>USINT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 STO" Index="#x6640">
+								<Entry Name="FSOE__Axis 1 STO" BitLen="1" Index="#x6640">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSM(1)" Index="#x66e0" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SSM(1)" BitLen="1" Index="#x66e0" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSM(2)" Index="#x66e0" Sub="#x02">
+								<Entry Name="FSOE__Axis 1 SSM(2)" BitLen="1" Index="#x66e0" Sub="#x02">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SOS(1)" Index="#x6668" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SOS(1)" BitLen="1" Index="#x6668" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSR(1)" Index="#x6680" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SSR(1)" BitLen="1" Index="#x6680" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_p" Index="#x66d0">
+								<Entry Name="FSOE__Axis 1 SDI_p" BitLen="1" Index="#x66d0">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_n" Index="#x66d1">
+								<Entry Name="FSOE__Axis 1 SDI_n" BitLen="1" Index="#x66d1">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 Error" Index="#x6632">
+								<Entry Name="FSOE__Axis 1 Error" BitLen="1" Index="#x6632">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE Slave CRC_0" Index="#xe600" Sub="#x03">
+								<Entry Name="FSOE__FSOE Slave CRC_0" BitLen="16" Index="#xe600" Sub="#x03">
 									<Type>UINT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 STO" Index="#x6e40">
+								<Entry Name="FSOE__Axis 2 STO" BitLen="1" Index="#x6e40">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SSM(1)" Index="#x6ee0" Sub="#x01">
+								<Entry Name="FSOE__Axis 2 SSM(1)" BitLen="1" Index="#x6ee0" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SSM(2)" Index="#x6ee0" Sub="#x02">
+								<Entry Name="FSOE__Axis 2 SSM(2)" BitLen="1" Index="#x6ee0" Sub="#x02">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SOS(1)" Index="#x6e68" Sub="#x01">
+								<Entry Name="FSOE__Axis 2 SOS(1)" BitLen="1" Index="#x6e68" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SSR(1)" Index="#x6e80" Sub="#x01">
+								<Entry Name="FSOE__Axis 2 SSR(1)" BitLen="1" Index="#x6e80" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SDI_p" Index="#x6ed0">
+								<Entry Name="FSOE__Axis 2 SDI_p" BitLen="1" Index="#x6ed0">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SDI_n" Index="#x6ed1">
+								<Entry Name="FSOE__Axis 2 SDI_n" BitLen="1" Index="#x6ed1">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 Error" Index="#x6e32">
+								<Entry Name="FSOE__Axis 2 Error" BitLen="1" Index="#x6e32">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE Slave CRC_1" Index="#xe600" Sub="#x04">
+								<Entry Name="FSOE__FSOE Slave CRC_1" BitLen="16" Index="#xe600" Sub="#x04">
 									<Type>UINT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE ConnID" Index="#xe600" Sub="#x02">
+								<Entry Name="FSOE__FSOE ConnID" BitLen="16" Index="#xe600" Sub="#x02">
 									<Type>UINT</Type>
 								</Entry>
 							</Pdo>
-							<Pdo Name="Outputs (Controlword)" Index="#x1600" InOut="1" Flags="#x0081" SyncMan="2">
-								<Entry Name="FSOE__FSOE Command" Index="#xe700" Sub="#x01">
+							<Pdo Name="Outputs (Controlword)" Index="#x1600" InOut="1" Flags="#x00c1" SyncMan="2">
+								<Entry Name="FSOE__FSOE Command" BitLen="8" Index="#xe700" Sub="#x01">
 									<Type>USINT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 STO" Index="#x6640">
+								<Entry Name="FSOE__Axis 1 STO" BitLen="1" Index="#x6640">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SS1(1)" Index="#x6650" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SS1(1)" BitLen="1" Index="#x6650" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SS2(1)" Index="#x6670" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SS2(1)" BitLen="1" Index="#x6670" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SOS(1)" Index="#x6668" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SOS(1)" BitLen="1" Index="#x6668" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SSR(1)" Index="#x6680" Sub="#x01">
+								<Entry Name="FSOE__Axis 1 SSR(1)" BitLen="1" Index="#x6680" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_p" Index="#x66d0">
+								<Entry Name="FSOE__Axis 1 SDI_p" BitLen="1" Index="#x66d0">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 SDI_n" Index="#x66d1">
+								<Entry Name="FSOE__Axis 1 SDI_n" BitLen="1" Index="#x66d1">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 1 Error_Ack" Index="#x6632">
+								<Entry Name="FSOE__Axis 1 Error_Ack" BitLen="1" Index="#x6632">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE Master CRC_0" Index="#xe700" Sub="#x03">
+								<Entry Name="FSOE__FSOE Master CRC_0" BitLen="16" Index="#xe700" Sub="#x03">
 									<Type>UINT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 STO" Index="#x6e40">
+								<Entry Name="FSOE__Axis 2 STO" BitLen="1" Index="#x6e40">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SS1(1)" Index="#x6e50" Sub="#x01">
+								<Entry Name="FSOE__Axis 2 SS1(1)" BitLen="1" Index="#x6e50" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SS2(1)" Index="#x6e70" Sub="#x01">
+								<Entry Name="FSOE__Axis 2 SS2(1)" BitLen="1" Index="#x6e70" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SOS(1)" Index="#x6e68" Sub="#x01">
+								<Entry Name="FSOE__Axis 2 SOS(1)" BitLen="1" Index="#x6e68" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SSR(1)" Index="#x6e80" Sub="#x01">
+								<Entry Name="FSOE__Axis 2 SSR(1)" BitLen="1" Index="#x6e80" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SDI_p" Index="#x6ed0">
+								<Entry Name="FSOE__Axis 2 SDI_p" BitLen="1" Index="#x6ed0">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 SDI_n" Index="#x6ed1">
+								<Entry Name="FSOE__Axis 2 SDI_n" BitLen="1" Index="#x6ed1">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__Axis 2 Error_Ack" Index="#x6e32">
+								<Entry Name="FSOE__Axis 2 Error_Ack" BitLen="1" Index="#x6e32">
 									<Type>BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__">
+								<Entry BitLen="1">
 									<Type GUID="{18071995-0000-0000-0000-002000000001}">ARRAY [0..0] OF BIT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE Master CRC_1" Index="#xe700" Sub="#x04">
+								<Entry Name="FSOE__FSOE Master CRC_1" BitLen="16" Index="#xe700" Sub="#x04">
 									<Type>UINT</Type>
 								</Entry>
-								<Entry Name="FSOE__FSOE ConnID" Index="#xe700" Sub="#x02">
+								<Entry Name="FSOE__FSOE ConnID" BitLen="16" Index="#xe700" Sub="#x02">
 									<Type>UINT</Type>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Standard Inputs Channel 1" Index="#x1a01" Flags="#x0091" SyncMan="3">
-								<Entry Name="Position Actual Value" Index="#x6611">
+								<Entry Name="Position Actual Value" BitLen="32" Index="#x6611">
 									<Type>DINT</Type>
 								</Entry>
-								<Entry Name="Velocity Actual Value" Index="#x6613">
+								<Entry Name="Velocity Actual Value" BitLen="32" Index="#x6613">
 									<Type>DINT</Type>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Standard Inputs Channel 2" Index="#x1a02" Flags="#x0091" SyncMan="3">
-								<Entry Name="Position Actual Value" Index="#x6e11">
+								<Entry Name="Position Actual Value" BitLen="32" Index="#x6e11">
 									<Type>DINT</Type>
 								</Entry>
-								<Entry Name="Velocity Actual Value" Index="#x6e13">
+								<Entry Name="Velocity Actual Value" BitLen="32" Index="#x6e13">
 									<Type>DINT</Type>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Standard Outputs Channel 1" Index="#x1601" InOut="1" Flags="#x0091" SyncMan="2">
-								<Entry Name="Position Actual Value" Index="#x2050">
+								<Entry Name="Position Actual Value" BitLen="32" Index="#x2050">
 									<Type>DINT</Type>
 								</Entry>
-								<Entry Name="Velocity Actual Value" Index="#x2051">
+								<Entry Name="Velocity Actual Value" BitLen="32" Index="#x2051">
 									<Type>DINT</Type>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Standard Outputs Channel 2" Index="#x1602" InOut="1" Flags="#x0091" SyncMan="2">
-								<Entry Name="Position Actual Value" Index="#x2850">
+								<Entry Name="Position Actual Value" BitLen="32" Index="#x2850">
 									<Type>DINT</Type>
 								</Entry>
-								<Entry Name="Velocity Actual Value" Index="#x2851">
+								<Entry Name="Velocity Actual Value" BitLen="32" Index="#x2851">
 									<Type>DINT</Type>
 								</Entry>
 							</Pdo>
@@ -5562,6 +6690,30 @@ Bit1: Value smaller than Limit2]]></Comment>
 		<MappingInfo Identifier="{00000000-0010-0304-5000-040310000403}" Id="#x02030010"/>
 		<MappingInfo Identifier="{00000000-0030-0304-5000-040330000403}" Id="#x02030020"/>
 		<MappingInfo Identifier="{00000000-0040-0304-5000-040341000403}" Id="#x02030030"/>
+		<MappingInfo Identifier="{03040060-0030-0304-6000-040330000403}" Id="#x02030060" Watchdog="04000000140000000400000004000000"/>
+		<MappingInfo Identifier="{03040060-0060-0304-6000-040360000403}" Id="#x02030050" Watchdog="04000000040000000400000004000000"/>
+		<OwnerA Name="TIID^Device 1 (EtherCAT)">
+			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 6 (EL1904)">
+				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionInputs^Message_7 TxPDO" VarB="Module 1 (FSOES)^RxPDO^FSOE"/>
+				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionOutputs^Message_7 RxPDO" VarB="Module 1 (FSOES)^TxPDO^FSOE"/>
+			</OwnerB>
+			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 7 (EL2904)">
+				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionInputs^Message_8 TxPDO" VarB="Module 1 (FSOES)^RxPDO^FSOE"/>
+				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionOutputs^Message_8 RxPDO" VarB="Module 1 (FSOES)^TxPDO^FSOE"/>
+			</OwnerB>
+			<OwnerB Name="TIID^Device 2 (EtherCAT)^Drive 26 (AX5125-0000-0214)^Term 27 (AX5805)">
+				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionInputs^Message_5 TxPDO" VarB="Module 1 (Safety Process Data, 1 axis)^Outputs (Controlword)^FSOE"/>
+				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionOutputs^Message_5 RxPDO" VarB="Module 1 (Safety Process Data, 1 axis)^Inputs (Statusword)^FSOE"/>
+			</OwnerB>
+			<OwnerB Name="TIID^Device 2 (EtherCAT)^Drive 28 (AX5125-0000-0214)^Term 29 (AX5805)">
+				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionInputs^Message_6 TxPDO" VarB="Module 1 (Safety Process Data, 1 axis)^Outputs (Controlword)^FSOE"/>
+				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionOutputs^Message_6 RxPDO" VarB="Module 1 (Safety Process Data, 1 axis)^Inputs (Statusword)^FSOE"/>
+			</OwnerB>
+			<OwnerB Name="TIID^Device 2 (EtherCAT)^Drive 30 (AX5206-0000-0214)^Term 31 (AX5805)">
+				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionInputs^Message_17 TxPDO" VarB="Module 1 (Safety Process Data, 2 axis)^Outputs (Controlword)^FSOE"/>
+				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionOutputs^Message_17 RxPDO" VarB="Module 1 (Safety Process Data, 2 axis)^Inputs (Statusword)^FSOE"/>
+			</OwnerB>
+		</OwnerA>
 		<OwnerA Name="TINC^NC-Task 1 SAF^Axes^Axis 1">
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 12 (EL7342)">
 				<Link VarA="Drive^Inputs^In^nState1" VarB="DCM Status Channel 1^Status^Error" Size="1" OffsA="3"/>
@@ -5707,6 +6859,19 @@ Bit1: Value smaller than Limit2]]></Comment>
 			</OwnerB>
 		</OwnerA>
 		<OwnerA Name="TIPC^HalfBROT^HalfBROT Instance">
+			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 10 (EL1008)">
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_high" VarB="Channel 2^MAIN.HydraulicsControl.in_oil_high"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_low" VarB="Channel 1^MAIN.HydraulicsControl.in_oil_low"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_overtemperature" VarB="Channel 4^MAIN.HydraulicsControl.in_oil_overtemperature"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_pressure_OK" VarB="Channel 3^MAIN.HydraulicsControl.in_oil_pressure_OK"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_reserve" VarB="Channel 8^MAIN.HydraulicsControl.in_oil_reserve"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_undertemperature" VarB="Channel 5^MAIN.HydraulicsControl.in_oil_undertemperature"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oilfilter_dirty" VarB="Channel 6^MAIN.HydraulicsControl.in_oilfilter_dirty"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oilpan_maximum" VarB="Channel 7^MAIN.HydraulicsControl.in_oilpan_maximum"/>
+			</OwnerB>
+			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 13 (EL3164)">
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_level" VarB="AI Standard Channel 3^MAIN.HydraulicsControl.in_oil_level"/>
+			</OwnerB>
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 16 (EL2004)">
 				<Link VarA="PlcTask Outputs^MAIN.CoverControl.close_cover1" VarB="Channel 2^MAIN.CoverControl.close_cover1"/>
 				<Link VarA="PlcTask Outputs^MAIN.CoverControl.close_cover2" VarB="Channel 4^MAIN.CoverControl.close_cover2"/>
@@ -5724,6 +6889,19 @@ Bit1: Value smaller than Limit2]]></Comment>
 				<Link VarA="PlcTask Inputs^MAIN.CoverControl.limit_cover2_open" VarB="Channel 3^MAIN.CoverControl.limit_cover2_open"/>
 				<Link VarA="PlcTask Inputs^MAIN.CoverControl.limit_cover3_closed" VarB="Channel 6^MAIN.CoverControl.limit_cover3_closed"/>
 				<Link VarA="PlcTask Inputs^MAIN.CoverControl.limit_cover3_open" VarB="Channel 5^MAIN.CoverControl.limit_cover3_open"/>
+			</OwnerB>
+			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 5 (EL6910)">
+				<Link VarA="PlcTask Outputs^MAIN.ErrAck" VarB="StandardOutputs^Standard In Var 1"/>
+				<Link VarA="PlcTask Outputs^MAIN.Restart" VarB="StandardOutputs^Standard In Var 3"/>
+				<Link VarA="PlcTask Outputs^MAIN.Run" VarB="StandardOutputs^Standard In Var 2"/>
+			</OwnerB>
+			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 8 (EL2008)">
+				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.out_oil_pump_enable" VarB="Channel 1^MAIN.HydraulicsControl.out_oil_pump_enable"/>
+				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.out_oil_suction_enable" VarB="Channel 3^MAIN.HydraulicsControl.out_oil_suction_enable"/>
+			</OwnerB>
+			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 9 (EL1008)">
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_pump_running" VarB="Channel 1^MAIN.HydraulicsControl.in_pump_running"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_suction_running" VarB="Channel 2^MAIN.HydraulicsControl.in_suction_running"/>
 			</OwnerB>
 		</OwnerA>
 	</Mappings>

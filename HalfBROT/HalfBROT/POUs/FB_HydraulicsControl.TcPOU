@@ -6,10 +6,12 @@ VAR_INPUT
 	enable				: BOOL := FALSE;	// start the hydraulics
 	reset				: BOOL;				// reset any hydraulics error
 	suction_manual		: BOOL;				// manual override to start the suction pump
-	pump_manual_stop	: BOOL;				//manual override to stop the pump
-	brake_clearing		: BOOL;
-	azimut_limit_switch	: BOOL;
-	comm				: I_Comm;	
+	pump_manual_stop	: BOOL;				// manual override to stop the pump
+	brake_clearing		: BOOL;				// external clearing for brakes
+	azimut_limit_switch	: BOOL;				// external signal for azimuth limit switch
+	pan_min_percent		: REAL := 0;		// oil level percentage to be seen as empty
+	pan_max_percent		: REAL := 100;		// oil level percentage to be seen as full 
+	comm				: I_Comm;
 END_VAR
 VAR_OUTPUT
 	brake_open			: BOOL;				// status of the brake: is the brake open?
@@ -101,7 +103,8 @@ oil_pressure_OK 	:= in_oil_pressure_OK;
 oil_filter_dirty 	:= NOT in_oilfilter_dirty;
 oil_cold 			:= NOT in_oil_undertemperature;
 oil_hot 			:= in_oil_overtemperature;
-oil_level 			:= F_YREAL(in_oil_level, 0, 16383, 0.0, 5.0);
+//oil_level 			:= F_YREAL(in_oil_level, 0, 16383, 0.0, 5.0);
+oil_level 			:= F_YREAL(in_oil_level, pan_min_percent / 100.0 * 16383.0, pan_max_percent / 100.0 * 16383.0, 0.0, 100.0, cut := FALSE);
 oilpan_maximum		:= in_oilpan_maximum;
 pump_running 		:= in_pump_running;
 suction_running 	:= in_suction_running;
@@ -164,8 +167,8 @@ END_IF
 
 (* This is the end of the brake control section *)
 
-suction_trigger(SET1  := oilpan_maximum OR oil_level>3.0,
-				RESET := oil_level<1.2);
+suction_trigger(SET1  := oilpan_maximum OR oil_level>100.0,
+				RESET := oil_level<0.0);
 out_oil_suction_enable := suction_trigger.Q1 OR suction_manual;					
 suction_watchdog(IN := out_oil_suction_enable AND NOT suction_running,
 				 PT := T#15S,
@@ -228,83 +231,123 @@ HydraulicsLog(Trigger := pressure_failure OR main_pump_failure,
 				FormatString := 'Main hydraulics pump / pressure: %s',
 				OnMessage := 'FAILURE',
 				OffMessage := 'OK',
-				OffLevel := ADSLOG_MSGTYPE_HINT);
+				OffLevel := ADSLOG_MSGTYPE_HINT, 
+				Comm := comm);
 
 PumpLog(Trigger := pump_running,
 				Level := ADSLOG_MSGTYPE_HINT,
 				FormatString := 'Main hydraulics pump: %s',
 				OnMessage := 'START',
 				OffMessage := 'STOP',
-				OffLevel := ADSLOG_MSGTYPE_HINT);
+				OffLevel := ADSLOG_MSGTYPE_HINT, 
+				Comm := comm);
 	
 ReserveLog(Trigger := oil_warning,
 			Level := ADSLOG_MSGTYPE_WARN,
 			FormatString := 'oil reserve: %s',
 			OnMessage := 'LOW',
 			OffMessage := 'OK',
-			OffLevel := ADSLOG_MSGTYPE_HINT);
+			OffLevel := ADSLOG_MSGTYPE_HINT, 
+				Comm := comm);
 
 oil_low_log(Trigger := oil_low,
 				Level := ADSLOG_MSGTYPE_ERROR,
 				FormatString := 'oil level: %s',
 				OnMessage := 'LOW',
 				OffMessage := 'OK',
-				OffLevel := ADSLOG_MSGTYPE_HINT);
+				OffLevel := ADSLOG_MSGTYPE_HINT, 
+				Comm := comm);
 
 oil_max_log(Trigger := oilpan_maximum,
 				Level := ADSLOG_MSGTYPE_ERROR,
 				FormatString := 'oil level: %s',
 				OnMessage := 'MAXIMUM',
 				OffMessage := 'OK',
-				OffLevel := ADSLOG_MSGTYPE_HINT);	
+				OffLevel := ADSLOG_MSGTYPE_HINT, 
+				Comm := comm);	
 				
 FilterLog(Trigger := oil_filter_dirty,
 				Level := ADSLOG_MSGTYPE_WARN,
 				FormatString := 'Hydraulics Filter is %s',
-				OnMessage := 'dirty.');
+				OnMessage := 'dirty.', 
+				Comm := comm);
 
 OverTemperatureLog(Trigger := oil_hot,
 				Level := ADSLOG_MSGTYPE_WARN,
 				FormatString := 'Hydraulics Temperature is %s',
-				OnMessage := 'high.');
+				OnMessage := 'high.', 
+				Comm := comm);
 				
 UnderTemperatureLog(Trigger := oil_cold,
 				Level := ADSLOG_MSGTYPE_WARN,
 				FormatString := 'Hydraulics Temperature is %s',
-				OnMessage := 'low.');
+				OnMessage := 'low.', 
+				Comm := comm);
 
 SuctionLog(Trigger := suction_failure,
 				Level := ADSLOG_MSGTYPE_ERROR,
 				FormatString := 'suction pump: %s',
 				OnMessage := 'FAILURE',
 				OffMessage := 'OK',
-				OffLevel := ADSLOG_MSGTYPE_HINT);
+				OffLevel := ADSLOG_MSGTYPE_HINT, 
+				Comm := comm);
 
 HydraulicsFailureLog(Trigger := hydraulics_failure,
 				Level := ADSLOG_MSGTYPE_ERROR,
 				FormatString := 'suction pump while running main pump: %s',
 				OnMessage := 'FAILURE',
 				OffMessage := 'OK',
-				OffLevel := ADSLOG_MSGTYPE_HINT);
+				OffLevel := ADSLOG_MSGTYPE_HINT, 
+				Comm := comm);
 				
 BrakeClearingWarning(Trigger := NOT brake_clearing AND iopen_brake,
 				Level := ADSLOG_MSGTYPE_WARN,
 				FormatString := '%s',
-				OnMessage := 'Cannot open brake without brake clearing.');
+				OnMessage := 'Cannot open brake without brake clearing.', 
+				Comm := comm);
 
 BrakeWarning(	Trigger := brake_open,
 				Level := ADSLOG_MSGTYPE_WARN,
 				FormatString := '%s',
 				OnMessage := 'Brake is open.',
-				OffMessage := 'Brake is closed.');
+				OffMessage := 'Brake is closed.', 
+				Comm := comm);
 
 BrakeHydraulicsWarning(Trigger := NOT enable AND iopen_brake,
 				Level := ADSLOG_MSGTYPE_WARN,
 				FormatString := '%s',
-				OnMessage := 'Cannot open brake without running hydraulics.');]]></ST>
+				OnMessage := 'Cannot open brake without running hydraulics.', 
+				Comm := comm);]]></ST>
     </Implementation>
     <LineIds Name="FB_HydraulicsControl">
-      <LineId Id="1" Count="218" />
+      <LineId Id="1" Count="18" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="20" Count="126" />
+      <LineId Id="222" Count="0" />
+      <LineId Id="147" Count="6" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="154" Count="6" />
+      <LineId Id="224" Count="0" />
+      <LineId Id="161" Count="6" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="168" Count="6" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="175" Count="4" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="180" Count="4" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="185" Count="4" />
+      <LineId Id="229" Count="0" />
+      <LineId Id="190" Count="6" />
+      <LineId Id="230" Count="0" />
+      <LineId Id="197" Count="6" />
+      <LineId Id="231" Count="0" />
+      <LineId Id="204" Count="4" />
+      <LineId Id="232" Count="0" />
+      <LineId Id="209" Count="5" />
+      <LineId Id="233" Count="0" />
+      <LineId Id="215" Count="4" />
+      <LineId Id="234" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
