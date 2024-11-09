@@ -145,25 +145,30 @@ IF Error THEN
 	END_IF
 END_IF
 
-covers_error_event(Trigger := error, 
-				   Level   := ADSLOG_MSGTYPE_ERROR);
+covers_error_event(Trigger 	:= error, 
+				   Level   	:= ADSLOG_MSGTYPE_ERROR, 
+				   Comm 	:= comm);
 
 covers_warning_event(Trigger := warning, 
-					 Level   := ADSLOG_MSGTYPE_WARN);
+					 Level   := ADSLOG_MSGTYPE_WARN, 
+				     Comm 	 := comm);
 
 // raise an error, if both opened and closed signals are activated
 // handle RoboTel differently
 cover1_event(Trigger   := cover1_open AND cover1_closed,
 			 Level     := ADSLOG_MSGTYPE_ERROR, 
-			 OnMessage := 'Cover1: limit switch error');
+			 OnMessage := 'Cover1: limit switch error', 
+			 Comm	   := comm);
 
 cover2_event(Trigger   := cover2_open AND cover2_closed,
 			 Level     := ADSLOG_MSGTYPE_ERROR, 
-			 OnMessage := 'Cover2: limit switch error');
+			 OnMessage := 'Cover2: limit switch error', 
+		     Comm 	   := comm);
 
 cover3_event(Trigger   := cover3_open AND cover3_closed,
 			 Level     := ADSLOG_MSGTYPE_ERROR, 
-			 OnMessage := 'Cover3: limit switch error');
+			 OnMessage := 'Cover3: limit switch error', 
+			 Comm 	   := comm);
 //trigger an event, if we encounter a timeout
 // handle RoboTel differently
 
@@ -222,32 +227,16 @@ END_VAR
       </Implementation>
     </Method>
     <LineIds Name="FB_CoverControl">
-      <LineId Id="304" Count="4" />
-      <LineId Id="418" Count="0" />
-      <LineId Id="310" Count="83" />
-      <LineId Id="395" Count="5" />
-      <LineId Id="421" Count="0" />
-      <LineId Id="402" Count="2" />
-      <LineId Id="422" Count="0" />
-      <LineId Id="406" Count="2" />
-      <LineId Id="423" Count="0" />
-      <LineId Id="417" Count="0" />
-      <LineId Id="409" Count="3" />
-      <LineId Id="424" Count="0" />
-      <LineId Id="413" Count="3" />
-      <LineId Id="425" Count="0" />
-      <LineId Id="115" Count="0" />
+      <LineId Id="1" Count="121" />
     </LineIds>
     <LineIds Name="FB_CoverControl.CloseCover">
-      <LineId Id="6" Count="0" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CoverControl.OpenCover">
-      <LineId Id="7" Count="0" />
-      <LineId Id="6" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CoverControl.ResetCover">
-      <LineId Id="5" Count="0" />
+      <LineId Id="1" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

@@ -5,6 +5,7 @@
 VAR
 	CoverControl		: FB_CoverControl;
 	HydraulicsControl	: FB_HydraulicsControl;
+	FocusControl		: FB_FocusControl;
 	comm				: FB_Comm_MQTT_Influx;
 	
 	// Safety Error Condition
@@ -22,7 +23,7 @@ VAR
 	
 	Reset_STO_Azimuth		AT%Q*: BOOL;
 	Reset_STO_Elevation		AT%Q*: BOOL;
-	Reset_STO_Derotator		AT%Q*: BOOL;	
+	Reset_STO_Derotator		AT%Q*: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -36,6 +37,11 @@ HydraulicsControl(
 	pan_min_percent		:= 26.0,
 	pan_max_percent		:= 56.0,
 	comm				:= comm
+);
+
+FocusControl(
+	comm				:= comm,
+	telescope_mode 		:= E_TelescopeMode.manual
 );
 
 comm(	
@@ -56,6 +62,8 @@ comm(
       <LineId Id="31" Count="1" />
       <LineId Id="27" Count="0" />
       <LineId Id="16" Count="0" />
+      <LineId Id="34" Count="3" />
+      <LineId Id="33" Count="0" />
       <LineId Id="28" Count="0" />
       <LineId Id="17" Count="7" />
       <LineId Id="2" Count="0" />

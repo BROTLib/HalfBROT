@@ -6,6 +6,11 @@
         <o xml:space="preserve" t="GlobalTextListObject">
           <l n="TextList" t="ArrayList" cet="TextListRow">
             <o>
+              <v n="TextID">"541"</v>
+              <v n="TextDefault">"%.0f"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
               <v n="TextID">"332"</v>
               <v n="TextDefault">"%.0f%"</v>
               <l n="LanguageTexts" t="ArrayList" />
@@ -18,6 +23,11 @@
             <o>
               <v n="TextID">"785"</v>
               <v n="TextDefault">"Azimuth:"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"247"</v>
+              <v n="TextDefault">"Brake"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
@@ -48,6 +58,11 @@
             <o>
               <v n="TextID">"883"</v>
               <v n="TextDefault">"Brakes open"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"688"</v>
+              <v n="TextDefault">"Calibrated"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
@@ -136,6 +151,11 @@
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
+              <v n="TextID">"755"</v>
+              <v n="TextDefault">"Far"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
               <v n="TextID">"488"</v>
               <v n="TextDefault">"Global"</v>
               <l n="LanguageTexts" t="ArrayList" />
@@ -161,8 +181,28 @@
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
+              <v n="TextID">"557"</v>
+              <v n="TextDefault">"Limits"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
               <v n="TextID">"58"</v>
               <v n="TextDefault">"Low"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"697"</v>
+              <v n="TextDefault">"Manual"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"564"</v>
+              <v n="TextDefault">"Move"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"59"</v>
+              <v n="TextDefault">"Near"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
@@ -246,6 +286,11 @@
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
+              <v n="TextID">"295"</v>
+              <v n="TextDefault">"Position"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
               <v n="TextID">"641"</v>
               <v n="TextDefault">"Pressure"</v>
               <l n="LanguageTexts" t="ArrayList" />
@@ -263,6 +308,11 @@
             <o>
               <v n="TextID">"523"</v>
               <v n="TextDefault">"Pump running"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"176"</v>
+              <v n="TextDefault">"Ready"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
@@ -296,6 +346,11 @@
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
+              <v n="TextID">"677"</v>
+              <v n="TextDefault">"Status"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
               <v n="TextID">"328"</v>
               <v n="TextDefault">"STO ErrAck:"</v>
               <l n="LanguageTexts" t="ArrayList" />
@@ -318,6 +373,11 @@
             <o>
               <v n="TextID">"782"</v>
               <v n="TextDefault">"Sucction running"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"136"</v>
+              <v n="TextDefault">"Unlocked"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
