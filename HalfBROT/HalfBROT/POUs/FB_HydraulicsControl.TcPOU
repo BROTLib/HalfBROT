@@ -49,6 +49,8 @@ VAR
 	out_oil_pump_enable		AT%Q*	: BOOL;	//DOUT4 0.3
 	out_oil_suction_enable	AT%Q*	: BOOL; //DOUT5 0.4	
 	brake_azimuth_eve		AT%Q*	: BOOL;	// brake set
+	reset_oil_pump			AT%Q*: BOOL;
+	reset_succ_pump			AT%Q*: BOOL;
 	
 	iopen_brake			: BOOL := FALSE;	// command to open the brake
 	iclose_brake		: BOOL;				// command to open the brake
@@ -111,6 +113,10 @@ oil_level			:= F_YREAL(in_oil_level, pan_min_level, pan_max_level, 0, 100, cut :
 oilpan_maximum		:= in_oilpan_maximum;
 pump_running 		:= in_pump_running;
 suction_running 	:= in_suction_running;
+
+// reset pumps
+reset_oil_pump := reset;
+reset_succ_pump := reset;
 
 // error state?
 error_state(SET1 := pressure_failure OR	suction_failure OR hydraulics_failure OR oil_low OR main_pump_failure,
@@ -352,7 +358,11 @@ RETURN(brake_open);]]></ST>
     <LineIds Name="FB_HydraulicsControl">
       <LineId Id="1" Count="18" />
       <LineId Id="236" Count="0" />
-      <LineId Id="20" Count="126" />
+      <LineId Id="20" Count="2" />
+      <LineId Id="237" Count="1" />
+      <LineId Id="242" Count="1" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="24" Count="122" />
       <LineId Id="222" Count="0" />
       <LineId Id="147" Count="6" />
       <LineId Id="223" Count="0" />
