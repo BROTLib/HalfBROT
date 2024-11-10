@@ -36,6 +36,8 @@ VAR
 	
 	focus_limit_near	AT%I*: BOOL;	// DIN29 3.4
 	focus_limit_far		AT%I*: BOOL;	// DIN30 3.5
+	reset_oil_pump		AT%Q*: BOOL;
+	reset_succ_pump		AT%Q*: BOOL;
 	FocusAxisRef		: AXIS_REF;
 END_VAR
 VAR CONSTANT
@@ -108,6 +110,10 @@ ELSE
 	SetPosition.Execute := FALSE;	
 END_IF
 
+// reset pumps
+reset_oil_pump := reset;
+reset_succ_pump := reset;
+
 // deactivate limit switches on homing
 MC_SetAcceptBlockedDriveSignal(Axis := FocusAxisRef, Enable := HomeAxis);
 SetPosition(Axis := FocusAxisRef, Position := last_position);
@@ -119,7 +125,7 @@ FocusAxis(
 	HomeAxis 		:= HomeAxis AND FocusUnlocked,
 	HomingMode 		:= HomingMode,
 	Position 		:= position,
-	Velocity 		:= 1.0,
+	Velocity 		:= 0.04,
 	Enable_Positive := NOT focus_limit_far OR HomeAxis,
 	Enable_Negative := NOT focus_limit_near,
 	Jog_Forward 	:= outward AND FocusUnlocked,
@@ -182,7 +188,7 @@ CalibrationEvent(
 	comm := comm);]]></ST>
     </Implementation>
     <LineIds Name="FB_FocusControl">
-      <LineId Id="1" Count="131" />
+      <LineId Id="1" Count="135" />
     </LineIds>
   </POU>
 </TcPlcObject>

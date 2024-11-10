@@ -2093,8 +2093,8 @@ External Setpoint Generation:
 					<Name>Focus</Name>
 					<AxisPara>
 						<Dynamic AccelerationMaximum="100" DecelerationMaximum="100" Acceleration="4.5" Deceleration="4.5" Jerk="13.5"/>
-						<Velo RefSearch="0.2" RefSync="0.2" SlowManual="0.1" FastManual="0.5" Maximum="3"/>
-						<OtherSettings AllowMotionCmdToSlave="true" PulseDistancePos="1" PulseDistanceNeg="1"/>
+						<Velo RefSearch="0.02" RefSync="0.02" SlowManual="0.02" FastManual="0.02" Maximum="0.05"/>
+						<OtherSettings AllowMotionCmdToSlave="true" PulseDistancePos="0.02" PulseDistanceNeg="0.02"/>
 					</AxisPara>
 					<Encoder Name="Enc" EncType="4">
 						<EncPara ScaleFactorNumerator="0.001" ScaleFactorDenominator="5" MaxCount="#x0000ffff">
@@ -2230,6 +2230,7 @@ External Setpoint Generation:
 					</Drive>
 					<Controller Name="Ctrl" CtrType="1">
 						<CtrPara PriorControlFactor="1">
+							<PID PosKp="200"/>
 							<Observer BandWidth="20"/>
 						</CtrPara>
 					</Controller>
@@ -2965,7 +2966,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{363DA9F7-A2C1-43F1-A4FF-717FB38D77B2}" Name="HalfBROT" PrjFilePath="HalfBROT\HalfBROT.plcproj" TmcFilePath="HalfBROT\HalfBROT.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{69E6B6F0-EE2F-E675-F173-7E82EA65DE19}" TmcPath="HalfBROT\HalfBROT.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{604F0DC3-846E-931E-6F19-F9BFDA8B8294}" TmcPath="HalfBROT\HalfBROT.tmc">
 					<Name>HalfBROT Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -3023,6 +3024,11 @@ External Setpoint Generation:
 						<Var>
 							<Name>MAIN.HydraulicsControl.brake_azimuth_eve</Name>
 							<Comment><![CDATA[ brake set]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.FocusControl.FocusUnlock</Name>
+							<Comment><![CDATA[ whether focus is unlocked]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -3702,8 +3708,9 @@ External Setpoint Generation:
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 7" Index="#x1606" InOut="1" Flags="#x0011" SyncMan="0">
-								<Entry Name="Output" Index="#x7060" Sub="#x01">
+								<Entry Name="MAIN.FocusControl.FocusUnlock" Index="#x7060" Sub="#x01">
 									<Type>BIT</Type>
+									<Comment><![CDATA[ whether focus is unlocked]]></Comment>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 8" Index="#x1607" InOut="1" Flags="#x0011" SyncMan="0">
@@ -6930,6 +6937,7 @@ Bit1: Value smaller than Limit2]]></Comment>
 				<Link VarA="PlcTask Outputs^MAIN.Run" VarB="StandardOutputs^Standard In Var 2"/>
 			</OwnerB>
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 8 (EL2008)">
+				<Link VarA="PlcTask Outputs^MAIN.FocusControl.FocusUnlock" VarB="Channel 7^MAIN.FocusControl.FocusUnlock"/>
 				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.out_oil_pump_enable" VarB="Channel 1^MAIN.HydraulicsControl.out_oil_pump_enable"/>
 				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.out_oil_suction_enable" VarB="Channel 3^MAIN.HydraulicsControl.out_oil_suction_enable"/>
 			</OwnerB>
