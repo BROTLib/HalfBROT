@@ -31,8 +31,23 @@
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
+              <v n="TextID">"1120"</v>
+              <v n="TextDefault">"%.2f °"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"943"</v>
+              <v n="TextDefault">"%.2f °/s"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
               <v n="TextID">"339"</v>
               <v n="TextDefault">"%.4f mm"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"848"</v>
+              <v n="TextDefault">"%.4f °"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
@@ -428,6 +443,11 @@
             <o>
               <v n="TextID">"136"</v>
               <v n="TextDefault">"Unlocked"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"67"</v>
+              <v n="TextDefault">"Velocity"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>

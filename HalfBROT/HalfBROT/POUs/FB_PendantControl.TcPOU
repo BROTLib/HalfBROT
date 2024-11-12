@@ -4,7 +4,6 @@
     <Declaration><![CDATA[FUNCTION_BLOCK FB_PendantControl
 VAR_INPUT
 	CoverControl	: FB_CoverControl;
-	
 END_VAR
 VAR_OUTPUT
 END_VAR

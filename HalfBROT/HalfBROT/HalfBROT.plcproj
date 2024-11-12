@@ -38,6 +38,9 @@
     <Compile Include="POUs\FB_DerotatorControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\FB_ElevationControl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\FB_FocusControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -54,6 +57,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="VISUs\Cover.TcVIS">
+      <SubType>Code</SubType>
+      <DependentUpon>Visualization Manager.TcVMO</DependentUpon>
+    </Compile>
+    <Compile Include="VISUs\Derotator.TcVIS">
       <SubType>Code</SubType>
       <DependentUpon>Visualization Manager.TcVMO</DependentUpon>
     </Compile>

@@ -1,0 +1,264 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+  <POU Name="FB_ElevationControl" Id="{163e8baa-c820-4d82-9b8f-2bab0c8d4398}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ElevationControl
+VAR_INPUT
+	// enable the axis
+	enable: 	BOOL;
+	// reset an error
+	reset:		BOOL;
+	// increase the eleveation
+	up:			BOOL;
+	// decrease the elevation
+	down:		BOOL;
+	// set position of the axis in degrees
+	position:	LREAL;
+	// set the Velocity of the axis
+	velocity:	LREAL;
+	// move axis command
+	MoveAxis:	BOOL;
+	// calibrate the axis
+	HomeAxis:	BOOL;
+	// enable tracking
+	Tracking:	BOOL;
+	// stop the Axis
+	StopAxis:	BOOL;
+	// reset diagnostic errors
+	bSoEReset:	 	BOOL;
+	comm : I_Comm;
+END_VAR
+VAR_IN_OUT	
+	CoverControl	: FB_CoverControl;
+	HydraulicsControl : FB_HydraulicsControl;
+END_VAR
+VAR_OUTPUT
+	// axis is ready to operate
+	Ready:			BOOL;
+	// drive error condition
+	error: 			BOOL;
+	// warning condition
+	warning:		BOOL;
+	// actual position of the elevation axis
+	actual_position: 	LREAL;
+	// error ID of the elevation axis
+	ErrorID: 		UDINT;
+	// axis is calibrated
+	Calibrated:		BOOL;
+	// time to reach target position
+	slewtime:		LREAL;
+END_VAR
+VAR
+	digital_inputs	AT%I*	: WORD;		// digitale inputs der Endlagen
+	diagnostic		AT%I*	: UDINT;	// diagnostic number
+	torque			AT%I*	: INT;		// derotator torque feedback
+	sto				AT%I*	: BOOL;		// STO
+	axis_ref				: AXIS_REF;	
+	
+	ElevationAxis:			FB_Axis2;
+	ElevationCalibration: 	MC_SetPosition;
+	fbSoEReset: 			FB_SoEReset;
+	// delay until commutator angle is measured
+	readydelay:				TON;
+	// disable trigger for hydraulics
+	enable_trigger:			F_TRIG;
+	// store last position
+	getlastposition:		BOOL := TRUE;
+	ElevationAxisEvent: 	FB_Eventlog;
+	ElevationDiagnosticEvent: 	FB_Eventlog;
+	ElevationBrakeEvent: 	FB_Eventlog;
+	HighElevationEvent: 	FB_Eventlog;
+	LowElevationEvent:		FB_Eventlog;
+	TorqueWarning:			FB_EventLog;
+	CalibrationEvent:		FB_Eventlog;
+	// elevation torque in percent
+	elevation_torque: 		REAL;
+	// timer to trigger a warning if torque is high
+	torque_timer:			TON;
+	ReadParameter:			MC_ReadParameter;
+	DiagnosticError:		BOOL;
+END_VAR
+VAR CONSTANT
+	// current position of the calibration cam. Apply an offset here if necessary
+	calibration_position:	LREAL := 44.144; //44.139; //44.061; //43.806122; //42.1281; //43.000
+END_VAR
+VAR PERSISTENT
+	last_position:	LREAL := -1.0;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[// limit the position input to a sane value
+position := LIMIT(0.0, position, 90.0);
+
+//if we enable the axis, we have to open the brake first
+IF Enable THEN
+	IF NOT Calibrated THEN
+		CoverControl.open := TRUE;
+		IF CoverControl.isopen THEN
+			HydraulicsControl.open_brake();
+		END_IF
+	ELSE
+		HydraulicsControl.open_brake();
+	END_IF
+	
+END_IF
+
+enable_trigger(CLK := enable);
+// close the brake on the falling edge of the enable signal
+IF enable_trigger.Q THEN
+	HydraulicsControl.close_brake();
+END_IF
+
+IF ElevationAxis.Calibrated OR Error THEN
+	HomeAxis := FALSE;
+END_IF
+
+Calibrated := ElevationAxis.Calibrated;
+
+IF HomeAxis THEN
+	position := calibration_position;
+	MoveAxis := FALSE;
+	Tracking := FALSE;
+END_IF
+
+IF MoveAxis THEN
+	Tracking := FALSE;
+END_IF
+
+// if NOT Enabled and ActVelo>1 then issue a warning
+warning := NOT enable AND axis_ref.NcToPlc.ActVelo>2.0;
+
+// deactivate limit switches on homing
+MC_SetAcceptBlockedDriveSignal(
+	Axis := axis_ref, 
+	Enable := HomeAxis);
+	
+ElevationAxis(
+	Enable := 			enable AND HydraulicsControl.brake_open,
+	Reset := 			reset,
+	MoveAxis :=			MoveAxis,
+	HomeAxis :=			HomeAxis,
+	StopAxis :=			StopAxis,
+	Tracking :=			Tracking,
+	Position := 		position, 
+	Velocity :=			Velocity,
+	Enable_Positive :=  digital_inputs.0 OR HomeAxis,
+	Enable_Negative := 	digital_inputs.1,
+	Jog_Forward :=		up,
+	Jog_Backwards := 	down,
+	bCalibrationCam :=	NOT digital_inputs.0,
+	ActualPosition => 	actual_position,
+	Error => 			error,
+	ErrorID => 			ErrorID,
+	AxisRef :=			axis_ref);
+
+IF ElevationAxis.MoveDone THEN
+	MoveAxis := FALSE;
+END_IF
+
+IF ElevationAxis.HomeDone THEN
+	HomeAxis := FALSE;
+END_IF
+	
+IF ElevationAxis.ResetDone THEN
+	reset := FALSE;
+END_IF
+
+IF ElevationAxis.StopDone THEN
+	StopAxis := FALSE;
+END_IF
+
+DiagnosticError := FALSE;
+IF diagnostic < 16#D012 AND diagnostic > 16#D014 THEN
+	DiagnosticError :=TRUE;
+	ErrorID := diagnostic;
+END_IF
+
+ElevationCalibration(Axis := axis_ref,
+	Execute := getlastposition AND last_position>=0.0 AND NOT Calibrated,
+	Position := last_position);
+
+IF ElevationCalibration.Done THEN
+	getlastposition := FALSE;
+END_IF
+
+IF Calibrated THEN
+	last_position := actual_position;
+END_IF
+
+IF bSoEReset THEN
+	last_position := -1.0;
+	fbSoEReset(
+		Axis := axis_ref,
+		Execute := TRUE,
+		Timeout := DEFAULT_ADS_TIMEOUT);
+ 	IF NOT fbSoEReset.Busy THEN
+		fbSoEReset(Axis := axis_ref, Execute := FALSE);
+		bSoEReset := FALSE;
+		Reset := TRUE;
+	END_IF
+END_IF 
+
+readydelay(IN :=  HydraulicsControl.brake_open, PT := T#6000MS, Q=> ready);
+
+ReadParameter(	Axis := axis_ref, 
+				Enable := ElevationAxis.InMotion, 
+				ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
+				ReadMode := E_ReadMode.READMODE_CYCLIC);
+				
+IF ReadParameter.Valid THEN
+	slewtime := ReadParameter.Value;
+END_IF
+
+elevation_torque := torque / 10.0;
+torque_timer(IN := ABS(elevation_torque) > 50.0, PT := T#1000MS);
+		
+ElevationAxisEvent(	Trigger := Error, 
+				Level := ADSLOG_MSGTYPE_ERROR,
+				FormatString := 'Elevation Axis Error: %s',
+				OnMessage := NCError_TO_STRING(ErrorID), 
+				Comm := comm);
+
+ElevationDiagnosticEvent(	
+	Trigger := 		DiagnosticError, 
+	Level := 		ADSLOG_MSGTYPE_ERROR,
+	FormatString :=	'Elevation Axis Diagnostic Error: %s',
+	OnMessage := 	NCError_TO_STRING(diagnostic), 
+	Comm := comm);
+
+				
+HighElevationEvent(	Trigger := Calibrated AND actual_position > 85.0, 
+				Level := ADSLOG_MSGTYPE_WARN,
+				FormatString := 'High Elevation: %s',
+				OnMessage := LREAL_TO_FMTSTR(actual_position, 2, TRUE), 
+				Comm := comm);
+
+LowElevationEvent(	Trigger := Calibrated AND actual_position < 5.0, 
+				Level := ADSLOG_MSGTYPE_WARN,
+				FormatString := 'Low Elevation: %s',
+				OnMessage := LREAL_TO_FMTSTR(actual_position, 2, TRUE), 
+				Comm := comm);
+				
+ElevationBrakeEvent( Trigger := NOT enable AND HydraulicsControl.brake_open, 
+				Level := ADSLOG_MSGTYPE_WARN,
+				FormatString := '%s',
+				OnMessage := 'Brake was opened without elevation axis enabled!', 
+				Comm := comm); 
+
+TorqueWarning(	
+	Trigger := torque_timer.Q, 
+	Level := 		ADSLOG_MSGTYPE_WARN,
+	FormatString :=	'%s',
+	OnMessage := 	'Elevation torque is high.', 
+				Comm := comm);
+	
+CalibrationEvent(
+	Trigger :=	Calibrated,
+	Level :=	ADSLOG_MSGTYPE_HINT,
+	OnMessage := 'Elevation is calibrated.', 
+				Comm := comm);]]></ST>
+    </Implementation>
+    <LineIds Name="FB_ElevationControl">
+      <LineId Id="1" Count="169" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
