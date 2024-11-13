@@ -104,12 +104,12 @@ IF Calibrated THEN
 END_IF
 
 // enable the azimuth if not moved by the power chain. Sorry for the hack
-azimuth_rest_timer(IN := HydraulicsControl.brake_open AND 
+azimuth_rest_timer(IN := HydraulicsControl.brakeOpen AND 
 				(ABS(axis_ref.NcToPlc.ActVelo) < 0.01), PT := T#2S);
 // if azimuth at rest or calibrated, allow enabling the azimuth
 IF azimuth_rest_timer.Q or calibrated THEN
 	azimuth_at_rest := TRUE;
-ELSIF HydraulicsControl.brake_closed THEN
+ELSIF HydraulicsControl.brakeClosed THEN
 	azimuth_at_rest := FALSE;
 END_IF
 	

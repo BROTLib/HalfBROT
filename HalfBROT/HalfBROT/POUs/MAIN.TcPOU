@@ -34,8 +34,8 @@ CoverControl(
 );
 
 HydraulicsControl(
-	pan_min_percent		:= 26.0,
-	pan_max_percent		:= 56.0,
+	panPercentMin		:= 26.0,
+	panPercentMax		:= 56.0,
 	comm				:= comm
 );
 

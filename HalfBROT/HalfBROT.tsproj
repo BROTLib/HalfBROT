@@ -2966,7 +2966,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{363DA9F7-A2C1-43F1-A4FF-717FB38D77B2}" Name="HalfBROT" PrjFilePath="HalfBROT\HalfBROT.plcproj" TmcFilePath="HalfBROT\HalfBROT.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{ABA16AA4-ED5A-14C1-078F-73F6BEDB85CA}" TmcPath="HalfBROT\HalfBROT.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{53E0085B-0751-FEC4-14E9-91096E2D88EC}" TmcPath="HalfBROT\HalfBROT.tmc">
 					<Name>HalfBROT Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -3012,26 +3012,26 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.out_oil_pump_enable</Name>
+							<Name>MAIN.HydraulicsControl.outOilPumpEnable</Name>
 							<Comment><![CDATA[DOUT4 0.3]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.out_oil_suction_enable</Name>
+							<Name>MAIN.HydraulicsControl.outOilSuctionEnable</Name>
 							<Comment><![CDATA[DOUT5 0.4	]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.brake_azimuth_eve</Name>
+							<Name>MAIN.HydraulicsControl.brakeAzimuthEve</Name>
 							<Comment><![CDATA[ brake set]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.reset_oil_pump</Name>
+							<Name>MAIN.HydraulicsControl.resetOilPump</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.reset_succ_pump</Name>
+							<Name>MAIN.HydraulicsControl.resetSucPump</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -3099,57 +3099,57 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_oil_low</Name>
+							<Name>MAIN.HydraulicsControl.inOilLow</Name>
 							<Comment><![CDATA[ 2.1]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_oil_high</Name>
+							<Name>MAIN.HydraulicsControl.inOilHigh</Name>
 							<Comment><![CDATA[ ?]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_oil_pressure_OK</Name>
+							<Name>MAIN.HydraulicsControl.inOilPressureOK</Name>
 							<Comment><![CDATA[ 2.3]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_oil_overtemperature</Name>
+							<Name>MAIN.HydraulicsControl.inOilOvertemperature</Name>
 							<Comment><![CDATA[ 2.4]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_oil_undertemperature</Name>
+							<Name>MAIN.HydraulicsControl.inOilUndertemperature</Name>
 							<Comment><![CDATA[ 2.5]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_oilfilter_dirty</Name>
+							<Name>MAIN.HydraulicsControl.inOilfilterDirty</Name>
 							<Comment><![CDATA[ 2.6]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_pump_running</Name>
+							<Name>MAIN.HydraulicsControl.inPumpRunning</Name>
 							<Comment><![CDATA[ 2.7]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_suction_running</Name>
+							<Name>MAIN.HydraulicsControl.inSuctionRunning</Name>
 							<Comment><![CDATA[ 2.8]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_oil_level</Name>
+							<Name>MAIN.HydraulicsControl.inOilLevel</Name>
 							<Comment><![CDATA[BT2]]></Comment>
 							<Type>INT</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_oilpan_maximum</Name>
+							<Name>MAIN.HydraulicsControl.inOilpanMaximum</Name>
 							<Comment><![CDATA[DIN39 4.6]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.HydraulicsControl.in_oil_reserve</Name>
+							<Name>MAIN.HydraulicsControl.inOilReserve</Name>
 							<Comment><![CDATA[DIN40 4.7]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
@@ -6909,17 +6909,17 @@ Bit1: Value smaller than Limit2]]></Comment>
 		</OwnerA>
 		<OwnerA Name="TIPC^HalfBROT^HalfBROT Instance">
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 10 (EL1008)">
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_high" VarB="Channel 2^MAIN.HydraulicsControl.in_oil_high"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_low" VarB="Channel 1^MAIN.HydraulicsControl.in_oil_low"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_overtemperature" VarB="Channel 4^MAIN.HydraulicsControl.in_oil_overtemperature"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_pressure_OK" VarB="Channel 3^MAIN.HydraulicsControl.in_oil_pressure_OK"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_reserve" VarB="Channel 8^MAIN.HydraulicsControl.in_oil_reserve"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_undertemperature" VarB="Channel 5^MAIN.HydraulicsControl.in_oil_undertemperature"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oilfilter_dirty" VarB="Channel 6^MAIN.HydraulicsControl.in_oilfilter_dirty"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oilpan_maximum" VarB="Channel 7^MAIN.HydraulicsControl.in_oilpan_maximum"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inOilHigh" VarB="Channel 2^MAIN.HydraulicsControl.in_oil_high"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inOilLow" VarB="Channel 1^MAIN.HydraulicsControl.in_oil_low"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inOilOvertemperature" VarB="Channel 4^MAIN.HydraulicsControl.in_oil_overtemperature"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inOilPressureOK" VarB="Channel 3^MAIN.HydraulicsControl.in_oil_pressure_OK"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inOilReserve" VarB="Channel 8^MAIN.HydraulicsControl.in_oil_reserve"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inOilUndertemperature" VarB="Channel 5^MAIN.HydraulicsControl.in_oil_undertemperature"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inOilfilterDirty" VarB="Channel 6^MAIN.HydraulicsControl.in_oilfilter_dirty"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inOilpanMaximum" VarB="Channel 7^MAIN.HydraulicsControl.in_oilpan_maximum"/>
 			</OwnerB>
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 13 (EL3164)">
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_oil_level" VarB="AI Standard Channel 3^MAIN.HydraulicsControl.in_oil_level"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inOilLevel" VarB="AI Standard Channel 3^MAIN.HydraulicsControl.in_oil_level"/>
 			</OwnerB>
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 16 (EL2004)">
 				<Link VarA="PlcTask Outputs^MAIN.CoverControl.close_cover1" VarB="Channel 2^MAIN.CoverControl.close_cover1"/>
@@ -6945,14 +6945,14 @@ Bit1: Value smaller than Limit2]]></Comment>
 				<Link VarA="PlcTask Outputs^MAIN.Run" VarB="StandardOutputs^Standard In Var 2"/>
 			</OwnerB>
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 8 (EL2008)">
-				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.out_oil_pump_enable" VarB="Channel 1^MAIN.HydraulicsControl.out_oil_pump_enable"/>
-				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.out_oil_suction_enable" VarB="Channel 3^MAIN.HydraulicsControl.out_oil_suction_enable"/>
+				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.outOilPumpEnable" VarB="Channel 1^MAIN.HydraulicsControl.out_oil_pump_enable"/>
+				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.outOilSuctionEnable" VarB="Channel 3^MAIN.HydraulicsControl.out_oil_suction_enable"/>
 			</OwnerB>
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 9 (EL1008)">
 				<Link VarA="PlcTask Inputs^MAIN.FocusControl.limitFar" VarB="Channel 5^MAIN.FocusControl.focus_limit_far"/>
 				<Link VarA="PlcTask Inputs^MAIN.FocusControl.limitNear" VarB="Channel 4^MAIN.FocusControl.focus_limit_near"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_pump_running" VarB="Channel 1^MAIN.HydraulicsControl.in_pump_running"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.in_suction_running" VarB="Channel 2^MAIN.HydraulicsControl.in_suction_running"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inPumpRunning" VarB="Channel 1^MAIN.HydraulicsControl.in_pump_running"/>
+				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inSuctionRunning" VarB="Channel 2^MAIN.HydraulicsControl.in_suction_running"/>
 			</OwnerB>
 			<OwnerB Name="TINC^NC-Task 1 SAF^Axes^Focus">
 				<Link VarA="PlcTask Inputs^MAIN.FocusControl.axisRef.NcToPlc" VarB="Outputs^ToPlc"/>

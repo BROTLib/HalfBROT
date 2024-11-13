@@ -133,7 +133,7 @@ MC_SetAcceptBlockedDriveSignal(
 	Enable := HomeAxis);
 	
 ElevationAxis(
-	Enable := 			enable AND HydraulicsControl.brake_open,
+	Enable := 			enable AND HydraulicsControl.brakeOpen,
 	Reset := 			reset,
 	MoveAxis :=			MoveAxis,
 	HomeAxis :=			HomeAxis,
@@ -198,7 +198,7 @@ IF bSoEReset THEN
 	END_IF
 END_IF 
 
-readydelay(IN :=  HydraulicsControl.brake_open, PT := T#6000MS, Q=> ready);
+readydelay(IN :=  HydraulicsControl.brakeOpen, PT := T#6000MS, Q=> ready);
 
 ReadParameter(	Axis := axis_ref, 
 				Enable := ElevationAxis.InMotion, 
@@ -238,7 +238,7 @@ LowElevationEvent(	Trigger := Calibrated AND actual_position < 5.0,
 				OnMessage := LREAL_TO_FMTSTR(actual_position, 2, TRUE), 
 				Comm := comm);
 				
-ElevationBrakeEvent( Trigger := NOT enable AND HydraulicsControl.brake_open, 
+ElevationBrakeEvent( Trigger := NOT enable AND HydraulicsControl.brakeOpen, 
 				Level := ADSLOG_MSGTYPE_WARN,
 				FormatString := '%s',
 				OnMessage := 'Brake was opened without elevation axis enabled!', 
