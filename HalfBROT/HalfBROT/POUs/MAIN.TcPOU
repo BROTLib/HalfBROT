@@ -41,7 +41,7 @@ HydraulicsControl(
 
 FocusControl(
 	comm				:= comm,
-	telescope_mode 		:= E_TelescopeMode.automatic
+	telescopeMode 		:= E_TelescopeMode.automatic
 );
 
 comm(	

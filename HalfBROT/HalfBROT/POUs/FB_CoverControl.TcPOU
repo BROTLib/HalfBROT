@@ -6,7 +6,6 @@ VAR_INPUT
 	reset					: BOOL;		// resets all drives after an error has occured
 	open					: BOOL;		// open the cover in proper order
 	close					: BOOL;		// close the cover in proper order
-	comm					: I_Comm;
 	
 	open_cover1		AT%Q*	: BOOL;	// open cover1 command
 	close_cover1	AT%Q*	: BOOL; // close cover1 command
@@ -20,6 +19,9 @@ VAR_OUTPUT
 	isclosed			: BOOL;		// all covers are closed
 	error				: BOOL;		// any cover-driver reports an error
 	warning				: BOOL;		// warning state of the DC drives
+END_VAR
+VAR_IN_OUT
+	comm				: FB_Comm_MQTT;
 END_VAR
 VAR
 	active_cover		: INT;		// actual active cover in manual mode, 0 for automatic = all covers active

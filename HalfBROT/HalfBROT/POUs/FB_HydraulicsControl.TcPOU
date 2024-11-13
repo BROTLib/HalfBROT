@@ -13,7 +13,6 @@ VAR_INPUT
 	pan_max_level		: INT := 16383;		// maximum oil level from sensor
 	pan_min_percent		: REAL := 0;		// oil level percentage to be seen as empty
 	pan_max_percent		: REAL := 90;		// oil level percentage to be seen as full 
-	comm				: I_Comm;
 END_VAR
 VAR_OUTPUT
 	brake_open			: BOOL;				// status of the brake: is the brake open?
@@ -33,6 +32,9 @@ VAR_OUTPUT
 	pump_running		: BOOL;				// main pump is running
 	suction_running 	: BOOL := FALSE;	// suction pump is running
 	error				: BOOL;				// error condition
+END_VAR
+VAR_IN_OUT
+	comm				: FB_Comm_MQTT;	
 END_VAR
 VAR
 	in_oil_low				AT%I*	: BOOL;	// 2.1
@@ -208,7 +210,7 @@ StatusWord.10 := suction_running;
 StatusWord.11 := oilpan_maximum;
 StatusWord.12 := out_oil_pump_enable;
 StatusWord.13 := out_oil_suction_enable;
-IF ABS(last_oil_level - oil_level) > 0.02 THEN
+IF ABS(last_oil_level - oil_level) > 5 THEN
 	StatusWord.15 := TRUE;
 	last_oil_level := oil_level;
 ELSE

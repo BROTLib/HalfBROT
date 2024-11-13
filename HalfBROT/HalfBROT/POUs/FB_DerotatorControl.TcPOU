@@ -17,7 +17,6 @@ VAR_INPUT
 	calibration_position	: LREAL := 438.4623; // calibration in positive direction (was 460.0)
 	min_position	: LREAL;
 	max_position	: LREAL;
-	comm			: I_Comm;
 END_VAR
 VAR_OUTPUT
 	
@@ -27,6 +26,9 @@ VAR_OUTPUT
 	Calibrated		: BOOL;		// calibrated flag
 	Ready			: BOOL;		// axis ready flag
 	slewtime		: LREAL;	// position to move the axis to
+END_VAR
+VAR_IN_OUT
+	comm			: FB_Comm_MQTT;
 END_VAR
 VAR
 	TorqueError		: TON := (PT := T#3S);	// trigger for the torque error

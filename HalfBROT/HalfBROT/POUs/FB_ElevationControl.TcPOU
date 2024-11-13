@@ -25,11 +25,11 @@ VAR_INPUT
 	StopAxis:	BOOL;
 	// reset diagnostic errors
 	bSoEReset:	 	BOOL;
-	comm : I_Comm;
 END_VAR
 VAR_IN_OUT	
 	CoverControl	: FB_CoverControl;
 	HydraulicsControl : FB_HydraulicsControl;
+	comm: FB_Comm_MQTT;
 END_VAR
 VAR_OUTPUT
 	// axis is ready to operate

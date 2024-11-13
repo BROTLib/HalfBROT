@@ -3,81 +3,63 @@
   <POU Name="FB_AzimuthControl" Id="{fd112fcf-fe5a-48e7-aea8-3fe8a57db212}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_AzimuthControl
 VAR_INPUT
-	// enable the axis and its position control loop
-	Enable:		BOOL;
-	// reset the axis
-	Reset: 		BOOL;
-	// decrease azimuth
-	left:		BOOL;
-	// increase azimuth
-	right: 		BOOL;
-	// Move azimuth to given position
-	MoveAxis:	BOOL;
-	// Home the axis
-	HomeAxis:	BOOL;
-	// enable tracking
-	Tracking:	BOOL;
-	// position to move the axis to
-	position: 	LREAL;
-	// set the Velocity of the axis
-	velocity:	LREAL;
-	// stop the Axis
-	StopAxis:	BOOL;
-	// diagnostic reset
-	bSoEReset:	BOOL;
-	comm: I_Comm;
+	Enable					: BOOL;		// enable the axis and its position control loop
+	Reset					: BOOL;		// reset the axis
+	left					: BOOL;		// decrease azimuth
+	right					: BOOL;		// increase azimuth
+	MoveAxis				: BOOL;		// Move azimuth to given position
+	HomeAxis				: BOOL;		// Home the axis
+	Tracking				: BOOL;		// enable tracking
+	position				: LREAL;	// position to move the axis to
+	velocity				: LREAL;	// set the Velocity of the axis
+	StopAxis				: BOOL;		// stop the Axis
+	bSoEReset				: BOOL;		// diagnostic reset
 END_VAR
 VAR_IN_OUT
-	HydraulicsControl : FB_HydraulicsControl;
+	HydraulicsControl 		: FB_HydraulicsControl;
+	comm					: FB_Comm_MQTT;	
 END_VAR
 VAR_OUTPUT
-	// error state of the axis
-	error: 			BOOL;
-	// error ID of the axis
-	ErrorID:		UDINT;
-	// actual_position of the axis
-	act_position:	LREAL;
-	// is the axis calibrated
-	calibrated:		BOOL;
-	// drive is ready
-	ready:			BOOL;
-	// time to reach target position
-	slewtime:		LREAL;
+	error					: BOOL;		// error state of the axis
+	ErrorID					: UDINT;	// error ID of the axis
+	act_position			: LREAL;	// actual_position of the axis
+	calibrated				: BOOL;		// is the axis calibrated
+	ready					: BOOL;		// drive is ready
+	slewtime				: LREAL;	// time to reach target position
 END_VAR
 VAR
-	digital_inputs	AT%I*	: WORD;		// digitale inputs der Endlagen
-	diagnostic		AT%I*	: UDINT;	// diagnostic number
-	torque			AT%I*	: INT;		// derotator torque feedback
-	sto				AT%I*	: BOOL;		// STO
+	digital_inputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
+	diagnostic		  AT%I*	: UDINT;	// diagnostic number
+	torque			  AT%I*	: INT;		// derotator torque feedback
+	sto				  AT%I*	: BOOL;		// STO
 	axis_ref				: AXIS_REF;	
 	
-	AzimuthAxis:		FB_Axis2;
-	AzimuthCalibration: MC_SetPosition;
-	//fbSoEReset:			FB_SoEReset;
-	AzimuthAxisEvent: 	FB_EventLog;
-	AzimuthDiagnosticEvent: 	FB_EventLog;
-	// delay until commutator angle is measured
-	readydelay:			TON;
-	HomeDelay:			FB_TONTP;
-	TorqueError:		TON := (PT := T#3S);
-	azimuth_torque: 	REAL;
-	TorqueWarning:		FB_EventLog;
-	CalibrationEvent:	FB_Eventlog;
-	ReadParameter:		MC_ReadParameter;
-	getlastposition:	BOOL := TRUE;
-	azimuth_rest_timer:	TON;
-	azimuth_at_rest:	BOOL;
-	fbSoEReset: 		FB_SoEReset;
-	DiagnosticError:	BOOL;
+	AzimuthAxis				: FB_Axis2;
+	AzimuthCalibration		: MC_SetPosition;
+	//fbSoEReset			  :	FB_SoEReset;
+	AzimuthAxisEvent		: FB_EventLog;
+	AzimuthDiagnosticEvent	: FB_EventLog;
+	readydelay				: TON;		// delay until commutator angle is measured
+	HomeDelay				: FB_TONTP;
+	TorqueError				: TON := (PT := T#3S);
+	azimuth_torque			: REAL;
+	TorqueWarning			: FB_EventLog;
+	CalibrationEvent		: FB_Eventlog;
+	ReadParameter			: MC_ReadParameter;
+	getlastposition			: BOOL := TRUE;
+	azimuth_rest_timer		: TON;
+	azimuth_at_rest			: BOOL;
+	fbSoEReset				: FB_SoEReset;
+	DiagnosticError			: BOOL;
 END_VAR
 VAR CONSTANT
 	// reference position for homing
 	// homing_position:		LREAL := 439.0; // was 442 - -21.21 = 463.21; 463 + 24 = 439
 	// current position of the calibration cam encoder zero index. Apply an offset here if necessary
-	calibration_position:	LREAL :=  212.75; //208.4983;//208.6273; //208.6073; // 208.7122869;//207.0092; // 208.2342; 
+	calibration_position	: LREAL :=  212.75; //208.4983;//208.6273; //208.6073; // 208.7122869;//207.0092; // 208.2342; 
 END_VAR
 VAR PERSISTENT
-	last_position:	LREAL := -1.0;
+	last_position			: LREAL := -1.0;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[(* Azimuth Axis control section

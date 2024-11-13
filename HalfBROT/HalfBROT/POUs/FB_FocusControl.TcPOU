@@ -3,48 +3,49 @@
   <POU Name="FB_FocusControl" Id="{27922653-650e-4327-85ba-374d2f945b2c}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl
 VAR_INPUT
-	enable			: BOOL;		// enable the axis
-	inward			: BOOL;		// Move M2 closer to M1
-	outward			: BOOL;		// Move M2 away from M1	
-	reset			: BOOL;		// reset the axis(-error)
-	MoveAxis		: BOOL;		// move the axis to new position
-	HomeAxis		: BOOL;		// calibrate the focus axis
-	position		: LREAL;	// focus position in millimeters
-	telescope_mode	: E_TelescopeMode;
-	comm			: I_Comm;
+	enable				: BOOL;		// enable the axis
+	inward				: BOOL;		// Move M2 closer to M1
+	outward				: BOOL;		// Move M2 away from M1	
+	reset				: BOOL;		// reset the axis(-error)
+	moveAxis			: BOOL;		// move the axis to new position
+	homeAxis			: BOOL;		// calibrate the focus axis
+	position			: LREAL;	// focus position in millimeters
+	minPosition			: LREAL := 0;	// minimum position
+	maxPosition			: LREAL := 100;	// maximum position
+	telescopeMode		: E_TelescopeMode;
+	homingPosition		: LREAL := 92.02; // 104.02 - 12.00 	// reference position for homing
+	tolerance			: LREAL := 0.005;
 END_VAR
 VAR_OUTPUT
-	Calibrated		: BOOL;		// true if absolute calibration
-	Error			: BOOL;		// true if error
-	ErrorID			: UDINT;	// ID of NC axis error
-	Ready			: BOOL;		// ready signal = drive ready + standstill
-	FocusUnlock	AT%Q*: BOOL;		// whether focus is unlocked
+	calibrated			: BOOL;		// true if absolute calibration
+	error				: BOOL;		// true if error
+	errorID				: UDINT;	// ID of NC axis error
+	ready				: BOOL;		// ready signal = drive ready + standstill
+	focusUnlock	  AT%Q* : BOOL;		// whether focus is unlocked
+END_VAR
+VAR_IN_OUT
+	comm				: FB_Comm_MQTT;
 END_VAR
 VAR
-	FocusDelay		: TON;
-	BrakeDelay		: TON;
-	FocusAxis		: FB_Axis2;
-	actual_position	: LREAL;
-	ManualUnlock	: BOOL;		// manual override to unlock the focus
-	FocusUnlocked	: BOOL;
-	MQTTTimer 		: TON := (PT:=T#5S);
+	focusDelay			: TON;
+	brakeDelay			: TON;
+	focusAxis			: FB_Axis2;
+	actualPosition		: LREAL;
+	manualUnlock		: BOOL;		// manual override to unlock the focus
+	focusUnlocked		: BOOL;
+	mqttTimer 			: TON := (PT:=T#5S);
 	//getlastposition:	BOOL := TRUE;
-	FocusAxisEvent	: FB_EventLog;
-	CalibrationEvent: FB_EventLog;
-	HomingMode		: MC_HOMINGMODE := 		MC_DefaultHoming;
-	SetPosition		: MC_SetPosition;
+	focusAxisEvent		: FB_EventLog;
+	calibrationEvent	: FB_EventLog;
+	homingMode			: MC_HOMINGMODE := 		MC_DefaultHoming;
+	setPosition			: MC_setPosition;
 	
-	focus_limit_near	AT%I*: BOOL;	// DIN29 3.4
-	focus_limit_far		AT%I*: BOOL;	// DIN30 3.5
-	FocusAxisRef		: AXIS_REF;
-END_VAR
-VAR CONSTANT
-	// reference position for homing
-	homing_position	: LREAL := 92.8936; // 106.5936 - 13.7000
-	tolerance		: LREAL := 0.005;
+	limitNear	   AT%I*: BOOL;	// DIN29 3.4
+	limitFar  	   AT%I*: BOOL;	// DIN30 3.5
+	axisRef				: AXIS_REF;
 END_VAR
 VAR PERSISTENT
-	last_position	: LREAL := -1.0;
+	lastPosition		: LREAL := -1.0;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -59,131 +60,131 @@ Focus is locked by default
 *)
 
 // limit to sane positions
-position := LIMIT(5.0, position, 95.0);
+position := LIMIT(minPosition, position, maxPosition);
 
 // focus is unlocked if enabled or manually unlocked
-FocusUnlock := ManualUnlock OR enable;
+focusUnlock := manualUnlock OR enable;
 
 // wait until the focus is unlocked for n milliseconds
-FocusDelay(IN := FocusUnlock, PT := T#500MS, Q => FocusUnlocked);
+focusDelay(IN := focusUnlock, PT := T#500MS, Q => focusUnlocked);
 // wait for brake until we are at rest
-BrakeDelay(IN := NOT FocusAxis.Busy AND FocusAxis.StandStill, PT := T#4000MS);
+brakeDelay(IN := NOT focusAxis.Busy AND focusAxis.StandStill, PT := T#4000MS);
 
 // if we are on automatic mode then position the focus
-IF telescope_mode = E_TelescopeMode.automatic AND NOT ManualUnlock THEN
-	IF FocusAxis.Calibrated THEN
-		IF ABS(position - actual_position) > tolerance THEN
-			IF FocusAxis.Ready THEN
-				MoveAxis := TRUE;
+IF telescopeMode = E_TelescopeMode.automatic AND NOT manualUnlock THEN
+	IF focusAxis.calibrated THEN
+		IF ABS(position - actualPosition) > tolerance THEN
+			IF focusAxis.Ready THEN
+				moveAxis := TRUE;
 			ELSE
-				Enable := TRUE;
+				enable := TRUE;
 			END_IF
 		END_IF
 		// disable the drive and lock the brake, if we stand for more than n seconds
-		IF BrakeDelay.Q THEN
-			Enable := FALSE;
+		IF brakeDelay.Q THEN
+			enable := FALSE;
 		END_IF
 		// store actual position, if we are calibrated and locked
-		IF NOT FocusUnlock THEN
-			last_position := actual_position;
+		IF NOT focusUnlock THEN
+			lastPosition := actualPosition;
 		END_IF
 	ELSE // not calibrated
-		IF FocusAxis.Ready THEN
-			HomeAxis := TRUE;
+		IF focusAxis.Ready THEN
+			homeAxis := TRUE;
 		END_IF
 	END_IF
 END_IF
 
-IF HomeAxis THEN
-	IF last_position > 0.0 THEN
-		HomingMode := MC_ForceCalibration; // MC_Direct
-		position := last_position;
-		SetPosition.Execute := TRUE;
+IF homeAxis THEN
+	IF lastPosition > 0.0 THEN
+		homingMode := MC_ForceCalibration; // MC_Direct
+		position := lastPosition;
+		setPosition.Execute := TRUE;
 	ELSE
-		HomingMode := MC_DefaultHoming;
-		position := homing_position;
-		SetPosition.Execute := FALSE;
+		homingMode := MC_DefaultHoming;
+		position := homingPosition;
+		setPosition.Execute := FALSE;
 	END_IF
 ELSE
-	SetPosition.Execute := FALSE;	
+	setPosition.Execute := FALSE;	
 END_IF
 
 // deactivate limit switches on homing
-MC_SetAcceptBlockedDriveSignal(Axis := FocusAxisRef, Enable := HomeAxis);
-SetPosition(Axis := FocusAxisRef, Position := last_position);
+MC_SetAcceptBlockedDriveSignal(Axis := axisRef, enable := homeAxis);
+setPosition(Axis := axisRef, Position := lastPosition);
 		
-FocusAxis(	
-	Enable 			:= FocusUnlocked,
+focusAxis(	
+	enable 			:= focusUnlocked,
 	Reset 			:= reset,
-	MoveAxis 		:= MoveAxis AND FocusUnlocked,
-	HomeAxis 		:= HomeAxis AND FocusUnlocked,
-	HomingMode 		:= HomingMode,
+	moveAxis 		:= moveAxis AND focusUnlocked,
+	homeAxis 		:= homeAxis AND focusUnlocked,
+	homingMode 		:= homingMode,
 	Position 		:= position,
 	Velocity 		:= 0.04,
-	Enable_Positive := NOT focus_limit_far OR HomeAxis,
-	Enable_Negative := NOT focus_limit_near,
-	Jog_Forward 	:= outward AND FocusUnlocked,
-	Jog_Backwards 	:= inward AND FocusUnlocked,
-	bCalibrationCam := focus_limit_far,
-	ActualPosition 	=> actual_position,
+	enable_Positive := NOT limitFar OR homeAxis,
+	enable_Negative := NOT limitNear,
+	Jog_Forward 	:= outward AND focusUnlocked,
+	Jog_Backwards 	:= inward AND focusUnlocked,
+	bCalibrationCam := limitFar,
+	ActualPosition 	=> actualPosition,
 	Error 			=> error,
-	ErrorID 		=> ErrorID,
-	AxisRef 		:= FocusAxisRef);	
+	ErrorID 		=> errorID,
+	AxisRef 		:= axisRef);	
 
-IF FocusAxis.MoveDone THEN
-	MoveAxis := FALSE;
+IF focusAxis.MoveDone THEN
+	moveAxis := FALSE;
 END_IF
 
-IF FocusAxis.HomeDone THEN
-	HomeAxis := FALSE;
-	Enable := FALSE;
-	last_position := position;
+IF focusAxis.HomeDone THEN
+	homeAxis := FALSE;
+	enable := FALSE;
+	lastPosition := position;
 END_IF
 	
-IF FocusAxis.ResetDone THEN
+IF focusAxis.ResetDone THEN
 	reset := FALSE;
 END_IF
 
-IF FocusAxis.Calibrated OR Error THEN
-	HomeAxis := FALSE;
+IF focusAxis.calibrated OR Error THEN
+	homeAxis := FALSE;
 END_IF
 
 IF Error THEN
-	last_position := -1.0;
-	//FocusAxis.Calibrated := FALSE;
-	Calibrated := FALSE;
+	lastPosition := -1.0;
+	//focusAxis.calibrated := FALSE;
+	calibrated := FALSE;
 END_IF
 
-Calibrated := FocusAxis.Calibrated;
+calibrated := focusAxis.calibrated;
 
-Ready := FocusAxis.Ready AND FocusAxis.StandStill OR NOT FocusUnlock;
+Ready := focusAxis.Ready AND focusAxis.StandStill OR NOT focusUnlock;
 
-MQTTTimer(IN:=TRUE);
-IF MQTTTimer.Q THEN // publish new payload every second
-	MQTTTimer(IN:=FALSE);
-	comm.Publish('telescope', 'dome', 'FocusPosition', LREAL_TO_FMTSTR(actual_position, 5, TRUE));
-	comm.Publish('telescope', 'dome', 'FocusCalibrated', BOOL_TO_STRING(Calibrated));	
-	comm.Publish('telescope', 'dome', 'FocusReady', BOOL_TO_STRING(Ready));	
+mqttTimer(IN:=TRUE);
+IF mqttTimer.Q THEN // publish new payload every second
+	mqttTimer(IN:=FALSE);
+	comm.Publish('telescope', 'dome', 'FocusPosition', LREAL_TO_FMTSTR(actualPosition, 5, TRUE));
+	comm.Publish('telescope', 'dome', 'Focuscalibrated', BOOL_TO_STRING(calibrated));	
+	comm.Publish('telescope', 'dome', 'FocusReady', BOOL_TO_STRING(ready));	
 END_IF
 
-FocusAxisEvent(	
-	Trigger := 		FocusAxis.Error, 
-	Level := 		ADSLOG_MSGTYPE_ERROR,
-	FormatString :=	'Focus Axis Error: %s',
-	OnMessage := 	NCError_TO_STRING(ErrorID),
-	OffMEssage := 	'OK',
-	OffLevel := 	ADSLOG_MSGTYPE_HINT,
-	comm := comm);
+focusAxisEvent(	
+	Trigger 		:= focusAxis.Error, 
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	FormatString	:= 'Focus Axis Error: %S',
+	OnMessage 		:= NCError_TO_STRING(ErrorID),
+	OffMEssage 		:= 'OK',
+	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
+	comm 			:= comm);
 
 CalibrationEvent(
-	Trigger :=	Calibrated,
-	Level :=	ADSLOG_MSGTYPE_HINT,
-	OnMessage := 'Focus is calibrated.',
-	comm := comm);]]></ST>
+	Trigger 		:=	calibrated,
+	Level 			:=	ADSLOG_MSGTYPE_HINT,
+	OnMessage 		:= 'Focus is calibrated.',
+	comm 			:= comm);]]></ST>
     </Implementation>
     <LineIds Name="FB_FocusControl">
-      <LineId Id="1" Count="59" />
-      <LineId Id="65" Count="71" />
+      <LineId Id="1317" Count="130" />
+      <LineId Id="136" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
