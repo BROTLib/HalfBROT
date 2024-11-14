@@ -13,6 +13,8 @@ VAR_INPUT
 	close_cover2	AT%Q*	: BOOL; // close cover2 command
 	open_cover3		AT%Q*	: BOOL; // open cover3 command
 	close_cover3	AT%Q*	: BOOL; // close cover3 command
+	
+
 END_VAR
 VAR_OUTPUT
 	isopen				: BOOL;		// all covers are open
@@ -20,10 +22,8 @@ VAR_OUTPUT
 	error				: BOOL;		// any cover-driver reports an error
 	warning				: BOOL;		// warning state of the DC drives
 END_VAR
-VAR_IN_OUT
-	comm				: FB_Comm_MQTT;
-END_VAR
 VAR
+	comm				: I_Comm;	
 	active_cover		: INT;		// actual active cover in manual mode, 0 for automatic = all covers active
 	
 	// limit switches
@@ -209,6 +209,21 @@ END_VAR
 CloseCover := TRUE;]]></ST>
       </Implementation>
     </Method>
+    <Method Name="FB_Init" Id="{f7653641-ffea-4063-9b54-57e57f75d284}">
+      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
+//The return value is not evaluated. For a specific influence, you can also declare the
+//methods explicitly and provide additional code there with the standard initialization
+//code. You can evaluate the return value.
+METHOD FB_Init: BOOL
+VAR_INPUT
+    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
+    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
+	comm			: I_Comm;   
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.comm := comm;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="OpenCover" Id="{bb6e1357-2f21-45f8-bb34-0ba057923977}">
       <Declaration><![CDATA[METHOD OpenCover : BOOL
 VAR_INPUT
@@ -233,6 +248,9 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_CoverControl.CloseCover">
       <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.FB_Init">
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_CoverControl.OpenCover">
       <LineId Id="1" Count="1" />

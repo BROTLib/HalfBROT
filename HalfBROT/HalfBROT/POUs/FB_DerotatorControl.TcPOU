@@ -5,21 +5,18 @@
 VAR_INPUT
 	enable			: BOOL;		// enable the derotator
 	reset			: BOOL;		// reset an error
-	left			: BOOL;		// decrease derotator angle
-	right			: BOOL;		// increase derotator angle
 	position		: LREAL;	// set the absolute position
-	Velocity		: LREAL := 10.0;	// derotator velocity
-	MoveAxis		: BOOL;		// move to given position
-	HomeAxis		: BOOL;		// calibrate the axis
-	Tracking		: BOOL;		// tracking flag
-	StopAxis		: BOOL;		// stop the Axis
+	velocity		: LREAL := 10.0;	// derotator velocity
+	moveAxis		: BOOL;		// move to given position
+	homeAxis		: BOOL;		// calibrate the axis
+	tracking		: BOOL;		// tracking flag
+	stopAxis		: BOOL;		// stop the Axis
 	bSoEReset		: BOOL;		// diagnostic error code reset
 	calibration_position	: LREAL := 438.4623; // calibration in positive direction (was 460.0)
 	min_position	: LREAL;
 	max_position	: LREAL;
 END_VAR
 VAR_OUTPUT
-	
 	Error			: BOOL;		// error flag
 	ErrorID			: UDINT;	// nc error id
 	actual_position	: LREAL;	// actual position of the derotator
@@ -27,10 +24,8 @@ VAR_OUTPUT
 	Ready			: BOOL;		// axis ready flag
 	slewtime		: LREAL;	// position to move the axis to
 END_VAR
-VAR_IN_OUT
-	comm			: FB_Comm_MQTT;
-END_VAR
 VAR
+	comm			: I_Comm;	
 	TorqueError		: TON := (PT := T#3S);	// trigger for the torque error
 	DerotatorAxis	: FB_Axis2;	// axis function block
 	DerotatorEvent	: FB_EventLog;
@@ -41,7 +36,8 @@ VAR
 	ReadParameter	: MC_ReadParameter;	// read slewtime
 	fbSoEReset		: FB_SoEReset;
 	DiagnosticError	: BOOL;
-	
+	left			: BOOL;		// decrease derotator angle
+	right			: BOOL;		// increase derotator angle
 	
 	digital_inputs	AT%I*	: WORD;		// digitale inputs der Endlagen
 	diagnostic		AT%I*	: UDINT;	// diagnostic number
@@ -179,8 +175,88 @@ CalibrationEvent(
 	Comm			:= comm);
 	]]></ST>
     </Implementation>
+    <Method Name="FB_Init" Id="{17d81d64-5647-49eb-8f39-4de9c4a6dd83}">
+      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
+//The return value is not evaluated. For a specific influence, you can also declare the
+//methods explicitly and provide additional code there with the standard initialization
+//code. You can evaluate the return value.
+METHOD FB_Init: BOOL
+VAR_INPUT
+    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
+    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
+	comm			: I_Comm;   
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.comm := comm;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="IsInMaxLimit" Id="{85224394-9a32-4685-b3cf-6a13bc098736}">
+      <Declaration><![CDATA[METHOD PUBLIC IsInMaxLimit : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IsInMaxLimit := digital_inputs.0;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="IsInMinLimit" Id="{62606f0a-fd18-40f4-8386-8e94886290d7}">
+      <Declaration><![CDATA[METHOD PUBLIC IsInMinLimit : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IsInMinLimit := digital_inputs.1;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="IsReady" Id="{8cc15e49-347f-420a-b869-3556a24cdf75}">
+      <Declaration><![CDATA[METHOD PUBLIC IsReady : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IsReady := ready;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveLeft" Id="{f9da8fce-1e75-499f-9e0c-b87953d543dc}">
+      <Declaration><![CDATA[METHOD PUBLIC MoveLeft : BOOL
+VAR_INPUT
+	enable	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[left := enable;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveRight" Id="{36c00668-a0dc-4b1f-8735-c26e99bf4c2c}">
+      <Declaration><![CDATA[METHOD PUBLIC MoveRight : BOOL
+VAR_INPUT
+	enable	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[right := enable;]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="FB_DerotatorControl">
       <LineId Id="1" Count="126" />
+    </LineIds>
+    <LineIds Name="FB_DerotatorControl.FB_Init">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DerotatorControl.IsInMaxLimit">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DerotatorControl.IsInMinLimit">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DerotatorControl.IsReady">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DerotatorControl.MoveLeft">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_DerotatorControl.MoveRight">
+      <LineId Id="1" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

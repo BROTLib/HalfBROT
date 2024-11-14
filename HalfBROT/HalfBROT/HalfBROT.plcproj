@@ -53,6 +53,12 @@
     <Compile Include="POUs\FB_PendantControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\FB_TelescopeAuxiliary.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\FB_TelescopeControl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -99,6 +105,10 @@
     <Folder Include="POUs" />
   </ItemGroup>
   <ItemGroup>
+    <PlaceholderReference Include="AstroBROT">
+      <DefaultResolution>AstroBROT, * (BROT)</DefaultResolution>
+      <Namespace>AstroBROT</Namespace>
+    </PlaceholderReference>
     <PlaceholderReference Include="BROTLib">
       <DefaultResolution>BROTLib, * (BROT)</DefaultResolution>
       <Namespace>BROTLib</Namespace>

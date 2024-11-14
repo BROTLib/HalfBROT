@@ -4,8 +4,6 @@
     <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl
 VAR_INPUT
 	enable				: BOOL;		// enable the axis
-	inward				: BOOL;		// Move M2 closer to M1
-	outward				: BOOL;		// Move M2 away from M1	
 	reset				: BOOL;		// reset the axis(-error)
 	moveAxis			: BOOL;		// move the axis to new position
 	homeAxis			: BOOL;		// calibrate the focus axis
@@ -21,18 +19,18 @@ VAR_OUTPUT
 	error				: BOOL;		// true if error
 	errorID				: UDINT;	// ID of NC axis error
 	ready				: BOOL;		// ready signal = drive ready + standstill
-	focusUnlock	  AT%Q* : BOOL;		// whether focus is unlocked
-END_VAR
-VAR_IN_OUT
-	comm				: FB_Comm_MQTT;
+	focusUnlocked		: BOOL;
 END_VAR
 VAR
+	comm				: I_Comm;	
+	inward				: BOOL;		// Move M2 closer to M1
+	outward				: BOOL;		// Move M2 away from M1	
+	focusUnlock	  AT%Q* : BOOL;		// whether focus is unlocked
 	focusDelay			: TON;
 	brakeDelay			: TON;
 	focusAxis			: FB_Axis2;
 	actualPosition		: LREAL;
 	manualUnlock		: BOOL;		// manual override to unlock the focus
-	focusUnlocked		: BOOL;
 	mqttTimer 			: TON := (PT:=T#5S);
 	//getlastposition:	BOOL := TRUE;
 	focusAxisEvent		: FB_EventLog;
@@ -156,18 +154,33 @@ IF Error THEN
 END_IF
 
 calibrated := focusAxis.calibrated;
-
 Ready := focusAxis.Ready AND focusAxis.StandStill OR NOT focusUnlock;
 
-mqttTimer(IN:=TRUE);
-IF mqttTimer.Q THEN // publish new payload every second
-	mqttTimer(IN:=FALSE);
-	comm.Publish('telescope', 'dome', 'FocusPosition', LREAL_TO_FMTSTR(actualPosition, 5, TRUE));
-	comm.Publish('telescope', 'dome', 'Focuscalibrated', BOOL_TO_STRING(calibrated));	
-	comm.Publish('telescope', 'dome', 'FocusReady', BOOL_TO_STRING(ready));	
-END_IF
-
-focusAxisEvent(	
+SendTelemetry();
+HandleEvents();]]></ST>
+    </Implementation>
+    <Method Name="FB_Init" Id="{c74882ff-aa80-4625-bc9f-1892a4f93fe8}">
+      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
+//The return value is not evaluated. For a specific influence, you can also declare the
+//methods explicitly and provide additional code there with the standard initialization
+//code. You can evaluate the return value.
+METHOD FB_Init: BOOL
+VAR_INPUT
+    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
+    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
+	comm			: I_Comm;   
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.comm := comm;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="HandleEvents" Id="{375f50c9-e6ea-4fcd-9fab-a26147b70ce8}">
+      <Declaration><![CDATA[METHOD PRIVATE HandleEvents : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[focusAxisEvent(	
 	Trigger 		:= focusAxis.Error, 
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString	:= 'Focus Axis Error: %S',
@@ -180,11 +193,66 @@ CalibrationEvent(
 	Trigger 		:=	calibrated,
 	Level 			:=	ADSLOG_MSGTYPE_HINT,
 	OnMessage 		:= 'Focus is calibrated.',
-	comm 			:= comm);]]></ST>
-    </Implementation>
+	comm 			:= comm);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveIn" Id="{457ec480-c410-4034-8eef-3a888cb86380}">
+      <Declaration><![CDATA[METHOD PUBLIC MoveIn : BOOL
+VAR_INPUT
+	enable	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[inward := enable;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveOut" Id="{dde23261-8560-4e1b-95b2-82960b603ca9}">
+      <Declaration><![CDATA[METHOD PUBLIC MoveOut : BOOL
+VAR_INPUT
+	enable	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[outward := enable;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SendTelemetry" Id="{9492de4d-6d2e-401c-bc97-10786d283636}">
+      <Declaration><![CDATA[METHOD PRIVATE SendTelemetry : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[mqttTimer(IN:=TRUE);
+IF mqttTimer.Q THEN // publish new payload every second
+	mqttTimer(IN:=FALSE);
+	comm.Publish('telescope', 'dome', 'FocusPosition', LREAL_TO_FMTSTR(actualPosition, 5, TRUE));
+	comm.Publish('telescope', 'dome', 'Focuscalibrated', BOOL_TO_STRING(calibrated));	
+	comm.Publish('telescope', 'dome', 'FocusReady', BOOL_TO_STRING(ready));	
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="FB_FocusControl">
-      <LineId Id="1317" Count="130" />
+      <LineId Id="1317" Count="106" />
+      <LineId Id="1425" Count="1" />
+      <LineId Id="1434" Count="0" />
       <LineId Id="136" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.FB_Init">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.HandleEvents">
+      <LineId Id="1" Count="14" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.MoveIn">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.MoveOut">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.SendTelemetry">
+      <LineId Id="1" Count="7" />
     </LineIds>
   </POU>
 </TcPlcObject>

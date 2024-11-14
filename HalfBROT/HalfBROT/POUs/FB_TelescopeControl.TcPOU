@@ -1,0 +1,1023 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+  <POU Name="FB_TelescopeControl" Id="{10c2c294-efcf-424f-afd3-75ac57a5e8bc}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_TelescopeControl
+VAR_INPUT
+(*
+TCS interface section
+see https://gitlab.aip.de/bmk10k/telescope_firmware/snippets/5
+*)
+	
+	// boolean, true: Power on, false: power off
+	power: 		BOOL;
+	// boolean, true: go to home position, unset track/goto if active
+	gohome: 	BOOL;
+	// boolean, true: go into park position, ready to stow telescope, unset track/goto
+	park: 		BOOL;
+	// boolean, TRUE: MOVE telescope TO last ra/de AND start tracking. Set 'goto' TO FALSE, IF TRUE. FALSE: Stop tracking as soon as possible
+	track: 		BOOL;
+	// boolean, TRUE: MOVE telescope TO tau/de AND stop there. Set track TO FALSE, IF TRUE. FALSE: no effect.)
+	goto:		BOOL;	
+	// move the telescope to a given az-alt position
+	slew:		BOOL;
+	// boolean, TRUE: Stop motion OF telescope immediately, set goto AND track TO FALSE. FALSE: Allow motion OF telescope again via track/goto).
+	stop:		BOOL;	
+	// initiates reset on all axis
+	reset:		BOOL;
+	// automatic tracking after goto
+	autotrack:	BOOL := TRUE;
+	// apparent right ascension, degrees, double
+	rightascension:		LREAL := (4.0 + 35.0/60.0 + 54.09/3600.0) *15.0;	
+	// apparent declination, degrees, double
+	declination: 		LREAL := 16.0 + 30.0/60.0 + 25.4/3600.0;
+	// desired elevation of the telescope pointing 
+	elevation:	LREAL := 45.0;
+	// desired azimut of the telescope pointing 
+	azimuth:	LREAL := 320.0;
+	// absolute offset for elevation
+	elevation_offset:	LREAL := 0.0;
+	// absolute offset for azimuth
+	azimuth_offset : 	LREAL := 0.0;
+	// absolute offset for time
+	time_offset: 		LREAL := 0.0;
+	// offset for the de-rotator
+	derotator_offset:	LREAL := 0.0;
+	
+	estopTriggered		: BOOL;
+	brakeClearing		: BOOL;
+	mainReady			: BOOL;
+	TelescopeAuxiliary	: FB_TelescopeAuxiliary;
+	
+	comm 				: I_Comm;	
+	CoverControl		: REFERENCE TO FB_CoverControl;
+	HydraulicsControl 	: REFERENCE TO FB_HydraulicsControl;
+	Focuscontrol 		: REFERENCE TO FB_Focuscontrol;
+	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
+	ElevationControl	: REFERENCE TO FB_ElevationControl;
+	AzimuthControl		: REFERENCE TO FB_AzimuthControl;
+END_VAR
+VAR
+	// actual command from the TCS
+	TCS_command: 	E_TCSCommand;
+	// current Julian Date calculated from system time
+	jd:				LREAL;
+	// image derotation
+	derotation_calc:	LREAL;
+	// local siderial time calculated from Julian date
+	lst:			LREAL;
+	// elevation calulated when ra and dec are set by TCS
+	elevation_calc:	LREAL; 
+	// azimuth calulated when ra and dec are set by TCS
+	azimuth_calc:	LREAL;
+	// right ascension calulated when azimuth and elevation are set by TCS
+	rightascension_calc:	LREAL;
+	// declination calulated when azimuth and elevation are set by TCS
+	declination_calc:		LREAL;
+	// hour angle
+	Hourangle_calc: LREAL;
+	// precise astronomical	time
+	fbTime: FB_AstroClock;
+	
+	eq2hor:		FB_EQ2HOR;
+	hor2eq:		FB_HOR2EQ;
+	
+	// triggers power-failure event
+	powerfailure: 	BOOL;
+	// triggers power warning
+	poweronwarning:	TP;
+	// power on timeout
+	power_timeout:	TON;
+	// command timeout
+	command_timeout:	TON;
+	// tracking delay
+	tracking_delay:	TON;
+	// telescope is parked
+	isparked:		BOOL;
+	TCSpowerEvent,
+	TCSgohomeEvent,
+	TCSparkEvent,
+	TCSgotoEvent,
+	TCStrackEvent,
+	TCSstopEvent,
+	AltitudeEvent,
+	TCSreadyEvent,
+	TCSCTOEvent: FB_Eventlog;
+	MQTTTimer : TON := (PT:=T#5S);
+	// rotational velocity of the derotator
+	DerotatorVelocity: LREAL;
+	// rotational velocity of the elevation
+	ElevationVelocity: LREAL;
+	// rotational velocity of the elevation
+	AzimuthVelocity: LREAL;
+	// sign of derotation
+	derotatation_sign: LREAL := 1.0;
+	StatusWord, LastStatus:	UDINT;
+END_VAR
+VAR_OUTPUT
+	//		TRUE, IF telescope can be operated
+	ready:		BOOL; 
+	// indicates an error on one of the components
+	error:		BOOL;	
+	//error id of axis
+	errorid:	UDINT;	
+	//TRUE, IF telescope is in fast-MOVE phase (includes pole-swap)
+	sliding:	BOOL;	
+	//TRUE, IF telescope is on tracking position AND currently tracking.
+	tracking:	BOOL;	
+	//TRUE, IF telescope is AT rest.
+	stopped:	BOOL;	
+	// true position of the elevation
+	elevation_current:	LREAL;
+	// true position of the azimuth
+	azimuth_current:	LREAL;
+	// true position of the de-rotator
+	derotator_current:	LREAL;
+	//	(time in sec. to reach the goto/track position)
+	slewtime:			LREAL; 
+	// True: telescope is calibrated
+	homed:				BOOL;
+	// telescope does not accept further commands
+	busy:				BOOL;
+END_VAR
+VAR CONSTANT
+// STELLA1
+	// telescope site longitude, source: Google 
+	longitude: 		LREAL := -16.50926; //13.101867;
+	// telescope site latitude, source: Google
+	latitude: 		LREAL := 28.30120; //52.404940;
+	// telescope site height above sea level: estimated
+	altitude: 		LREAL := 2390.0;
+	elevation_park: LREAL := 60.0;
+	azimuth_park: 	LREAL := 359.999;
+	derotator_park: LREAL := 229.85;
+
+	elevation_home: LREAL := 55.0;
+	azimuth_home: 	LREAL := 180.0;
+END_VAR
+VAR PERSISTENT
+	// azimuth axis offset/misalignment north-south
+	AN_E:	LREAL;
+	// azimuth axis offset/misalignment east-west
+	AE_E:	LREAL;
+	// gravitational flexure correction at the horizon
+	TF:		LREAL;
+	// collimation error of the electromagnetic axis
+	BNP:	LREAL;
+	// azimuth axis offset/misalignment north-south
+	AN_A:	LREAL;
+	// azimuth axis offset/misalignment east-west,
+	AE_A:	LREAL;
+	// Non-perpendicularity between the mount azimuth and elevation axes
+	NPAE:	LREAL;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[TelescopeAuxiliary(comm := comm);
+
+// get the system time
+fbTime();
+jd := DateTime2JD(fbTime.time_RTCEX2);
+lst := CT2LST(longitude, jd);
+// set reset state either by hardware (key pressed) or by software (set by e.g. tcs)
+//IF GVL_Main.reset_switch THEN
+	//reset := TRUE;
+//END_IF
+
+
+IF ElevationControl.error THEN
+	errorid := ElevationControl.ErrorID;
+	ElevationControl.reset := reset;
+ELSIF AzimuthControl.error THEN
+	errorid := AzimuthControl.ErrorID;
+	AzimuthControl.Reset := reset;
+ELSIF Focuscontrol.Error THEN
+	errorid := Focuscontrol.ErrorID;
+	FocusControl.reset := reset;
+ELSIF DerotatorControl.Error THEN
+	errorid := DerotatorControl.ErrorID;
+	DerotatorControl.reset := reset;
+END_IF
+
+error := ElevationControl.error OR 
+		 AzimuthControl.error OR
+		 Focuscontrol.Error OR
+		 DerotatorControl.Error;
+
+slewtime := MAX(MAX(ElevationControl.slewtime, AzimuthControl.slewtime), DerotatorControl.slewtime);
+			
+IF error THEN
+	gohome := 	FALSE;
+	track := 	FALSE;
+	goto := 	FALSE;
+	slew := 	FALSE;
+ELSE
+	errorid := 0;
+END_IF
+
+IF ElevationControl.error THEN
+	ElevationControl.enable := FALSE;
+	AzimuthControl.enable := FALSE;
+	HydraulicsControl.close_brake();
+END_IF
+
+eq2hor(
+	ra := rightascension,
+	dec := declination,
+	lon := longitude,
+	lat := latitude,
+	JD := jd + time_offset,
+	alt => elevation_calc,
+	az => azimuth_calc,
+	ha => hourangle_calc);
+
+// apply pointing model
+elevation_calc := elevation_calc + PointingModelElevation(azimuth_calc, elevation_calc, elevation_offset, AN_E, AE_E, TF);
+azimuth_calc := azimuth_calc + PointingModelAzimuth(azimuth_calc, elevation_calc, azimuth_offset, BNP, AN_A, AE_A, NPAE);
+// calculate derotator position 
+derotation_calc := F_DerotatorPosition2(azimuth_calc, elevation_calc, declination_calc, latitude, derotatation_sign)  + derotator_offset;
+// calculate velocities
+DerotatorVelocity := F_Derotatorvelocity(elevation_calc, azimuth_calc, latitude);
+ElevationVelocity := F_Elevationvelocity(azimuth_calc, latitude);
+AzimuthVelocity := F_Azimuthvelocity(elevation_calc, azimuth_calc, latitude);
+
+IF (azimuth_calc > 310.0 AND AzimuthVelocity > 0.0) OR (azimuth_calc > 440.0) THEN
+	azimuth_calc := azimuth_calc - 360.0;
+ELSIF (azimuth_calc < 80.0 AND AzimuthVelocity < 0.0) OR (azimuth_calc < -50.0) THEN
+	azimuth_calc := azimuth_calc + 360.0;
+END_IF
+
+IF (derotation_calc > 290.0 AND DerotatorVelocity > 0.0) OR (derotation_calc > 380.0) THEN
+	derotation_calc := derotation_calc - 360.0;
+ELSIF (derotation_calc < 20.0 AND DerotatorVelocity < 0.0) OR (derotation_calc < -70.0) THEN
+	derotation_calc := derotation_calc + 360.0;
+END_IF
+// get current coordinates	
+azimuth_current := AzimuthControl.act_position;
+elevation_current := ElevationControl.actual_position;
+derotator_current := DerotatorControl.actual_position;
+
+// calculate equatorial coordinates
+hor2eq(alt := elevation_current - PointingModelElevation(azimuth_calc, elevation_calc, elevation_offset, AN_E, AE_E, TF), 
+		az := azimuth_current - PointingModelAzimuth(azimuth_calc, elevation_calc, azimuth_offset, BNP, AN_A, AE_A, NPAE),
+		jd := jd,
+		lat := latitude,
+		lon := longitude,
+		altitude := altitude,
+		ra => rightascension_calc,
+		dec => declination_calc);		
+	
+poweronwarning(IN := power OR (NOT ElevationControl.enable AND HydraulicsControl.brakeOpen), PT := T#250MS);
+
+power_timeout(IN := TCS_command = E_TCSCommand.no_command AND NOT isparked, PT := T#12H);
+command_timeout();
+IF power_timeout.Q AND NOT isparked THEN
+	park := TRUE;
+END_IF
+		
+// set TCS_command according to state variables ordered by precedence
+IF power THEN
+	TCS_command := E_TCSCommand.poweron;
+ELSIF stop THEN
+	TCS_command := E_TCSCommand.stop;
+	goto := FALSE;
+	track := FALSE;
+	slew := FALSE;
+	gohome := FALSE;
+	park := FALSE;
+ELSIF park THEN
+	goto := FALSE;
+	track := FALSE;
+	slew := FALSE;
+	IF ready AND stopped THEN
+		TCS_command := E_TCSCommand.park;
+	END_IF
+ELSIF gohome THEN
+	goto := FALSE;
+	track := FALSE;
+	slew := FALSE;
+	IF ready AND NOT busy AND stopped THEN
+		TCS_command := E_TCSCommand.gohome;
+	END_IF
+ELSIF goto THEN
+	track := FALSE;
+	slew := FALSE;
+	IF ready AND NOT busy THEN
+		TCS_command := E_TCSCommand.goto;
+	END_IF
+ELSIF slew THEN
+	goto := FALSE;
+	track := FALSE;
+	IF ready AND NOT busy THEN
+		TCS_command := E_TCSCommand.slew;
+	END_IF
+ELSIF track THEN
+	goto := FALSE;
+	slew := FALSE;
+	IF ready AND NOT busy THEN
+		TCS_command := E_TCSCommand.track;
+	END_IF
+ELSE
+	TCS_command := E_TCSCommand.no_command;
+	ElevationControl.MoveAxis := FALSE;
+	AzimuthControl.MoveAxis := FALSE;
+	DerotatorControl.MoveAxis := FALSE;
+	ElevationControl.Tracking := FALSE;
+	AzimuthControl.Tracking := FALSE;
+	DerotatorControl.Tracking := FALSE;
+END_IF
+
+IF TCS_command = E_TCSCommand.poweron THEN
+	PowerOn();
+	command_timeout(IN := TCS_command = E_TCSCommand.poweron, PT := T#12H);
+	TCSCTOEvent.OnMessage := 'POWER';
+ELSIF TCS_command = E_TCSCommand.stop THEN
+	StopTelescope();
+	command_timeout(IN := TCS_command = E_TCSCommand.stop, PT := T#2S);
+	TCSCTOEvent.OnMessage := 'STOP';
+ELSIF TCS_command = E_TCSCommand.park THEN
+	ParkTelescope();
+	command_timeout(IN := TCS_command = E_TCSCommand.park, PT := T#2M);
+	TCSCTOEvent.OnMessage := 'PARK';
+ELSIF TCS_command = E_TCSCommand.gohome THEN
+	HomeTelescope();
+	command_timeout(IN := TCS_command = E_TCSCommand.gohome, PT := T#2M);
+	TCSCTOEvent.OnMessage := 'GOHOME';
+ELSIF TCS_command = E_TCSCommand.goto THEN
+	GotoTelescope();
+	command_timeout(IN := TCS_command = E_TCSCommand.goto, PT := T#2M);
+	TCSCTOEvent.OnMessage := 'GOTO';
+ELSIF TCS_command = E_TCSCommand.slew THEN
+	SlewTelescope();
+	command_timeout(IN := TCS_command = E_TCSCommand.slew, PT := T#2M);
+	TCSCTOEvent.OnMessage := 'SLEW';
+ELSIF TCS_command = E_TCSCommand.track THEN
+	TrackTelescope();
+	command_timeout(IN := TCS_command = E_TCSCommand.track, PT := T#12H);
+	TCSCTOEvent.OnMessage := 'TRACK';
+ELSE
+	// disable command timeout
+	command_timeout(IN := FALSE);
+	TCSCTOEvent.OnMessage := 'NOCOMMAND';
+END_IF
+ 
+sliding := NOT tracking AND (ElevationControl.ElevationAxis.InMotion OR ElevationControl.ElevationAxis.InRamp OR
+			AzimuthControl.AzimuthAxis.InMotion OR AzimuthControl.AzimuthAxis.InRamp OR
+			DerotatorControl.DerotatorAxis.InMotion OR DerotatorControl.DerotatorAxis.InRamp);
+
+// signal must be stable for 5500MS
+tracking_delay(in := ElevationControl.ElevationAxis.isTracking AND 
+			AzimuthControl.AzimuthAxis.isTracking AND
+			DerotatorControl.DerotatorAxis.isTracking,PT :=T#5500MS, Q => tracking);
+			
+stopped :=  (NOT ElevationControl.enable OR ElevationControl.ElevationAxis.StandStill) AND 
+			(NOT AzimuthControl.Enable OR AzimuthControl.AzimuthAxis.StandStill) AND
+			(NOT DerotatorControl.enable OR DerotatorControl.DerotatorAxis.StandStill);
+			
+homed := ElevationControl.Calibrated AND
+			AzimuthControl.calibrated AND
+			FocusControl.Calibrated AND
+			DerotatorControl.Calibrated;
+			
+ready := homed AND 
+	CoverControl.isopen AND 
+	ElevationControl.enable AND
+	AzimuthControl.enable AND
+	DerotatorControl.enable AND HydraulicsControl.brakeOpen AND 
+    NOT error;
+
+busy := ElevationControl.ElevationAxis.Busy OR
+		AzimuthControl.AzimuthAxis.Busy OR
+		DerotatorControl.DerotatorAxis.Busy OR
+		FocusControl.FocusAxis.Busy;
+
+// unset the STOP command if telescope is already stopped
+IF stopped THEN
+	stop := FALSE;
+END_IF
+	
+IF NOT error THEN
+	reset := FALSE;
+END_IF
+
+IF estopTriggered THEN
+	ElevationControl.enable := FALSE;
+	AzimuthControl.enable := FALSE;
+	DerotatorControl.enable := FALSE;
+END_IF
+IF sliding OR track OR tracking THEN
+	MQTTTimer.PT := T#1000MS;
+ELSE
+	MQTTTimer.PT := T#5000MS;
+END_IF
+MQTTTimer(IN:=TRUE);
+IF MQTTTimer.Q THEN // publish new payload every second
+	MQTTTimer(IN:=FALSE);
+
+	comm.Publish('telescope', 'dome', 'JulianDate', LREAL_TO_STRING(jd));
+	comm.Publish('telescope', 'dome', 'LocalSiderialTime', LREAL_TO_STRING(lst));
+	comm.Publish('telescope', 'dome', 'Azimuth', LREAL_TO_STRING(azimuth_current));
+	comm.Publish('telescope', 'dome', 'Elevation', LREAL_TO_STRING(elevation_current));
+	comm.Publish('telescope', 'dome', 'Derotator', LREAL_TO_STRING(derotator_current));
+	comm.Publish('telescope', 'dome', 'HourAngle', LREAL_TO_STRING(hourangle_calc));
+	comm.Publish('telescope', 'dome', 'RightAscension', LREAL_TO_STRING(rightascension_calc));
+	comm.Publish('telescope', 'dome', 'Declination', LREAL_TO_STRING(declination_calc));
+	comm.Publish('telescope', 'dome', 'azimuth_offset', LREAL_TO_STRING(azimuth_offset));
+	comm.Publish('telescope', 'dome', 'elevation_offset', LREAL_TO_STRING(elevation_offset));
+	comm.Publish('telescope', 'dome', 'derotator_torque', LREAL_TO_STRING(DerotatorControl.derotator_torque));
+	comm.Publish('telescope', 'dome', 'elevation_torque', LREAL_TO_STRING(ElevationControl.elevation_torque));
+	comm.Publish('telescope', 'dome', 'azimuth_torque', LREAL_TO_STRING(AzimuthControl.azimuth_torque));
+	
+	comm.Publish('telescope', 'dome', 'errorid',		UDINT_TO_STRING(errorid));
+	comm.Publish('telescope', 'dome', 'error',		BOOL_TO_STRING(error));
+	comm.Publish('telescope', 'dome', 'ready',		BOOL_TO_STRING(ready));
+	comm.Publish('telescope', 'dome', 'busy',		BOOL_TO_STRING(busy));
+	comm.Publish('telescope', 'dome', 'sliding',		BOOL_TO_STRING(sliding));
+	comm.Publish('telescope', 'dome', 'tracking', 	BOOL_TO_STRING(tracking));
+	comm.Publish('telescope', 'dome', 'stopped',		BOOL_TO_STRING(stopped));
+	comm.Publish('telescope', 'dome', 'homed',		BOOL_TO_STRING(homed));
+END_IF
+
+StatusWord.0 := error;
+StatusWord.1 := ready;
+StatusWord.2 := sliding;
+StatusWord.3 := tracking;
+StatusWord.4 := stopped;
+StatusWord.5 := homed;
+StatusWord.6 := power;
+StatusWord.7 := park;
+StatusWord.8 := gohome;
+StatusWord.9 := track;
+StatusWord.10 := goto;
+StatusWord.11 := slew;
+StatusWord.12 := stop;
+StatusWord.13 := busy;
+
+IF StatusWord<>LastStatus THEN // publish new payload every second
+	LastStatus := StatusWord;
+	comm.Publish('telescope', 'dome', 'error',		BOOL_TO_STRING(error));
+	comm.Publish('telescope', 'dome', 'ready',		BOOL_TO_STRING(ready));
+	comm.Publish('telescope', 'dome', 'sliding',		BOOL_TO_STRING(sliding));
+	comm.Publish('telescope', 'dome', 'tracking', 	BOOL_TO_STRING(tracking));
+	comm.Publish('telescope', 'dome', 'stopped',		BOOL_TO_STRING(stopped));
+	comm.Publish('telescope', 'dome', 'homed',		BOOL_TO_STRING(homed));
+	comm.Publish('telescope', 'dome', 'power',		BOOL_TO_STRING(power));
+	comm.Publish('telescope', 'dome', 'park',		BOOL_TO_STRING(park));
+	comm.Publish('telescope', 'dome', 'gohome',		BOOL_TO_STRING(gohome));
+	comm.Publish('telescope', 'dome', 'track',		BOOL_TO_STRING(track));
+	comm.Publish('telescope', 'dome', 'goto',		BOOL_TO_STRING(goto));
+	comm.Publish('telescope', 'dome', 'slew',		BOOL_TO_STRING(slew));
+	comm.Publish('telescope', 'dome', 'stop',		BOOL_TO_STRING(stop));
+	comm.Publish('telescope', 'dome', 'busy',		BOOL_TO_STRING(busy));
+END_IF
+
+
+(* Event function blocks start here. *)
+TCSpowerEvent(	Trigger := powerfailure, 
+				Level := ADSLOG_MSGTYPE_ERROR,
+				FormatString := 'power %s',
+				OnMessage := 'Failure',
+				OffMessage := 'OK', 
+				Comm := comm);
+
+TCSgohomeEvent(	Trigger := gohome, 
+				Level := ADSLOG_MSGTYPE_HINT,
+				FormatString := 'GOHOME %s',
+				OnMessage := 'commencing',
+				OffMEssage := 'completed', 
+				Comm := comm);
+TCSparkEvent(	Trigger := park, 
+				Level := ADSLOG_MSGTYPE_HINT,
+				FormatString := 'PARK %s',
+				OnMessage := 'commencing',
+				OffMEssage := 'completed', 
+				Comm := comm);
+TCSgotoEvent(	Trigger := goto, 
+				Level := ADSLOG_MSGTYPE_HINT,
+				FormatString := 'GOTO %s',
+				OnMessage := 'commencing',
+				OffMEssage := 'completed', 
+				Comm := comm);
+TCStrackEvent(	Trigger := track, 
+				Level := ADSLOG_MSGTYPE_HINT,
+				FormatString := 'TRACK %s',
+				OnMessage := 'commencing',
+				OffMEssage := 'completed', 
+				Comm := comm);
+TCSstopEvent(	Trigger := stop, 
+				Level := ADSLOG_MSGTYPE_WARN,
+				FormatString := 'STOP %s',
+				OnMessage := 'commencing',
+				OffMEssage := 'completed',
+				OffLevel := ADSLOG_MSGTYPE_HINT, 
+				Comm := comm);
+AltitudeEvent(	Trigger := power AND elevation_calc<0.0, 
+				Level := ADSLOG_MSGTYPE_WARN,
+				FormatString := '%s',
+				OnMessage := 'Target below horizon',
+				OffMEssage := '', 
+				Comm := comm);
+TCSreadyEvent(	Trigger := power AND ready, 
+				Level := ADSLOG_MSGTYPE_HINT,
+				FormatString := '%s',
+				OnMessage := 'STELLA1 startup finished', 
+				Comm := comm);
+TCSCTOEvent(	Trigger := command_timeout.Q,
+				Level := ADSLOG_MSGTYPE_WARN,
+				FormatString := 'A timeout occured during %s command!',
+				OnMessage := 'NOCOMMAND', 
+				Comm := comm);]]></ST>
+    </Implementation>
+    <Method Name="GotoTelescope" Id="{43ebaf76-c0fc-41db-8c98-2f7671dc6b31}">
+      <Declaration><![CDATA[METHOD PRIVATE GotoTelescope : USINT
+VAR_INPUT
+END_VAR
+VAR
+	GoToEvent		: FB_Eventlog;
+	commandTimeout	: TON;
+END_VAR
+VAR_STAT
+	Stage			: USINT := 0;
+	LastStage		: USINT := 101;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[gototelescope := Stage;
+commandTimeout(IN := Stage < 100, PT := T#600S);
+IF commandTimeout.Q THEN
+	error := TRUE;
+	errorid := 16#10;
+	goto := FALSE;
+	Stage := 0;
+	RETURN;
+END_IF
+
+IF elevation_calc<2.0 THEN
+	error := TRUE;
+	errorid := 16#15;
+	goto := FALSE;
+	Stage := 0;
+	RETURN;
+END_IF
+
+IF reset OR error THEN
+	Stage := 0;
+	RETURN;
+END_IF
+
+CASE Stage OF
+	0:	
+		IF ready AND NOT busy THEN
+			Stage := 25;
+		END_IF
+	25:	
+		ElevationControl.position := elevation_calc;
+		AzimuthControl.position := azimuth_calc;
+		DerotatorControl.position := derotation_calc;
+		DerotatorControl.Velocity := 10.0;
+		ElevationControl.velocity := 10.0;
+		AzimuthControl.velocity := 10.0;
+		
+		ElevationControl.MoveAxis := TRUE;
+		AzimuthControl.MoveAxis := TRUE;
+		DerotatorControl.MoveAxis := TRUE;
+		IF ElevationControl.ElevationAxis.Busy AND
+			AzimuthControl.AzimuthAxis.Busy AND
+			DerotatorControl.DerotatorAxis.Busy THEN
+				Stage := 50;
+		END_IF
+	50:
+		IF NOT ElevationControl.ElevationAxis.Busy AND ElevationControl.ElevationAxis.MoveDone THEN
+			ElevationControl.MoveAxis := FALSE;
+		END_IF
+		IF NOT AzimuthControl.AzimuthAxis.Busy AND AzimuthControl.AzimuthAxis.MoveDone THEN
+			AzimuthControl.MoveAxis := FALSE;
+		END_IF
+		IF NOT DerotatorControl.DerotatorAxis.Busy AND DerotatorControl.DerotatorAxis.MoveDone THEN
+			DerotatorControl.MoveAxis := FALSE;
+		END_IF
+		IF NOT ElevationControl.MoveAxis AND 
+           NOT AzimuthControl.MoveAxis AND 
+		   NOT DerotatorControl.MoveAxis THEN
+		   Stage := 75;
+		END_IF
+	75:
+		IF NOT sliding AND stopped THEN // all axis standstill
+			Stage := 100;
+		END_IF
+	100:
+		ElevationControl.MoveAxis := FALSE;
+		AzimuthControl.MoveAxis := FALSE;
+		DerotatorControl.MoveAxis := FALSE;
+		azimuth := azimuth_calc;
+		elevation := elevation_calc;
+		goto := FALSE;
+		// enable automatic tracking
+		track := autotrack;
+		Stage := 0;
+END_CASE
+GoToEvent(Trigger := Stage > LastStage, FormatString := 'GoTo progress: %s', OnMessage := USINT_TO_STRING(Stage));
+LastStage := Stage;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="HomeTelescope" Id="{b2d9dfb4-bf7c-4f17-8ac5-7f074d6808c9}">
+      <Declaration><![CDATA[METHOD PRIVATE HomeTelescope : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	HomeEvent		: FB_Eventlog;
+	commandTimeout	: TON;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[commandTimeout(IN := NOT hometelescope, PT := T#600S);
+IF commandTimeout.Q THEN
+	error := TRUE;
+	errorid := 16#30;
+	hometelescope :=TRUE;
+END_IF
+
+IF ready AND stopped AND NOT busy AND NOT tracking THEN
+	ElevationControl.velocity := 10.0;
+	ElevationControl.position := elevation_home;
+	ElevationControl.MoveAxis := TRUE;
+	AzimuthControl.velocity := 10.0;
+	AzimuthControl.position := azimuth_home;
+	AzimuthControl.MoveAxis := TRUE;
+	DerotatorControl.Velocity := 10.0;
+	DerotatorControl.position := 180.0;
+	DerotatorControl.MoveAxis := TRUE;	
+END_IF
+
+IF ElevationControl.ElevationAxis.MoveDone AND 
+	AzimuthControl.AzimuthAxis.MoveDone AND 
+	DerotatorControl.DerotatorAxis.MoveDone THEN
+	gohome := FALSE;
+	elevation := elevation_current;
+	azimuth := azimuth_current;
+	hometelescope := TRUE;
+ELSE
+	hometelescope := FALSE;
+END_IF
+
+HomeEvent(Trigger := hometelescope, 
+			Level := ADSLOG_MSGTYPE_HINT,
+			FormatString := '%s',
+			OnMessage := 'Telescope is homed.');
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ParkTelescope" Id="{94a12771-4c75-4743-9ad3-850f66878f1f}">
+      <Declaration><![CDATA[METHOD PRIVATE ParkTelescope : USINT
+VAR_INPUT
+END_VAR
+VAR
+	ParkEvent	: FB_Eventlog;
+END_VAR
+VAR_STAT
+	Stage		: USINT := 0;
+	LastStage	: USINT := 101;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ParkTelescope := Stage;
+IF reset OR error THEN
+	Stage := 0;
+END_IF
+IF isparked THEN
+	Stage := 100;
+END_IF
+CASE Stage OF
+	0: 
+		gohome := 	FALSE;
+		track := 	FALSE;
+		goto := 	FALSE;
+		slew := 	FALSE;
+		Focuscontrol.position := 53.6;
+		IF Error THEN // emergency park
+			HydraulicsControl.close_brake();
+			ElevationControl.enable := FALSE;
+			AzimuthControl.Enable := FALSE;
+			DerotatorControl.enable := FALSE;	
+			CoverControl.close := TRUE;	
+			Stage := 80;
+		END_IF
+		Stage := 20;
+	20:
+		ElevationControl.position := elevation_park;
+		ElevationControl.velocity := 10.0;
+		ElevationControl.MoveAxis := TRUE;
+		AzimuthControl.position := azimuth_park;
+		AzimuthControl.velocity := 10;
+		AzimuthControl.MoveAxis := TRUE;
+		DerotatorControl.position := derotator_park;
+		DerotatorControl.Velocity := 10.0;
+		DerotatorControl.MoveAxis := TRUE;
+		IF ElevationControl.ElevationAxis.Busy AND
+			AzimuthControl.AzimuthAxis.Busy AND
+			DerotatorControl.DerotatorAxis.Busy THEN
+				Stage := 40;
+		END_IF
+	40:
+		IF ElevationControl.ElevationAxis.MoveDone THEN
+			ElevationControl.MoveAxis := FALSE;
+		END_IF
+		IF AzimuthControl.AzimuthAxis.MoveDone THEN
+			AzimuthControl.MoveAxis := FALSE;
+		END_IF
+		IF DerotatorControl.DerotatorAxis.MoveDone THEN
+			DerotatorControl.MoveAxis := FALSE;
+		END_IF
+		IF NOT sliding THEN // all axis standstill
+			Stage := 60;
+		END_IF
+	60:
+		IF NOT ElevationControl.enable AND NOT AzimuthControl.Enable AND NOT DerotatorControl.enable THEN
+			stage := 80;
+		END_IF
+
+		IF stopped THEN
+			ElevationControl.enable := FALSE;
+			AzimuthControl.Enable := FALSE;
+			DerotatorControl.enable := FALSE;
+		END_IF
+		
+		ElevationControl.MoveAxis := FALSE;
+		AzimuthControl.MoveAxis := FALSE;
+		DerotatorControl.MoveAxis := FALSE;
+	80:
+		IF ElevationControl.enable OR AzimuthControl.Enable OR DerotatorControl.enable THEN
+			stage := 60;
+		END_IF
+		IF HydraulicsControl.brakeClosed THEN
+			CoverControl.close := TRUE;
+			HydraulicsControl.enable := FALSE;
+		END_IF
+		IF CoverControl.isclosed THEN
+			Stage := 100;
+		END_IF
+	100:
+			isparked := TRUE;
+			park := FALSE;
+			parktelescope := 100;
+			Stage := 0;	
+END_CASE
+ParkEvent(Trigger := Stage > LastStage, FormatString := 'Parking progress: %s', OnMessage := USINT_TO_STRING(Stage));
+LastStage := Stage;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="PowerOn" Id="{1dafa267-4251-4a45-a8e2-ae0ece289894}">
+      <Declaration><![CDATA[METHOD PRIVATE PowerOn : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT brakeClearing THEN
+	powerfailure := TRUE;
+	TCSpowerEvent.OnMessage := 'failure: brake clearing not set';
+	power := FALSE;
+ELSIF error THEN
+	powerfailure := TRUE;
+	TCSpowerEvent.OnMessage := 'Generic error during power on occured.';
+	power := FALSE;
+ELSE
+	powerfailure := FALSE;		
+END_IF
+// COVER MUST BE OPENED FOR A SUCCESSFUL WAKE & SHAKE COMMAND!
+Covercontrol.open := TRUE;
+
+// enable elevation, enable azimuth
+IF mainReady AND CoverControl.isopen THEN
+	ElevationControl.enable := TRUE;
+	AzimuthControl.enable := TRUE;
+	DerotatorControl.enable := TRUE;
+END_IF
+
+IF ElevationControl.Ready AND NOT ElevationControl.Calibrated THEN
+	ElevationControl.HomeAxis := TRUE;
+END_IF
+
+IF AzimuthControl.ready AND NOT AzimuthControl.calibrated THEN
+	AzimuthControl.HomeAxis := TRUE;
+END_IF
+
+// enable derotator
+IF ElevationControl.Ready THEN
+	DerotatorControl.HomeAxis := DerotatorControl.Ready AND NOT DerotatorControl.Calibrated;
+END_IF
+
+// start calibration of focus after elevation has been calibrated
+// this avoids imbalance by the M2 mirror on the elvation during its calibration
+IF ElevationControl.Calibrated AND NOT FocusControl.Calibrated THEN
+	FocusControl.enable := TRUE;
+	FocusControl.HomeAxis := TRUE;
+END_IF
+
+IF CoverControl.isopen AND 
+	ElevationControl.Calibrated AND
+	AzimuthControl.calibrated AND
+	DerotatorControl.Calibrated AND
+	FocusControl.Calibrated THEN
+	power := FALSE;
+	poweron := TRUE;
+	isparked := FALSE;
+	// slew the telescope to the home position
+	gohome := TRUE;
+ELSE
+	poweron := FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SlewTelescope" Id="{4aaca2e7-2dba-4c2d-80b3-cd4dcc5ad38b}">
+      <Declaration><![CDATA[METHOD PRIVATE SlewTelescope : USINT
+VAR_INPUT
+END_VAR
+VAR
+	SlewEvent:	FB_Eventlog;
+	command_timeout: TON;
+END_VAR
+VAR_STAT
+	Stage:		USINT := 0;
+	LastStage:	USINT := 101;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[slewtelescope := Stage;
+command_timeout(IN := Stage < 100, PT := T#600S);
+IF command_timeout.Q THEN
+	error := TRUE;
+	errorid := 16#40;
+	slew := FALSE;
+	Stage := 0;
+END_IF
+IF reset OR error THEN
+	Stage := 0;
+END_IF
+CASE Stage OF
+	0:	
+		IF ready AND stopped AND NOT busy AND NOT tracking THEN
+			Stage := 25;
+		END_IF
+	25:
+		ElevationControl.position := elevation;
+		ElevationControl.velocity := 10.0;
+		ElevationControl.MoveAxis := TRUE;
+		AzimuthControl.position := azimuth;
+		AzimuthControl.velocity := 10.0;
+		AzimuthControl.MoveAxis := TRUE;
+		DerotatorControl.position := elevation + derotator_offset;
+		DerotatorControl.Velocity := 10.0;
+		DerotatorControl.MoveAxis := TRUE;
+		IF ElevationControl.ElevationAxis.Busy AND
+			AzimuthControl.AzimuthAxis.Busy AND
+			DerotatorControl.DerotatorAxis.Busy THEN
+				Stage := 50;
+		END_IF
+	50:
+		IF ElevationControl.ElevationAxis.MoveDone THEN
+			ElevationControl.MoveAxis := FALSE;
+		END_IF
+		
+		IF AzimuthControl.AzimuthAxis.MoveDone THEN
+			AzimuthControl.MoveAxis := FALSE;
+		END_IF
+
+		IF DerotatorControl.DerotatorAxis.MoveDone THEN
+			DerotatorControl.MoveAxis := FALSE;
+		END_IF
+		IF NOT sliding AND stopped THEN // all axis standstill
+			Stage := 100;
+		END_IF
+	100:
+		ElevationControl.MoveAxis := FALSE;
+		AzimuthControl.MoveAxis := FALSE;
+		DerotatorControl.MoveAxis := FALSE;
+		rightascension := rightascension_calc;
+		declination := declination_calc;
+		slew := FALSE;
+		Stage := 0;
+END_CASE
+SlewEvent(Trigger := Stage > LastStage, FormatString := 'Slew progress: %s', OnMessage := USINT_TO_STRING(Stage));
+LastStage := Stage;		
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StopTelescope" Id="{cc9583d1-2578-4480-8aee-f6d55f373bf1}">
+      <Declaration><![CDATA[METHOD PRIVATE StopTelescope : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ElevationControl.StopAxis := TRUE;
+AzimuthControl.StopAxis := TRUE;
+DerotatorControl.StopAxis := TRUE;
+IF stopped THEN
+	ElevationControl.StopAxis := FALSE;
+	AzimuthControl.StopAxis := FALSE;
+	DerotatorControl.StopAxis := FALSE;
+	StopTelescope := FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TrackTelescope" Id="{0dd53d55-2f74-4268-9438-8bb832d1c59b}">
+      <Declaration><![CDATA[METHOD PRIVATE TrackTelescope : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Elevation
+DerotatorVelocity := F_Derotatorvelocity(elevation_calc, azimuth_calc, latitude);
+ElevationVelocity := F_Elevationvelocity(azimuth_calc, latitude);
+AzimuthVelocity := F_Azimuthvelocity(elevation_calc, azimuth_calc, latitude);
+IF elevation_current < 5.0 OR elevation_current > 89.5 THEN 
+	track := FALSE;
+END_IF
+IF azimuth_current > 440.0 THEN
+	track := FALSE;
+END_IF
+IF (derotator_current < -69.0 AND DerotatorVelocity<0.0) OR (derotator_current > 379.0 AND DerotatorVelocity>0.0) THEN
+	track := FALSE;
+END_IF
+
+ElevationControl.position := elevation_calc;
+IF NOT ElevationControl.Tracking THEN
+	ElevationControl.velocity := 10.0;
+	ElevationControl.MoveAxis := TRUE;
+	IF NOT ElevationControl.ElevationAxis.Busy AND ElevationControl.ElevationAxis.MoveDone THEN
+		ElevationControl.MoveAxis := FALSE;
+		IF ElevationControl.ElevationAxis.isTracking THEN
+			ElevationControl.velocity := ElevationVelocity;
+		ELSE
+			ElevationControl.velocity := 3.0*ElevationVelocity;
+		END_IF
+		ElevationControl.velocity := ElevationVelocity;
+		ElevationControl.Tracking := TRUE;
+	END_IF
+ELSE
+	ElevationControl.velocity := ElevationVelocity;
+END_IF
+
+// Azimuth
+AzimuthControl.position := azimuth_calc;
+IF NOT AzimuthControl.Tracking THEN
+	AzimuthControl.velocity := 10.0;
+	AzimuthControl.MoveAxis := TRUE;
+	IF NOT AzimuthControl.AzimuthAxis.Busy AND AzimuthControl.AzimuthAxis.MoveDone THEN
+		AzimuthControl.MoveAxis := FALSE;
+		IF AzimuthControl.AzimuthAxis.isTracking THEN
+			AzimuthControl.velocity := AzimuthVelocity;
+		ELSE
+			AzimuthControl.velocity := 3.0*AzimuthVelocity;
+		END_IF
+		AzimuthControl.velocity := AzimuthVelocity;
+		AzimuthControl.Tracking := TRUE;
+	END_IF
+ELSE
+	AzimuthControl.velocity := AzimuthVelocity;
+END_IF
+
+// Derotator
+DerotatorControl.position := derotation_calc;
+IF NOT DerotatorControl.Tracking THEN
+	DerotatorControl.Velocity := 10.0;
+	DerotatorControl.MoveAxis := TRUE;
+	IF NOT DerotatorControl.DerotatorAxis.Busy AND DerotatorControl.DerotatorAxis.MoveDone THEN
+		DerotatorControl.MoveAxis := FALSE;
+		IF DerotatorControl.DerotatorAxis.isTracking THEN
+			DerotatorControl.Velocity := DerotatorVelocity;
+		ELSE
+			DerotatorControl.Velocity := 3.0*DerotatorVelocity;
+		END_IF
+		DerotatorControl.Velocity := DerotatorVelocity;
+		DerotatorControl.Tracking := TRUE;
+	END_IF
+ELSE
+	DerotatorControl.Velocity := DerotatorVelocity;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_TelescopeControl">
+      <LineId Id="1" Count="353" />
+    </LineIds>
+    <LineIds Name="FB_TelescopeControl.GotoTelescope">
+      <LineId Id="1" Count="76" />
+    </LineIds>
+    <LineIds Name="FB_TelescopeControl.HomeTelescope">
+      <LineId Id="1" Count="34" />
+    </LineIds>
+    <LineIds Name="FB_TelescopeControl.ParkTelescope">
+      <LineId Id="1" Count="84" />
+    </LineIds>
+    <LineIds Name="FB_TelescopeControl.PowerOn">
+      <LineId Id="1" Count="54" />
+    </LineIds>
+    <LineIds Name="FB_TelescopeControl.SlewTelescope">
+      <LineId Id="1" Count="57" />
+    </LineIds>
+    <LineIds Name="FB_TelescopeControl.StopTelescope">
+      <LineId Id="1" Count="9" />
+    </LineIds>
+    <LineIds Name="FB_TelescopeControl.TrackTelescope">
+      <LineId Id="1" Count="69" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -5,7 +5,7 @@
       <Data>
         <o xml:space="preserve" t="VisualObject">
           <n n="LastVisuLanguageModelEntry" />
-          <v n="UniqueIdGenerator">"96"</v>
+          <v n="UniqueIdGenerator">"99"</v>
           <o n="VisualElemList" t="VisualElemList">
             <l n="VisualElementList" t="VisualElemCollection" cet="GenericVisualElem">
               <o>
@@ -561,7 +561,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.Error"</v>
+                          <v n="Value">"MAIN.FocusControl.error"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -792,7 +792,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.Ready"</v>
+                          <v n="Value">"MAIN.FocusControl.ready"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -1451,7 +1451,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.ManualUnlock"</v>
+                          <v n="Value">"MAIN.FocusControl.manualUnlock"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -1682,7 +1682,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.FocusUnlock"</v>
+                          <v n="Value">"MAIN.FocusControl.focusUnlocked"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>

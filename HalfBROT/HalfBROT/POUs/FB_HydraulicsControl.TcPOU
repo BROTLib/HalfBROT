@@ -12,7 +12,8 @@ VAR_INPUT
 	panLevelMin			: INT := 0;			// minimum oil level from sensor
 	panLevelMax			: INT := 16383;		// maximum oil level from sensor
 	panPercentMin		: REAL := 0;		// oil level percentage to be seen as empty
-	panPercentMax		: REAL := 90;		// oil level percentage to be seen as full 
+	panPercentMax		: REAL := 90;		// oil level percentage to be seen as full
+	
 END_VAR
 VAR_OUTPUT
 	brakeOpen			: BOOL;				// status of the brake: is the brake open?
@@ -33,10 +34,8 @@ VAR_OUTPUT
 	suctionRunning 		: BOOL := FALSE;	// suction pump is running
 	error				: BOOL;				// error condition
 END_VAR
-VAR_IN_OUT
-	comm				: FB_Comm_MQTT;	
-END_VAR
 VAR
+	comm				: I_Comm; 
 	inOilLow			AT%I*	: BOOL;	// 2.1
 	inOilHigh			AT%I*	: BOOL;	// ?
 	inOilPressureOK		AT%I*	: BOOL;	// 2.3
@@ -72,7 +71,6 @@ VAR
 	hydraulicsOffTimer	: TON  := (PT := T#300S);	// timer to shut off hydraulics after break was closed
 	offTrigger			: F_TRIG;
 	oilLevel			: REAL;
-	oilLevelPercent	: REAL;
 	lastOilLevel		: REAL;
 	hydraulicsLog,
 	pumpLog,
@@ -361,6 +359,21 @@ iCloseBrake := TRUE;
 RETURN(brakeClosed);]]></ST>
       </Implementation>
     </Method>
+    <Method Name="FB_Init" Id="{f8304cff-71fd-40f3-8c17-0d2ac2c6aa2c}">
+      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
+//The return value is not evaluated. For a specific influence, you can also declare the
+//methods explicitly and provide additional code there with the standard initialization
+//code. You can evaluate the return value.
+METHOD FB_Init: BOOL
+VAR_INPUT
+    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
+    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
+	comm			: I_Comm;   
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.comm := comm;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="open_brake" Id="{803f79af-0083-4059-9845-1aae86bb3efd}">
       <Declaration><![CDATA[METHOD open_brake : BOOL
 VAR_INPUT
@@ -430,6 +443,9 @@ RETURN(brakeOpen);]]></ST>
     </LineIds>
     <LineIds Name="FB_HydraulicsControl.close_brake">
       <LineId Id="1" Count="3" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.FB_Init">
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_HydraulicsControl.open_brake">
       <LineId Id="1" Count="6" />

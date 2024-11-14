@@ -1,50 +1,75 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
-  <POU Name="FB_PendantControl" Id="{0dbed852-9628-4eb7-bfbe-5affd0739ac7}" SpecialFunc="None">
+  <POU Name="FB_PendantControl" Id="{e2b10f6c-d16d-4403-9ebe-8d8a369c8dbd}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_PendantControl
 VAR_INPUT
-	CoverControl	: FB_CoverControl;
-END_VAR
-VAR_OUTPUT
+	TelescopeControl	: FB_TelescopeControl;
 END_VAR
 VAR
+	CoverControl		: REFERENCE TO FB_CoverControl;
+	HydraulicsControl	: REFERENCE TO FB_HydraulicsControl;
+	Focuscontrol 		: REFERENCE TO FB_Focuscontrol;
+	ElevationControl	: REFERENCE TO FB_ElevationControl;
+	AzimuthControl 		: REFERENCE TO FB_AzimuthControl;
+	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
+	comm				: I_Comm;
+
 	// program selection of the pendant control
-	Selection				: UINT;
+	Selection:	UINT;
 	// error on the pendant control
-	Error					: BOOL;
-
-	lamp_left				: BOOL;
-	lamp_right				: BOOL;
-	lamp_up					: BOOL;
-	lamp_down				: BOOL;
-	lamp_error				: BOOL;
-	horn					: BOOL;
-	FocusEnable				: FB_ButtonEnable;
-	DerotatorEnable			: FB_ButtonEnable;
-	ElevationEnable			: FB_ButtonEnable;
-	AzimuthEnable			: FB_ButtonEnable;
-	TelescopeControlEnable	: FB_ButtonEnable;
-	HydraulicsEnable		: FB_ButtonEnable;
-	TrackingEnable			: FB_ButtonEnable;
-	ResetDelay				: TON;
-	TwinCATRestart			: TC_Restart;
-	up_trigger				: R_TRIG;
-	down_trigger			: R_TRIG;	
+	Error:		BOOL;
+	horn:			BOOL;
+	FocusEnable: 		FB_ButtonEnable;
+	DerotatorEnable:	FB_ButtonEnable;
+	ElevationEnable: 	FB_ButtonEnable;
+	AzimuthEnable: 		FB_ButtonEnable;
+	TelescopeControlEnable: 	FB_ButtonEnable;
+	HydraulicsEnable: 	FB_ButtonEnable;
+	TrackingEnable:			FB_ButtonEnable;
+	ResetDelay:	TON;
+	TwinCATRestart: TC_Restart;
+	up_trigger:	R_TRIG;
+	down_trigger:	R_TRIG;	
 	// manual or automatic operation of the telescope
-	telescope_mode 			: E_TelescopeMode;	
+	telescope_mode : E_TelescopeMode;
 
-	BCD1			AT%I*	: BOOL;	//DIN17 2.0
-	BCD2			AT%I*	: BOOL;	//DIN18 2.1
-	BCD4			AT%I*	: BOOL;	//DIN19 2.2
-	BCD8			AT%I*	: BOOL;	//DIN20 2.3
-	reset_switch	AT%I*	: BOOL;	//DIN21 2.4
-	direction_up	AT%I*	: BOOL;	//DIN22 2.5
-	direction_down	AT%I*	: BOOL;	//DIN23 2.6
-	key_switch		AT%I*	: BOOL;	//DIN24 2.7
-	start_switch	AT%I*	: BOOL;	//DIN25 3.0 (enable)
-	direction_left	AT%I*	: BOOL;	//DIN26 3.1
-	direction_right	AT%I*	: BOOL;	//DIN27 3.2	
+	//DIN17 2.0
+	BCD0		AT%I*: BOOL;
+	//DIN18 2.1
+	BCD2		AT%I*: BOOL;
+	//DIN19 2.2
+	BCD4		AT%I*: BOOL;
+	//DIN20 2.3
+	BCD8		AT%I*: BOOL;
+	//DIN21 2.4
+	reset_switch	AT%I*: BOOL;
+	//DIN22 2.5
+	direction_up	AT%I*: BOOL;
+	//DIN23 2.6
+	direction_down	AT%I*: BOOL;
+	//DIN24 2.7
+	key_switch		AT%I*: BOOL;
+	//DIN25 3.0 (enable)
+	start_switch	AT%I*: BOOL;
+	//DIN26 3.1
+	direction_left	AT%I*: BOOL;
+	//DIN27 3.2
+	direction_right	AT%I*: BOOL;
+	
+	// Outputs
+	
+	//DOUT9 1.0
+	lamp_up			AT%Q*: BOOL;
+	//DOUT10 1.1
+	lamp_down			AT%Q*: BOOL;
+	//DOUT11 1.2
+	lamp_right			AT%Q*: BOOL;
+	//DOUT12 1.3
+	lamp_left			AT%Q*: BOOL;
+	//DOUT13 1.4
+	lamp_error			AT%Q*: BOOL;	
 END_VAR
+
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[(* 
@@ -53,9 +78,8 @@ all movable parts can be controlled from here. This is mainly for testing and
 maintenance.
 WARNING! Some of the safety routines are disabled, when operating the telescope manually.
 *)
-(*
 // calculate the value of the selector
-Selection := 1*BOOL_TO_UINT(BCD1) + 
+Selection := 1*BOOL_TO_UINT(BCD0) + 
 			 2*BOOL_TO_UINT(BCD2) + 
 			 4*BOOL_TO_UINT(BCD4) +
 			 8*BOOL_TO_UINT(BCD8);
@@ -74,7 +98,7 @@ up_trigger(CLK := direction_up);
 down_trigger(CLK := direction_down);
 //R_Enable(CLK := enable);
 // the error lamp is the same as the error lamp of the main panel
-lamp_error := GVL_Main.lamp_error;
+lamp_error := lamp_error;
 
 
 // determine the operation of the telescope based on the switch set
@@ -87,57 +111,57 @@ END_IF
 // enable only the selected item and connect lamps and buttons accordingly
 CASE Selection OF
 	1:	// reserved for Cover1 control
-		lamp_up := GVL_Telescope.cover1_open;
-		lamp_down := GVL_Telescope.cover1_closed;
-		IF manual THEN
+		lamp_up := CoverControl.cover1_open;
+		lamp_down := CoverControl.cover1_closed;
+		IF key_switch THEN
 			//CoverEnable(SET := enable, Q := CoverControl.enable);
 			//CoverControl.active_cover := 1;
 			//CoverControl.reset := reset;
-			GVL_Telescope.open_cover1 := up AND GVL_Telescope.cover1_open;
-			GVL_Telescope.close_cover1 := down AND GVL_Telescope.cover1_closed;
+			CoverControl.open_cover1 := direction_up AND CoverControl.cover1_open;
+			CoverControl.close_cover1 := direction_down AND CoverControl.cover1_closed;
 			lamp_error := CoverControl.Cover1_Error;	
 		ELSE
-			IF down THEN 
+			IF direction_down THEN 
 				CoverControl.close := TRUE;
 			END_IF
-			IF up THEN
+			IF direction_up THEN
 				CoverControl.open := TRUE;
 			END_IF		
 		END_IF
 
 	2: // Cover2 control
-		lamp_up := GVL_Telescope.cover2_open;
-		lamp_down := GVL_Telescope.cover2_closed;
-		IF manual THEN
+		lamp_up := CoverControl.cover2_open;
+		lamp_down := CoverControl.cover2_closed;
+		IF key_switch THEN
 			//CoverEnable(SET := enable, Q := CoverControl.enable);
 			//CoverControl.active_cover := 2;
-			GVL_Telescope.open_cover2 := up AND GVL_Telescope.cover2_open;
-			GVL_Telescope.close_cover2 := down AND GVL_Telescope.cover2_closed;
+			CoverControl.open_cover2 := direction_up AND CoverControl.cover2_open;
+			CoverControl.close_cover2 := direction_down AND CoverControl.cover2_closed;
 			lamp_error := CoverControl.Cover2_Error;
 		ELSE
-			IF down THEN 
+			IF direction_down THEN 
 				CoverControl.close := TRUE;
 			END_IF
-			IF up THEN
+			IF direction_up THEN
 				CoverControl.open := TRUE;
 			END_IF		
 		END_IF
  	
 	3:  // Cover3 control
-		lamp_up := GVL_Telescope.cover3_open;
-		lamp_down := GVL_Telescope.cover3_closed;
-		IF manual THEN
+		lamp_up := CoverControl.cover3_open;
+		lamp_down := CoverControl.cover3_closed;
+		IF key_switch THEN
 			//CoverEnable(SET := enable, Q := CoverControl.enable);
 			//CoverControl.active_cover := 3;
-			GVL_Telescope.open_cover3 := up AND GVL_Telescope.cover3_open;
-			GVL_Telescope.close_cover3 := down AND GVL_Telescope.cover3_closed;
+			CoverControl.open_cover3 := direction_up AND CoverControl.cover3_open;
+			CoverControl.close_cover3 := direction_down AND CoverControl.cover3_closed;
 			//CoverControl.reset := reset;
 			lamp_error := CoverControl.Cover3_Error;
 		ELSE
-			IF down THEN 
+			IF direction_down THEN 
 				CoverControl.close := TRUE;
 			END_IF
-			IF up THEN
+			IF direction_up THEN
 				CoverControl.open := TRUE;
 			END_IF		
 		END_IF
@@ -145,52 +169,52 @@ CASE Selection OF
 	4:	// Nasmyth / mirror M3 control
 		
 	5:	// Focus Control
-		lamp_up := FocusControl.Ready AND NOT GVL_Telescope.focus_limit_far;
-		lamp_down := FocusControl.Ready AND NOT GVL_Telescope.focus_limit_near;
-		IF manual THEN
-			FocusEnable(SET := enable, Q := FocusControl.enable);
-			FocusControl.outward := up;
-			FocusControl.inward := down;
-			Focuscontrol.reset := reset;
+		lamp_up := FocusControl.Ready AND NOT FocusControl.limitFar;
+		lamp_down := FocusControl.Ready AND NOT FocusControl.limitNear;
+		IF key_switch THEN
+			FocusEnable(SET := start_switch, Q := FocusControl.enable);
+			FocusControl.MoveOut(direction_up);
+			FocusControl.MoveIn(direction_down);
+			Focuscontrol.reset := reset_switch;
 			lamp_error := FocusControl.error;
 		END_IF
 							
 	6:	// Derotator control
-		lamp_left := DerotatorControl.Ready AND NOT GVL_Telescope.Derotator_inputs.1;
-		lamp_right :=DerotatorControl.Ready AND NOT GVL_Telescope.Derotator_inputs.0;
-		IF manual THEN
-			DerotatorEnable(SET := enable, Q := DerotatorControl.enable);
-			DerotatorControl.left := left AND NOT GVL_Telescope.Derotator_inputs.1;
-			DerotatorControl.right := right AND NOT GVL_Telescope.Derotator_inputs.0;
-			DerotatorControl.reset := reset;
+		lamp_left  := DerotatorControl.IsReady() AND NOT DerotatorControl.IsInMinLimit();
+		lamp_right := DerotatorControl.IsReady() AND NOT DerotatorControl.IsInMaxLimit();
+		IF key_switch THEN
+			DerotatorEnable(SET := start_switch, Q := DerotatorControl.enable);
+			DerotatorControl.MoveLeft(direction_left AND NOT DerotatorControl.digital_inputs.1);
+			DerotatorControl.MoveRight(direction_right AND NOT DerotatorControl.digital_inputs.0);
+			DerotatorControl.reset := reset_switch;
 			lamp_error := DerotatorControl.Error;
 		END_IF
 							
 	7:	// Elevation Control
 		
-		ElevationControl.up := up AND GVL_Telescope.Elevation_inputs.0;
-		ElevationControl.down := down AND GVL_Telescope.Elevation_inputs.1;
-		IF manual THEN
+		ElevationControl.up := direction_up AND ElevationControl.digital_inputs.0;
+		ElevationControl.down := direction_down AND ElevationControl.digital_inputs.1;
+		IF key_switch THEN
 			ElevationEnable(
-				SET := enable, 
+				SET := start_switch, 
 				Q := ElevationControl.enable);	
 		END_IF
-		ElevationControl.reset := reset;
-		lamp_up := GVL_Telescope.Elevation_inputs.0;
-		lamp_down := GVL_Telescope.Elevation_inputs.1;
+		ElevationControl.reset := reset_switch;
+		lamp_up := ElevationControl.digital_inputs.0;
+		lamp_down := ElevationControl.digital_inputs.1;
 		lamp_error := ElevationControl.error;
 		
 	8:	// Azimuth Control
-		lamp_left := GVL_Telescope.Azimuth_inputs.0; // NOT GVL_Telescope.azimut_limit_switch;
-		lamp_right := GVL_Telescope.Azimuth_inputs.1; // NOT GVL_Telescope.azimut_limit_switch;
-		AzimuthElevationControl.left := left AND GVL_Telescope.Azimuth_inputs.0;
-		AzimuthElevationControl.right := right AND GVL_Telescope.Azimuth_inputs.1;
-		AzimuthElevationControl.reset := reset;
-		IF manual THEN
+		lamp_left := AzimuthControl.digital_inputs.0; // NOT GVL_Telescope.azimut_limit_switch;
+		lamp_right := AzimuthControl.digital_inputs.1; // NOT GVL_Telescope.azimut_limit_switch;
+		AzimuthControl.left := direction_left AND AzimuthControl.digital_inputs.0;
+		AzimuthControl.right := direction_right AND AzimuthControl.digital_inputs.1;
+		AzimuthControl.reset := reset_switch;
+		IF key_switch THEN
 			AzimuthEnable(
-				SET := enable, 
-				Q := AzimuthElevationControl.enable);
-			lamp_error := AzimuthElevationControl.error;
+				SET := start_switch, 
+				Q := AzimuthControl.enable);
+			lamp_error := AzimuthControl.error;
 		END_IF
 		
 	9: 	// Dome control
@@ -201,98 +225,121 @@ CASE Selection OF
 		lamp_down := ElevationControl.elevation_torque < 0.0;
 		
 	12:	// manual Telescope Control
-		IF manual THEN
+		IF key_switch THEN
 			lamp_up := TelescopeControl.power;
 			lamp_down := TelescopeControl.power;
 			lamp_left := TelescopeControl.power;
 			lamp_right := TelescopeControl.power;
 	
-			TelescopeControl.gohome := down;
-			TelescopeControl.park := up;
-			TelescopeControl.goto := right;
-			TrackingEnable(SET := enable, 
-							RESET := reset, 
+			TelescopeControl.gohome := direction_down;
+			TelescopeControl.park := direction_up;
+			TelescopeControl.goto := direction_right;
+			TrackingEnable(SET := start_switch, 
+							RESET := reset_switch, 
 							Q := TelescopeControl.track);
-			TelescopeControl.reset := reset;
-			Telescopecontrol.stop := left;	
+			TelescopeControl.reset := reset_switch;
+			Telescopecontrol.stop := direction_left;	
 			lamp_error := Telescopecontrol.error;
 		END_IF
 		
 	13: // Telescope Control
 		TelescopeControlEnable(
-			SET := enable, 
+			SET := start_switch, 
 			Q := TelescopeControl.power);
-		TelescopeControl.reset := reset;
-		IF manual THEN
-			lamp_up := GVL_Telescope.Elevation_inputs.0;
-			lamp_down := GVL_Telescope.Elevation_inputs.1;
-			lamp_left := GVL_Telescope.Azimuth_inputs.0;
-			lamp_right := GVL_Telescope.Azimuth_inputs.1;
-			ElevationControl.up := up AND GVL_Telescope.Elevation_inputs.0;
-			ElevationControl.down := down AND GVL_Telescope.Elevation_inputs.1;
-			AzimuthElevationControl.left := left AND GVL_Telescope.Azimuth_inputs.0;
-			AzimuthElevationControl.right := right AND GVL_Telescope.Azimuth_inputs.1;
+		TelescopeControl.reset := reset_switch;
+		IF key_switch THEN
+			lamp_up := ElevationControl.digital_inputs.0;
+			lamp_down := ElevationControl.digital_inputs.1;
+			lamp_left := AzimuthControl.digital_inputs.0;
+			lamp_right := AzimuthControl.digital_inputs.1;
+			ElevationControl.up := direction_up AND ElevationControl.digital_inputs.0;
+			ElevationControl.down := direction_down AND ElevationControl.digital_inputs.1;
+			AzimuthControl.left := direction_left AND AzimuthControl.digital_inputs.0;
+			AzimuthControl.right := direction_right AND AzimuthControl.digital_inputs.1;
 			TelescopeControl.rightascension := TelescopeControl.rightascension_calc;
 			TelescopeControl.declination := TelescopeControl.declination_calc;
 		ELSE
 			lamp_up := ElevationControl.enable;
 			lamp_down := ElevationControl.enable;
-			lamp_left := AzimuthElevationControl.enable;
-			lamp_right := AzimuthElevationControl.enable;
-			IF up THEN 
+			lamp_left := AzimuthControl.enable;
+			lamp_right := AzimuthControl.enable;
+			IF direction_up THEN 
 				Telescopecontrol.elevation_offset := Telescopecontrol.elevation_offset + 10.0/3600.0; 
-			ELSIF down THEN 
+			ELSIF direction_down THEN 
 				Telescopecontrol.elevation_offset := Telescopecontrol.elevation_offset - 10.0/3600.0; 
 			END_IF;
-			IF left THEN 
+			IF direction_left THEN 
 				Telescopecontrol.azimuth_offset := Telescopecontrol.azimuth_offset - 10.0/3600.0; 
-			ELSIF right THEN 
+			ELSIF direction_right THEN 
 				Telescopecontrol.azimuth_offset := Telescopecontrol.azimuth_offset + 10.0/3600.0; 
 			END_IF;
 		END_IF
-		ResetDelay(IN := reset, PT := T#3S);
+		ResetDelay(IN := reset_switch, PT := T#3S);
 		// wait for suction pump to stop
-		TwinCATRestart(NETID := '', RESTART := ResetDelay.Q AND NOT HydraulicsControl.suction_running, TMOUT := T#60S);
+		TwinCATRestart(NETID := '', RESTART := ResetDelay.Q AND NOT HydraulicsControl.suctionRunning, TMOUT := T#60S);
 	
-	14: horn := manual;
-		lamp_up := manual;
-		lamp_down := manual;
-		lamp_left := manual;
-		lamp_right := manual;
+	14: horn := key_switch;
+		lamp_up := key_switch;
+		lamp_down := key_switch;
+		lamp_left := key_switch;
+		lamp_right := key_switch;
 	
 	15:	// Hydraulics control
-		lamp_up := HydraulicsControl.oil_pressure_OK AND Hydraulicscontrol.brake_closed;
-		lamp_down := HydraulicsControl.oil_pressure_OK AND Hydraulicscontrol.brake_open;
-		lamp_left := HydraulicsControl.pump_running;
-		lamp_right := HydraulicsControl.suction_running;
-		IF manual THEN
+		lamp_up := HydraulicsControl.oilPressureOK AND Hydraulicscontrol.brakeClosed;
+		lamp_down := HydraulicsControl.oilPressureOK AND Hydraulicscontrol.brakeOpen;
+		lamp_left := HydraulicsControl.pumpRunning;
+		lamp_right := HydraulicsControl.suctionRunning;
+		IF key_switch THEN
 			HydraulicsEnable(
-				SET := enable, 
+				SET := start_switch, 
 				Q := Hydraulicscontrol.enable);
-			Hydraulicscontrol.reset := reset;
+			Hydraulicscontrol.reset := reset_switch;
 			
-			IF up THEN
+			IF direction_up THEN
 				Hydraulicscontrol.open_brake();
 			END_IF
-			IF down THEN
+			IF direction_down THEN
 				Hydraulicscontrol.close_brake();
 			END_IF
-			Hydraulicscontrol.suction_manual := right;
-			Hydraulicscontrol.pump_manual_stop := left;
+			HydraulicsControl.suctionManual := direction_right;
+			HydraulicsControl.pumpManualStop := direction_left;
 			lamp_error := HydraulicsControl.error;
 		END_IF
 END_CASE
-
-// set all the lamps
-GVL_pendant_control.lamp_left := lamp_left;
-GVL_pendant_control.lamp_right := lamp_right;
-GVL_pendant_control.lamp_up := lamp_up;
-GVL_pendant_control.lamp_down := lamp_down;
-GVL_pendant_control.lamp_error := lamp_error;
-*)]]></ST>
+]]></ST>
     </Implementation>
+    <Method Name="FB_Init" Id="{377c4b19-44fb-4929-801b-86205f66218e}">
+      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
+//The return value is not evaluated. For a specific influence, you can also declare the
+//methods explicitly and provide additional code there with the standard initialization
+//code. You can evaluate the return value.
+METHOD FB_Init: BOOL
+VAR_INPUT
+    bInitRetains: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
+    bInCopyCode: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
+	cover			: REFERENCE TO FB_CoverControl;
+	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
+	focus			: REFERENCE TO FB_FocusControl;
+	elevation		: REFERENCE TO FB_ElevationControl;
+	azimuth			: REFERENCE TO FB_AzimuthControl;
+	derotator		: REFERENCE TO FB_DerotatorControl;
+	comm			: I_Comm;   
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.HydraulicsControl REF= hydraulics;
+THIS^.CoverControl REF= cover;
+THIS^.FocusControl REF= focus;
+THIS^.ElevationControl REF= elevation;
+THIS^.AzimuthControl REF= azimuth;
+THIS^.DerotatorControl REF= derotator;
+THIS^.comm := comm;]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="FB_PendantControl">
-      <LineId Id="1" Count="242" />
+      <LineId Id="1" Count="234" />
+    </LineIds>
+    <LineIds Name="FB_PendantControl.FB_Init">
+      <LineId Id="1" Count="6" />
     </LineIds>
   </POU>
 </TcPlcObject>

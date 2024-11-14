@@ -26,11 +26,6 @@ VAR_INPUT
 	// reset diagnostic errors
 	bSoEReset:	 	BOOL;
 END_VAR
-VAR_IN_OUT	
-	CoverControl	: FB_CoverControl;
-	HydraulicsControl : FB_HydraulicsControl;
-	comm: FB_Comm_MQTT;
-END_VAR
 VAR_OUTPUT
 	// axis is ready to operate
 	Ready:			BOOL;
@@ -48,6 +43,10 @@ VAR_OUTPUT
 	slewtime:		LREAL;
 END_VAR
 VAR
+	CoverControl		: REFERENCE TO FB_CoverControl;
+	HydraulicsControl 	: REFERENCE TO FB_HydraulicsControl;
+	comm				: I_Comm;
+	
 	digital_inputs	AT%I*	: WORD;		// digitale inputs der Endlagen
 	diagnostic		AT%I*	: UDINT;	// diagnostic number
 	torque			AT%I*	: INT;		// derotator torque feedback
@@ -257,8 +256,30 @@ CalibrationEvent(
 	OnMessage := 'Elevation is calibrated.', 
 				Comm := comm);]]></ST>
     </Implementation>
+    <Method Name="FB_Init" Id="{413b7b7f-fbba-45b5-beca-2a08218d35d1}">
+      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
+//The return value is not evaluated. For a specific influence, you can also declare the
+//methods explicitly and provide additional code there with the standard initialization
+//code. You can evaluate the return value.
+METHOD FB_Init: BOOL
+VAR_INPUT
+    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
+    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
+	cover			: REFERENCE TO FB_CoverControl;
+	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
+	comm			: I_Comm;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.HydraulicsControl REF= hydraulics;
+THIS^.CoverControl REF= cover;
+THIS^.comm := comm;]]></ST>
+      </Implementation>
+    </Method>
     <LineIds Name="FB_ElevationControl">
       <LineId Id="1" Count="169" />
+    </LineIds>
+    <LineIds Name="FB_ElevationControl.FB_Init">
+      <LineId Id="1" Count="2" />
     </LineIds>
   </POU>
 </TcPlcObject>
