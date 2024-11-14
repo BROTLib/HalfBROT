@@ -3,7 +3,6 @@
   <POU Name="FB_PendantControl" Id="{e2b10f6c-d16d-4403-9ebe-8d8a369c8dbd}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_PendantControl
 VAR_INPUT
-	TelescopeControl	: FB_TelescopeControl;
 END_VAR
 VAR
 	CoverControl		: REFERENCE TO FB_CoverControl;
@@ -12,6 +11,7 @@ VAR
 	ElevationControl	: REFERENCE TO FB_ElevationControl;
 	AzimuthControl 		: REFERENCE TO FB_AzimuthControl;
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
+	TelescopeControl	: REFERENCE TO FB_TelescopeControl;
 	comm				: I_Comm;
 
 	// program selection of the pendant control
@@ -323,6 +323,7 @@ VAR_INPUT
 	elevation		: REFERENCE TO FB_ElevationControl;
 	azimuth			: REFERENCE TO FB_AzimuthControl;
 	derotator		: REFERENCE TO FB_DerotatorControl;
+	telescope		: REFERENCE TO FB_TelescopeControl;
 	comm			: I_Comm;   
 END_VAR]]></Declaration>
       <Implementation>
@@ -332,6 +333,7 @@ THIS^.FocusControl REF= focus;
 THIS^.ElevationControl REF= elevation;
 THIS^.AzimuthControl REF= azimuth;
 THIS^.DerotatorControl REF= derotator;
+THIS^.TelescopeControl REF= telescope;
 THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
@@ -339,7 +341,9 @@ THIS^.comm := comm;]]></ST>
       <LineId Id="1" Count="234" />
     </LineIds>
     <LineIds Name="FB_PendantControl.FB_Init">
-      <LineId Id="1" Count="6" />
+      <LineId Id="1" Count="5" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="7" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

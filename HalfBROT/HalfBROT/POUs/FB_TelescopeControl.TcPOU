@@ -7,45 +7,31 @@ VAR_INPUT
 TCS interface section
 see https://gitlab.aip.de/bmk10k/telescope_firmware/snippets/5
 *)
+	power				: BOOL;		// true: Power on, false: power off
+	gohome				: BOOL;		// true: go to home position, unset track/goto if active
+	park				: BOOL;		// boolean, true: go into park position, ready to stow telescope, unset track/goto
+	track				: BOOL;		// boolean, TRUE: MOVE telescope TO last ra/de AND start tracking. Set 'goto' TO FALSE, IF TRUE. FALSE: Stop tracking as soon as possible
+	goto				: BOOL;		// boolean, TRUE: MOVE telescope TO tau/de AND stop there. Set track TO FALSE, IF TRUE. FALSE: no effect.)	
+	slew				: BOOL;		// move the telescope to a given az-alt position
+	stop				: BOOL;		// boolean, TRUE: Stop motion OF telescope immediately, set goto AND track TO FALSE. FALSE: Allow motion OF telescope again via track/goto).	
+	reset				: BOOL;		// initiates reset on all axis
+	autotrack			: BOOL := TRUE;	// automatic tracking after goto
+	rightascension		: LREAL := (4.0 + 35.0/60.0 + 54.09/3600.0) *15.0;	// apparent right ascension, degrees, double	
+	declination			: LREAL := 16.0 + 30.0/60.0 + 25.4/3600.0;	// apparent declination, degrees, double
+	elevation			: LREAL := 45.0;	// desired elevation of the telescope pointing
+	azimuth				: LREAL := 320.0;	// desired azimut of the telescope pointing
+	elevation_offset	: LREAL := 0.0;		// absolute offset for elevation
+	azimuth_offset 		: LREAL := 0.0;		// absolute offset for azimuth
+	time_offset			: LREAL := 0.0;		// absolute offset for time
+	derotator_offset	: LREAL := 0.0;		// offset for the de-rotator
 	
-	// boolean, true: Power on, false: power off
-	power: 		BOOL;
-	// boolean, true: go to home position, unset track/goto if active
-	gohome: 	BOOL;
-	// boolean, true: go into park position, ready to stow telescope, unset track/goto
-	park: 		BOOL;
-	// boolean, TRUE: MOVE telescope TO last ra/de AND start tracking. Set 'goto' TO FALSE, IF TRUE. FALSE: Stop tracking as soon as possible
-	track: 		BOOL;
-	// boolean, TRUE: MOVE telescope TO tau/de AND stop there. Set track TO FALSE, IF TRUE. FALSE: no effect.)
-	goto:		BOOL;	
-	// move the telescope to a given az-alt position
-	slew:		BOOL;
-	// boolean, TRUE: Stop motion OF telescope immediately, set goto AND track TO FALSE. FALSE: Allow motion OF telescope again via track/goto).
-	stop:		BOOL;	
-	// initiates reset on all axis
-	reset:		BOOL;
-	// automatic tracking after goto
-	autotrack:	BOOL := TRUE;
-	// apparent right ascension, degrees, double
-	rightascension:		LREAL := (4.0 + 35.0/60.0 + 54.09/3600.0) *15.0;	
-	// apparent declination, degrees, double
-	declination: 		LREAL := 16.0 + 30.0/60.0 + 25.4/3600.0;
-	// desired elevation of the telescope pointing 
-	elevation:	LREAL := 45.0;
-	// desired azimut of the telescope pointing 
-	azimuth:	LREAL := 320.0;
-	// absolute offset for elevation
-	elevation_offset:	LREAL := 0.0;
-	// absolute offset for azimuth
-	azimuth_offset : 	LREAL := 0.0;
-	// absolute offset for time
-	time_offset: 		LREAL := 0.0;
-	// offset for the de-rotator
-	derotator_offset:	LREAL := 0.0;
+	estopTriggered		: BOOL	:= FALSE;	// TODO: CHANGE
+	brakeClearing		: BOOL	:= TRUE;
+	mainReady			: BOOL	:= TRUE;
 	
-	estopTriggered		: BOOL;
-	brakeClearing		: BOOL;
-	mainReady			: BOOL;
+	telescopeConfig		: ST_TelescopeConfig;
+END_VAR
+VAR
 	TelescopeAuxiliary	: FB_TelescopeAuxiliary;
 	
 	comm 				: I_Comm;	
@@ -55,44 +41,26 @@ see https://gitlab.aip.de/bmk10k/telescope_firmware/snippets/5
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
 	ElevationControl	: REFERENCE TO FB_ElevationControl;
 	AzimuthControl		: REFERENCE TO FB_AzimuthControl;
-END_VAR
-VAR
-	// actual command from the TCS
-	TCS_command: 	E_TCSCommand;
-	// current Julian Date calculated from system time
-	jd:				LREAL;
-	// image derotation
-	derotation_calc:	LREAL;
-	// local siderial time calculated from Julian date
-	lst:			LREAL;
-	// elevation calulated when ra and dec are set by TCS
-	elevation_calc:	LREAL; 
-	// azimuth calulated when ra and dec are set by TCS
-	azimuth_calc:	LREAL;
-	// right ascension calulated when azimuth and elevation are set by TCS
-	rightascension_calc:	LREAL;
-	// declination calulated when azimuth and elevation are set by TCS
-	declination_calc:		LREAL;
-	// hour angle
-	Hourangle_calc: LREAL;
-	// precise astronomical	time
-	fbTime: FB_AstroClock;
 	
-	eq2hor:		FB_EQ2HOR;
-	hor2eq:		FB_HOR2EQ;
+	TCS_command			: E_TCSCommand;	// actual command from the TCS
+	jd					: LREAL;	// current Julian Date calculated from system time
+	derotation_calc		: LREAL;	// image derotation
+	lst					: LREAL;	// local siderial time calculated from Julian date
+	elevation_calc		: LREAL;	// elevation calulated when ra and dec are set by TCS 
+	azimuth_calc		: LREAL;	// azimuth calulated when ra and dec are set by TCS
+	rightascension_calc	: LREAL;	// right ascension calulated when azimuth and elevation are set by TCS
+	declination_calc	: LREAL;	// declination calulated when azimuth and elevation are set by TCS
+	Hourangle_calc		: LREAL;	// hour angle
+	fbTime				: FB_AstroClock;	// precise astronomical	time
+	eq2hor				: FB_EQ2HOR;
+	hor2eq				: FB_HOR2EQ;
 	
-	// triggers power-failure event
-	powerfailure: 	BOOL;
-	// triggers power warning
-	poweronwarning:	TP;
-	// power on timeout
-	power_timeout:	TON;
-	// command timeout
-	command_timeout:	TON;
-	// tracking delay
-	tracking_delay:	TON;
-	// telescope is parked
-	isparked:		BOOL;
+	powerfailure		: BOOL;		// triggers power-failure event
+	poweronwarning		: TP;		// triggers power warning
+	power_timeout		: TON;		// power on timeout
+	command_timeout		: TON;		// command timeout
+	tracking_delay		: TON;		// tracking delay
+	isparked			: BOOL;		// telescope is parked
 	TCSpowerEvent,
 	TCSgohomeEvent,
 	TCSparkEvent,
@@ -101,58 +69,28 @@ VAR
 	TCSstopEvent,
 	AltitudeEvent,
 	TCSreadyEvent,
-	TCSCTOEvent: FB_Eventlog;
-	MQTTTimer : TON := (PT:=T#5S);
-	// rotational velocity of the derotator
-	DerotatorVelocity: LREAL;
-	// rotational velocity of the elevation
-	ElevationVelocity: LREAL;
-	// rotational velocity of the elevation
-	AzimuthVelocity: LREAL;
-	// sign of derotation
-	derotatation_sign: LREAL := 1.0;
+	TCSCTOEvent			: FB_Eventlog;
+	MQTTTimer 			: TON := (PT:=T#5S);
+	
+	DerotatorVelocity	: LREAL;	// rotational velocity of the derotator
+	ElevationVelocity	: LREAL;	// rotational velocity of the elevation
+	AzimuthVelocity		: LREAL;	// rotational velocity of the elevation
+	derotatation_sign	: LREAL := 1.0;	// sign of derotation
 	StatusWord, LastStatus:	UDINT;
 END_VAR
 VAR_OUTPUT
-	//		TRUE, IF telescope can be operated
-	ready:		BOOL; 
-	// indicates an error on one of the components
-	error:		BOOL;	
-	//error id of axis
-	errorid:	UDINT;	
-	//TRUE, IF telescope is in fast-MOVE phase (includes pole-swap)
-	sliding:	BOOL;	
-	//TRUE, IF telescope is on tracking position AND currently tracking.
-	tracking:	BOOL;	
-	//TRUE, IF telescope is AT rest.
-	stopped:	BOOL;	
-	// true position of the elevation
-	elevation_current:	LREAL;
-	// true position of the azimuth
-	azimuth_current:	LREAL;
-	// true position of the de-rotator
-	derotator_current:	LREAL;
-	//	(time in sec. to reach the goto/track position)
-	slewtime:			LREAL; 
-	// True: telescope is calibrated
-	homed:				BOOL;
-	// telescope does not accept further commands
-	busy:				BOOL;
-END_VAR
-VAR CONSTANT
-// STELLA1
-	// telescope site longitude, source: Google 
-	longitude: 		LREAL := -16.50926; //13.101867;
-	// telescope site latitude, source: Google
-	latitude: 		LREAL := 28.30120; //52.404940;
-	// telescope site height above sea level: estimated
-	altitude: 		LREAL := 2390.0;
-	elevation_park: LREAL := 60.0;
-	azimuth_park: 	LREAL := 359.999;
-	derotator_park: LREAL := 229.85;
-
-	elevation_home: LREAL := 55.0;
-	azimuth_home: 	LREAL := 180.0;
+	ready				: BOOL;		//		TRUE, IF telescope can be operated 
+	error				: BOOL;		// indicates an error on one of the components	
+	errorid				: UDINT;	//error id of axis	
+	sliding				: BOOL;		//TRUE, IF telescope is in fast-MOVE phase (includes pole-swap)	
+	tracking			: BOOL;		//TRUE, IF telescope is on tracking position AND currently tracking.	
+	stopped				: BOOL;		//TRUE, IF telescope is AT rest.	
+	elevation_current	: LREAL;	// true position of the elevation
+	azimuth_current		: LREAL;	// true position of the azimuth
+	derotator_current	: LREAL;	// true position of the de-rotator
+	slewtime			: LREAL;	//	(time in sec. to reach the goto/track position) 
+	homed				: BOOL;		// True: telescope is calibrated
+	busy				: BOOL;		// telescope does not accept further commands
 END_VAR
 VAR PERSISTENT
 	// azimuth axis offset/misalignment north-south
@@ -176,7 +114,7 @@ END_VAR]]></Declaration>
 // get the system time
 fbTime();
 jd := DateTime2JD(fbTime.time_RTCEX2);
-lst := CT2LST(longitude, jd);
+lst := CT2LST(telescopeConfig.longitude, jd);
 // set reset state either by hardware (key pressed) or by software (set by e.g. tcs)
 //IF GVL_Main.reset_switch THEN
 	//reset := TRUE;
@@ -222,8 +160,8 @@ END_IF
 eq2hor(
 	ra := rightascension,
 	dec := declination,
-	lon := longitude,
-	lat := latitude,
+	lon := telescopeConfig.longitude,
+	lat := telescopeConfig.latitude,
 	JD := jd + time_offset,
 	alt => elevation_calc,
 	az => azimuth_calc,
@@ -233,11 +171,11 @@ eq2hor(
 elevation_calc := elevation_calc + PointingModelElevation(azimuth_calc, elevation_calc, elevation_offset, AN_E, AE_E, TF);
 azimuth_calc := azimuth_calc + PointingModelAzimuth(azimuth_calc, elevation_calc, azimuth_offset, BNP, AN_A, AE_A, NPAE);
 // calculate derotator position 
-derotation_calc := F_DerotatorPosition2(azimuth_calc, elevation_calc, declination_calc, latitude, derotatation_sign)  + derotator_offset;
+derotation_calc := F_DerotatorPosition2(azimuth_calc, elevation_calc, declination_calc, telescopeConfig.latitude, derotatation_sign)  + derotator_offset;
 // calculate velocities
-DerotatorVelocity := F_Derotatorvelocity(elevation_calc, azimuth_calc, latitude);
-ElevationVelocity := F_Elevationvelocity(azimuth_calc, latitude);
-AzimuthVelocity := F_Azimuthvelocity(elevation_calc, azimuth_calc, latitude);
+DerotatorVelocity := F_Derotatorvelocity(elevation_calc, azimuth_calc, telescopeConfig.latitude);
+ElevationVelocity := F_Elevationvelocity(azimuth_calc, telescopeConfig.latitude);
+AzimuthVelocity := F_Azimuthvelocity(elevation_calc, azimuth_calc, telescopeConfig.latitude);
 
 IF (azimuth_calc > 310.0 AND AzimuthVelocity > 0.0) OR (azimuth_calc > 440.0) THEN
 	azimuth_calc := azimuth_calc - 360.0;
@@ -259,9 +197,9 @@ derotator_current := DerotatorControl.actual_position;
 hor2eq(alt := elevation_current - PointingModelElevation(azimuth_calc, elevation_calc, elevation_offset, AN_E, AE_E, TF), 
 		az := azimuth_current - PointingModelAzimuth(azimuth_calc, elevation_calc, azimuth_offset, BNP, AN_A, AE_A, NPAE),
 		jd := jd,
-		lat := latitude,
-		lon := longitude,
-		altitude := altitude,
+		lat := telescopeConfig.latitude,
+		lon := telescopeConfig.longitude,
+		altitude := telescopeConfig.altitude,
 		ra => rightascension_calc,
 		dec => declination_calc);		
 	
@@ -374,7 +312,7 @@ stopped :=  (NOT ElevationControl.enable OR ElevationControl.ElevationAxis.Stand
 			
 homed := ElevationControl.Calibrated AND
 			AzimuthControl.calibrated AND
-			FocusControl.Calibrated AND
+			//FocusControl.Calibrated AND
 			DerotatorControl.Calibrated;
 			
 ready := homed AND 
@@ -474,7 +412,7 @@ END_IF
 TCSpowerEvent(	Trigger := powerfailure, 
 				Level := ADSLOG_MSGTYPE_ERROR,
 				FormatString := 'power %s',
-				OnMessage := 'Failure',
+				//OnMessage := 'Failure',
 				OffMessage := 'OK', 
 				Comm := comm);
 
@@ -526,6 +464,33 @@ TCSCTOEvent(	Trigger := command_timeout.Q,
 				OnMessage := 'NOCOMMAND', 
 				Comm := comm);]]></ST>
     </Implementation>
+    <Method Name="FB_Init" Id="{034c34d9-521a-4d54-9624-e4d1bdeb670c}">
+      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
+//The return value is not evaluated. For a specific influence, you can also declare the
+//methods explicitly and provide additional code there with the standard initialization
+//code. You can evaluate the return value.
+METHOD FB_Init: BOOL
+VAR_INPUT
+    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
+    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
+	cover			: REFERENCE TO FB_CoverControl;
+	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
+	focus			: REFERENCE TO FB_FocusControl;
+	elevation		: REFERENCE TO FB_ElevationControl;
+	azimuth			: REFERENCE TO FB_AzimuthControl;
+	derotator		: REFERENCE TO FB_DerotatorControl;
+	comm			: I_Comm;   
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.HydraulicsControl REF= hydraulics;
+THIS^.CoverControl REF= cover;
+THIS^.FocusControl REF= focus;
+THIS^.ElevationControl REF= elevation;
+THIS^.AzimuthControl REF= azimuth;
+THIS^.DerotatorControl REF= derotator;
+THIS^.comm := comm;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="GotoTelescope" Id="{43ebaf76-c0fc-41db-8c98-2f7671dc6b31}">
       <Declaration><![CDATA[METHOD PRIVATE GotoTelescope : USINT
 VAR_INPUT
@@ -636,13 +601,13 @@ END_IF
 
 IF ready AND stopped AND NOT busy AND NOT tracking THEN
 	ElevationControl.velocity := 10.0;
-	ElevationControl.position := elevation_home;
+	ElevationControl.position := telescopeConfig.elevationHome;
 	ElevationControl.MoveAxis := TRUE;
 	AzimuthControl.velocity := 10.0;
-	AzimuthControl.position := azimuth_home;
+	AzimuthControl.position := telescopeConfig.azimuthHome;
 	AzimuthControl.MoveAxis := TRUE;
 	DerotatorControl.Velocity := 10.0;
-	DerotatorControl.position := 180.0;
+	DerotatorControl.position := telescopeConfig.derotatorHome;
 	DerotatorControl.MoveAxis := TRUE;	
 END_IF
 
@@ -700,13 +665,13 @@ CASE Stage OF
 		END_IF
 		Stage := 20;
 	20:
-		ElevationControl.position := elevation_park;
+		ElevationControl.position := telescopeConfig.elevationPark;
 		ElevationControl.velocity := 10.0;
 		ElevationControl.MoveAxis := TRUE;
-		AzimuthControl.position := azimuth_park;
+		AzimuthControl.position := telescopeConfig.azimuthPark;
 		AzimuthControl.velocity := 10;
 		AzimuthControl.MoveAxis := TRUE;
-		DerotatorControl.position := derotator_park;
+		DerotatorControl.position := telescopeConfig.derotatorPark;
 		DerotatorControl.Velocity := 10.0;
 		DerotatorControl.MoveAxis := TRUE;
 		IF ElevationControl.ElevationAxis.Busy AND
@@ -806,15 +771,15 @@ END_IF
 // start calibration of focus after elevation has been calibrated
 // this avoids imbalance by the M2 mirror on the elvation during its calibration
 IF ElevationControl.Calibrated AND NOT FocusControl.Calibrated THEN
-	FocusControl.enable := TRUE;
-	FocusControl.HomeAxis := TRUE;
+	//FocusControl.enable := TRUE;
+	//FocusControl.HomeAxis := TRUE;
 END_IF
 
 IF CoverControl.isopen AND 
 	ElevationControl.Calibrated AND
 	AzimuthControl.calibrated AND
-	DerotatorControl.Calibrated AND
-	FocusControl.Calibrated THEN
+	DerotatorControl.Calibrated THEN
+	//FocusControl.Calibrated THEN
 	power := FALSE;
 	poweron := TRUE;
 	isparked := FALSE;
@@ -924,9 +889,9 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[// Elevation
-DerotatorVelocity := F_Derotatorvelocity(elevation_calc, azimuth_calc, latitude);
-ElevationVelocity := F_Elevationvelocity(azimuth_calc, latitude);
-AzimuthVelocity := F_Azimuthvelocity(elevation_calc, azimuth_calc, latitude);
+DerotatorVelocity := F_Derotatorvelocity(elevation_calc, azimuth_calc, telescopeConfig.latitude);
+ElevationVelocity := F_Elevationvelocity(azimuth_calc, telescopeConfig.latitude);
+AzimuthVelocity := F_Azimuthvelocity(elevation_calc, azimuth_calc, telescopeConfig.latitude);
 IF elevation_current < 5.0 OR elevation_current > 89.5 THEN 
 	track := FALSE;
 END_IF
@@ -997,6 +962,9 @@ END_IF
     </Method>
     <LineIds Name="FB_TelescopeControl">
       <LineId Id="1" Count="353" />
+    </LineIds>
+    <LineIds Name="FB_TelescopeControl.FB_Init">
+      <LineId Id="1" Count="6" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.GotoTelescope">
       <LineId Id="1" Count="76" />

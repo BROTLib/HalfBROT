@@ -10,8 +10,8 @@ VAR
 	DerotatorControl	: FB_DerotatorControl(comm := comm);
 	ElevationControl	: FB_ElevationControl(comm := comm, cover := CoverControl, hydraulics := HydraulicsControl);
 	AzimuthControl		: FB_AzimuthControl(comm := comm, hydraulics := HydraulicsControl);
-	TelescopeControl	: FB_TelescopeControl();
-	PendantControl		: FB_PendantControl(comm := comm, cover := CoverControl, hydraulics := HydraulicsControl, focus := FocusControl, elevation := ElevationControl, azimuth := AzimuthControl, derotator := DerotatorControl);
+	TelescopeControl	: FB_TelescopeControl(comm := comm, cover := CoverControl, hydraulics := HydraulicsControl, focus := FocusControl, elevation := ElevationControl, azimuth := AzimuthControl, derotator := DerotatorControl);
+	PendantControl		: FB_PendantControl(comm := comm, cover := CoverControl, hydraulics := HydraulicsControl, focus := FocusControl, elevation := ElevationControl, azimuth := AzimuthControl, derotator := DerotatorControl, telescope := TelescopeControl);
 	
 	// Safety Error Condition
 	Error		AT%I*:	BOOL;
@@ -30,10 +30,13 @@ VAR
 	Reset_STO_Elevation		AT%Q*: BOOL;
 	Reset_STO_Derotator		AT%Q*: BOOL;
 END_VAR
-]]></Declaration>
+VAR CONSTANT
+	telescopeConfig		: ST_TelescopeConfig := (longitude := -104.0217, latitude := 30.6714, altitude := 2000.0);
+END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[Run := TRUE;
 
+TelescopeControl(telescopeConfig := telescopeConfig);
 CoverControl();
 HydraulicsControl(
 	panPercentMin		:= 26.0,
@@ -46,7 +49,7 @@ DerotatorControl();
 ElevationControl();
 AzimuthControl();
 TelescopeControl();
-PendantControl(TelescopeControl := TelescopeControl);
+PendantControl();
 
 comm(	
 	sHostName			:= '169.254.146.10',
@@ -59,7 +62,9 @@ comm(
 ]]></ST>
     </Implementation>
     <LineIds Name="MAIN">
-      <LineId Id="29" Count="1" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="30" Count="0" />
       <LineId Id="15" Count="0" />
       <LineId Id="26" Count="0" />
       <LineId Id="31" Count="1" />
