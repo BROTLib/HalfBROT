@@ -221,8 +221,8 @@ CASE Selection OF
 		
 	10:	// FilterWheel control
 		
-	11: lamp_up := ElevationControl.elevation_torque > 0.0;
-		lamp_down := ElevationControl.elevation_torque < 0.0;
+	11: lamp_up := ElevationControl.elevationTorque > 0.0;
+		lamp_down := ElevationControl.elevationTorque < 0.0;
 		
 	12:	// manual Telescope Control
 		IF key_switch THEN

@@ -3,44 +3,27 @@
   <POU Name="FB_ElevationControl" Id="{163e8baa-c820-4d82-9b8f-2bab0c8d4398}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ElevationControl
 VAR_INPUT
-	// enable the axis
-	enable: 	BOOL;
-	// reset an error
-	reset:		BOOL;
-	// increase the eleveation
-	up:			BOOL;
-	// decrease the elevation
-	down:		BOOL;
-	// set position of the axis in degrees
-	position:	LREAL;
-	// set the Velocity of the axis
-	velocity:	LREAL;
-	// move axis command
-	MoveAxis:	BOOL;
-	// calibrate the axis
-	HomeAxis:	BOOL;
-	// enable tracking
-	Tracking:	BOOL;
-	// stop the Axis
-	StopAxis:	BOOL;
-	// reset diagnostic errors
-	bSoEReset:	 	BOOL;
+	enable			: BOOL;		// enable the axis
+	reset			: BOOL;		// reset an error
+	up				: BOOL;		// increase the eleveation
+	down			: BOOL;		// decrease the elevation
+	position		: LREAL;	// set position of the axis in degrees
+	velocity		: LREAL;	// set the Velocity of the axis
+	moveAxis		: BOOL;		// move axis command
+	homeAxis		: BOOL;		// calibrate the axis
+	tracking		: BOOL;		// enable tracking
+	stopAxis		: BOOL;		// stop the Axis
+	bSoEReset		: BOOL;		// reset diagnostic errors
+	calibPosition	: LREAL := 45.0; // // current position of the calibration cam. Apply an offset here if necessary
 END_VAR
 VAR_OUTPUT
-	// axis is ready to operate
-	Ready:			BOOL;
-	// drive error condition
-	error: 			BOOL;
-	// warning condition
-	warning:		BOOL;
-	// actual position of the elevation axis
-	actual_position: 	LREAL;
-	// error ID of the elevation axis
-	ErrorID: 		UDINT;
-	// axis is calibrated
-	Calibrated:		BOOL;
-	// time to reach target position
-	slewtime:		LREAL;
+	ready			: BOOL;		// axis is ready to operate
+	error			: BOOL;		// drive error condition
+	warning			: BOOL;		// warning condition
+	actualPosition	: LREAL;	// actual position of the elevation axis
+	errorID			: UDINT;	// error ID of the elevation axis
+	calibrated		: BOOL;		// axis is calibrated
+	slewTime		: LREAL;	// time to reach target position
 END_VAR
 VAR
 	CoverControl		: REFERENCE TO FB_CoverControl;
@@ -51,37 +34,32 @@ VAR
 	diagnostic		AT%I*	: UDINT;	// diagnostic number
 	torque			AT%I*	: INT;		// derotator torque feedback
 	sto				AT%I*	: BOOL;		// STO
-	axis_ref				: AXIS_REF;	
+	axisRef					: AXIS_REF;	
 	
-	ElevationAxis:			FB_Axis2;
-	ElevationCalibration: 	MC_SetPosition;
-	fbSoEReset: 			FB_SoEReset;
+	elevationAxis			: FB_Axis2;
+	elevationCalibration	: MC_SetPosition;
+	fbSoEReset				: FB_SoEReset;
 	// delay until commutator angle is measured
-	readydelay:				TON;
+	readyDelay				: TON;
 	// disable trigger for hydraulics
-	enable_trigger:			F_TRIG;
+	enableTrigger			: F_TRIG;
 	// store last position
-	getlastposition:		BOOL := TRUE;
-	ElevationAxisEvent: 	FB_Eventlog;
-	ElevationDiagnosticEvent: 	FB_Eventlog;
-	ElevationBrakeEvent: 	FB_Eventlog;
-	HighElevationEvent: 	FB_Eventlog;
-	LowElevationEvent:		FB_Eventlog;
-	TorqueWarning:			FB_EventLog;
-	CalibrationEvent:		FB_Eventlog;
-	// elevation torque in percent
-	elevation_torque: 		REAL;
-	// timer to trigger a warning if torque is high
-	torque_timer:			TON;
-	ReadParameter:			MC_ReadParameter;
-	DiagnosticError:		BOOL;
-END_VAR
-VAR CONSTANT
-	// current position of the calibration cam. Apply an offset here if necessary
-	calibration_position:	LREAL := 44.144; //44.139; //44.061; //43.806122; //42.1281; //43.000
+	getLastPosition			: BOOL := TRUE;
+	axisEvent				: FB_Eventlog;
+	diagnosticEvent			: FB_Eventlog;
+	brakeEvent				: FB_Eventlog;
+	highElevationEvent		: FB_Eventlog;
+	lowElevationEvent		: FB_Eventlog;
+	torqueWarning			: FB_EventLog;
+	calibrationEvent		: FB_Eventlog;
+	
+	elevationTorque		: REAL; 	// elevation torque in percent
+	torqueTimer			: TON;		// timer to trigger a warning if torque is high
+	readParameter			: MC_ReadParameter;
+	diagnosticError			: BOOL;
 END_VAR
 VAR PERSISTENT
-	last_position:	LREAL := -1.0;
+	lastPosition			:	LREAL := -1.0;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -89,8 +67,8 @@ END_VAR
 position := LIMIT(0.0, position, 90.0);
 
 //if we enable the axis, we have to open the brake first
-IF Enable THEN
-	IF NOT Calibrated THEN
+IF enable THEN
+	IF NOT calibrated THEN
 		CoverControl.open := TRUE;
 		IF CoverControl.isopen THEN
 			HydraulicsControl.open_brake();
@@ -101,160 +79,165 @@ IF Enable THEN
 	
 END_IF
 
-enable_trigger(CLK := enable);
+enableTrigger(CLK := enable);
 // close the brake on the falling edge of the enable signal
-IF enable_trigger.Q THEN
+IF enableTrigger.Q THEN
 	HydraulicsControl.close_brake();
 END_IF
 
-IF ElevationAxis.Calibrated OR Error THEN
-	HomeAxis := FALSE;
+IF elevationAxis.Calibrated OR error THEN
+	homeAxis := FALSE;
 END_IF
 
-Calibrated := ElevationAxis.Calibrated;
+calibrated := ElevationAxis.Calibrated;
 
-IF HomeAxis THEN
-	position := calibration_position;
-	MoveAxis := FALSE;
-	Tracking := FALSE;
+IF homeAxis THEN
+	position := calibPosition;
+	moveAxis := FALSE;
+	tracking := FALSE;
 END_IF
 
-IF MoveAxis THEN
-	Tracking := FALSE;
+IF moveAxis THEN
+	tracking := FALSE;
 END_IF
 
 // if NOT Enabled and ActVelo>1 then issue a warning
-warning := NOT enable AND axis_ref.NcToPlc.ActVelo>2.0;
+warning := NOT enable AND axisRef.NcToPlc.ActVelo>2.0;
 
 // deactivate limit switches on homing
 MC_SetAcceptBlockedDriveSignal(
-	Axis := axis_ref, 
+	Axis := axisRef, 
 	Enable := HomeAxis);
 	
 ElevationAxis(
 	Enable := 			enable AND HydraulicsControl.brakeOpen,
 	Reset := 			reset,
-	MoveAxis :=			MoveAxis,
-	HomeAxis :=			HomeAxis,
-	StopAxis :=			StopAxis,
-	Tracking :=			Tracking,
+	MoveAxis :=			moveAxis,
+	HomeAxis :=			homeAxis,
+	StopAxis :=			stopAxis,
+	Tracking :=			tracking,
 	Position := 		position, 
-	Velocity :=			Velocity,
-	Enable_Positive :=  digital_inputs.0 OR HomeAxis,
+	Velocity :=			velocity,
+	Enable_Positive :=  digital_inputs.0 OR homeAxis,
 	Enable_Negative := 	digital_inputs.1,
 	Jog_Forward :=		up,
 	Jog_Backwards := 	down,
 	bCalibrationCam :=	NOT digital_inputs.0,
-	ActualPosition => 	actual_position,
+	ActualPosition => 	actualPosition,
 	Error => 			error,
-	ErrorID => 			ErrorID,
-	AxisRef :=			axis_ref);
+	ErrorID => 			errorID,
+	AxisRef :=			axisRef);
 
-IF ElevationAxis.MoveDone THEN
-	MoveAxis := FALSE;
+IF elevationAxis.MoveDone THEN
+	moveAxis := FALSE;
 END_IF
 
-IF ElevationAxis.HomeDone THEN
-	HomeAxis := FALSE;
+IF elevationAxis.HomeDone THEN
+	homeAxis := FALSE;
 END_IF
 	
-IF ElevationAxis.ResetDone THEN
+IF elevationAxis.ResetDone THEN
 	reset := FALSE;
 END_IF
 
-IF ElevationAxis.StopDone THEN
-	StopAxis := FALSE;
+IF elevationAxis.StopDone THEN
+	stopAxis := FALSE;
 END_IF
 
-DiagnosticError := FALSE;
+diagnosticError := FALSE;
 IF diagnostic < 16#D012 AND diagnostic > 16#D014 THEN
-	DiagnosticError :=TRUE;
-	ErrorID := diagnostic;
+	diagnosticError :=TRUE;
+	errorID := diagnostic;
 END_IF
 
-ElevationCalibration(Axis := axis_ref,
-	Execute := getlastposition AND last_position>=0.0 AND NOT Calibrated,
-	Position := last_position);
+elevationCalibration(
+	Axis := axisRef,
+	Execute := getlastposition AND lastPosition>=0.0 AND NOT calibrated,
+	Position := lastPosition);
 
-IF ElevationCalibration.Done THEN
+IF elevationCalibration.Done THEN
 	getlastposition := FALSE;
 END_IF
 
-IF Calibrated THEN
-	last_position := actual_position;
+IF calibrated THEN
+	lastPosition := actualPosition;
 END_IF
 
 IF bSoEReset THEN
-	last_position := -1.0;
+	lastPosition := -1.0;
 	fbSoEReset(
-		Axis := axis_ref,
+		Axis := axisRef,
 		Execute := TRUE,
 		Timeout := DEFAULT_ADS_TIMEOUT);
  	IF NOT fbSoEReset.Busy THEN
-		fbSoEReset(Axis := axis_ref, Execute := FALSE);
+		fbSoEReset(Axis := axisRef, Execute := FALSE);
 		bSoEReset := FALSE;
-		Reset := TRUE;
+		reset := TRUE;
 	END_IF
 END_IF 
 
-readydelay(IN :=  HydraulicsControl.brakeOpen, PT := T#6000MS, Q=> ready);
+readyDelay(IN :=  HydraulicsControl.brakeOpen, PT := T#6000MS, Q=> ready);
 
-ReadParameter(	Axis := axis_ref, 
-				Enable := ElevationAxis.InMotion, 
-				ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
-				ReadMode := E_ReadMode.READMODE_CYCLIC);
+readParameter(	
+	Axis := axisRef, 
+	Enable := elevationAxis.InMotion, 
+	ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
+	ReadMode := E_ReadMode.READMODE_CYCLIC);
 				
-IF ReadParameter.Valid THEN
-	slewtime := ReadParameter.Value;
+IF readParameter.Valid THEN
+	slewTime := readParameter.Value;
 END_IF
 
-elevation_torque := torque / 10.0;
-torque_timer(IN := ABS(elevation_torque) > 50.0, PT := T#1000MS);
+elevationTorque := torque / 10.0;
+torqueTimer(IN := ABS(elevationTorque) > 50.0, PT := T#1000MS);
 		
-ElevationAxisEvent(	Trigger := Error, 
-				Level := ADSLOG_MSGTYPE_ERROR,
-				FormatString := 'Elevation Axis Error: %s',
-				OnMessage := NCError_TO_STRING(ErrorID), 
-				Comm := comm);
+axisEvent(	
+	Trigger 		:= error, 
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	FormatString 	:= 'Elevation Axis Error: %s',
+	OnMessage 		:= NCError_TO_STRING(ErrorID), 
+	comm 			:= comm);
 
-ElevationDiagnosticEvent(	
-	Trigger := 		DiagnosticError, 
-	Level := 		ADSLOG_MSGTYPE_ERROR,
-	FormatString :=	'Elevation Axis Diagnostic Error: %s',
-	OnMessage := 	NCError_TO_STRING(diagnostic), 
-	Comm := comm);
+diagnosticEvent(	
+	Trigger 		:= DiagnosticError,
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	FormatString 	:= 'Elevation Axis Diagnostic Error: %s',
+	OnMessage 		:= NCError_TO_STRING(diagnostic), 
+	comm 			:= comm);
 
+highElevationEvent(	
+	Trigger 		:= Calibrated AND actualPosition > 85.0, 
+	Level 			:= ADSLOG_MSGTYPE_WARN,
+	FormatString 	:= 'High Elevation: %s',
+	OnMessage 		:= LREAL_TO_FMTSTR(actualPosition, 2, TRUE), 
+	comm 			:= comm);
+
+lowElevationEvent(	
+	Trigger 		:= Calibrated AND actualPosition < 5.0, 
+	Level 			:= ADSLOG_MSGTYPE_WARN,
+	FormatString 	:= 'Low Elevation: %s',
+	OnMessage 		:= LREAL_TO_FMTSTR(actualPosition, 2, TRUE), 
+	comm 			:= comm);
 				
-HighElevationEvent(	Trigger := Calibrated AND actual_position > 85.0, 
-				Level := ADSLOG_MSGTYPE_WARN,
-				FormatString := 'High Elevation: %s',
-				OnMessage := LREAL_TO_FMTSTR(actual_position, 2, TRUE), 
-				Comm := comm);
+brakeEvent( 
+	Trigger 		:= NOT enable AND HydraulicsControl.brakeOpen, 
+	Level 			:= ADSLOG_MSGTYPE_WARN,
+	FormatString 	:= '%s',
+	OnMessage 		:= 'Brake was opened without elevation axis enabled!', 
+	comm 			:= comm); 
 
-LowElevationEvent(	Trigger := Calibrated AND actual_position < 5.0, 
-				Level := ADSLOG_MSGTYPE_WARN,
-				FormatString := 'Low Elevation: %s',
-				OnMessage := LREAL_TO_FMTSTR(actual_position, 2, TRUE), 
-				Comm := comm);
-				
-ElevationBrakeEvent( Trigger := NOT enable AND HydraulicsControl.brakeOpen, 
-				Level := ADSLOG_MSGTYPE_WARN,
-				FormatString := '%s',
-				OnMessage := 'Brake was opened without elevation axis enabled!', 
-				Comm := comm); 
-
-TorqueWarning(	
-	Trigger := torque_timer.Q, 
-	Level := 		ADSLOG_MSGTYPE_WARN,
-	FormatString :=	'%s',
-	OnMessage := 	'Elevation torque is high.', 
-				Comm := comm);
+torqueWarning(	
+	Trigger 		:= torqueTimer.Q, 
+	Level 			:= ADSLOG_MSGTYPE_WARN,
+	FormatString 	:= '%s',
+	OnMessage 		:= 'Elevation torque is high.', 
+	comm 			:= comm);
 	
-CalibrationEvent(
-	Trigger :=	Calibrated,
-	Level :=	ADSLOG_MSGTYPE_HINT,
-	OnMessage := 'Elevation is calibrated.', 
-				Comm := comm);]]></ST>
+calibrationEvent(
+	Trigger 		:= Calibrated,
+	Level 			:= ADSLOG_MSGTYPE_HINT,
+	OnMessage 		:= 'Elevation is calibrated.', 
+	comm 			:= comm);]]></ST>
     </Implementation>
     <Method Name="FB_Init" Id="{413b7b7f-fbba-45b5-beca-2a08218d35d1}">
       <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
@@ -276,7 +259,21 @@ THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_ElevationControl">
-      <LineId Id="1" Count="169" />
+      <LineId Id="1693" Count="87" />
+      <LineId Id="1862" Count="0" />
+      <LineId Id="1781" Count="26" />
+      <LineId Id="1863" Count="0" />
+      <LineId Id="1808" Count="11" />
+      <LineId Id="1864" Count="0" />
+      <LineId Id="1820" Count="11" />
+      <LineId Id="1833" Count="0" />
+      <LineId Id="1865" Count="0" />
+      <LineId Id="1834" Count="5" />
+      <LineId Id="1867" Count="0" />
+      <LineId Id="1840" Count="5" />
+      <LineId Id="1868" Count="0" />
+      <LineId Id="1846" Count="15" />
+      <LineId Id="170" Count="0" />
     </LineIds>
     <LineIds Name="FB_ElevationControl.FB_Init">
       <LineId Id="1" Count="2" />
