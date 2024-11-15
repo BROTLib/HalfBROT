@@ -30,29 +30,29 @@ END_VAR
 VAR
 	comm					: I_Comm;	
 	
-	digitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
-	diagnostic		  AT%I*	: UDINT;	// diagnostic number
-	torque			  AT%I*	: INT;		// derotator torque feedback
-	sto				  AT%I*	: BOOL;		// STO
-	axisRef				: AXIS_REF;	
+	inDigitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
+	inDiagnostic	  AT%I*	: UDINT;	// diagnostic number
+	inTorque	 	  AT%I*	: INT;		// derotator torque feedback
+	inSTO		  	  AT%I*	: BOOL;		// STO
+	axisRef					: AXIS_REF;	
 	
-	azimuthAxis				: FB_Axis2;
-	azimuthCalibration		: MC_SetPosition;
+	axis				: FB_Axis2;
+	axisCalibration		: MC_SetPosition;
 	//fbSoEReset			  :	FB_SoEReset;
-	azimuthAxisEvent		: FB_EventLog;
-	azimuthDiagnosticEvent	: FB_EventLog;
-	readyDelay				: TON;		// delay until commutator angle is measured
-	homeDelay				: FB_TONTP;
-	torqueError				: TON := (PT := T#3S);
-	azimuthTorque			: REAL;
-	torqueWarning			: FB_EventLog;
-	calibrationEvent		: FB_Eventlog;
-	readParameter			: MC_ReadParameter;
-	getLastPosition			: BOOL := TRUE;
-	azimuthRestTimer		: TON;
-	azimuthAtRest			: BOOL;
-	fbSoEReset				: FB_SoEReset;
-	diagnosticError			: BOOL;
+	axisEvent			: FB_EventLog;
+	diagnosticEvent		: FB_EventLog;
+	readyDelay			: TON;		// delay until commutator angle is measured
+	homeDelay			: FB_TONTP;
+	torqueError			: TON := (PT := T#3S);
+	torque				: REAL;
+	torqueWarning		: FB_EventLog;
+	calibrationEvent	: FB_Eventlog;
+	readParameter		: MC_ReadParameter;
+	getLastPosition		: BOOL := TRUE;
+	restTimer			: TON;
+	atRest				: BOOL;
+	fbSoEReset			: FB_SoEReset;
+	diagnosticError		: BOOL;
 END_VAR
 VAR PERSISTENT
 	lastPosition			: LREAL := -1.0;
@@ -63,13 +63,13 @@ Power must be on and brake must be open for the axis to operate
 *)
 
 // generate the ready signal after enabling the drive
-readyDelay(IN :=  azimuthAxis.Enable, PT := T#3000MS, Q=> ready);
+readyDelay(IN :=  axis.Enable, PT := T#3000MS, Q=> ready);
 
 // limit the input position angle
 position := LIMIT(minPosition, position, maxPosition);
 
 // conduct the calibrated signal
-calibrated := AzimuthAxis.Calibrated;
+calibrated := axis.Calibrated;
 
 IF calibrated OR error THEN
 	homeAxis := FALSE;
@@ -86,12 +86,12 @@ IF homeDelay.Q THEN
 END_IF
 
 // perform a recalibration on the last known position
-azimuthCalibration(
+axisCalibration(
 	Axis 		:= axisRef,
 	Execute 	:= getlastposition AND lastPosition>=0.0 AND NOT calibrated,
 	Position 	:= lastPosition);
 
-IF azimuthCalibration.Done THEN
+IF axisCalibration.Done THEN
 	getLastPosition := FALSE;
 END_IF
 
@@ -100,12 +100,12 @@ IF calibrated THEN
 END_IF
 
 // enable the azimuth if not moved by the power chain. Sorry for the hack
-azimuthRestTimer(IN := brakeOpen AND (ABS(axisRef.NcToPlc.ActVelo) < 0.01), PT := T#2S);
+restTimer(IN := brakeOpen AND (ABS(axisRef.NcToPlc.ActVelo) < 0.01), PT := T#2S);
 // if azimuth at rest or calibrated, allow enabling the azimuth
-IF azimuthRestTimer.Q or calibrated THEN
-	azimuthAtRest := TRUE;
+IF restTimer.Q or calibrated THEN
+	atRest := TRUE;
 ELSIF NOT brakeOpen THEN
-	azimuthAtRest := FALSE;
+	atRest := FALSE;
 END_IF
 	
 // deactivate limit switches on homing
@@ -113,8 +113,8 @@ MC_SetAcceptBlockedDriveSignal(
 	Axis 	:= axisRef, 
 	Enable 	:= HomeAxis);
 
-AzimuthAxis(	
-	Enable 			:= enable AND azimuthAtRest,
+axis(	
+	Enable 			:= enable AND atRest,
 	Reset 			:= reset,
 	MoveAxis 		:= moveAxis,
 	HomeAxis 		:= homeAxis,
@@ -122,11 +122,11 @@ AzimuthAxis(
 	Tracking 		:= tracking,
 	Position 		:= position, 
 	Velocity 		:= velocity,
-	Enable_Positive := digitalInputs.1 OR HomeAxis,
-	Enable_Negative := digitalInputs.0,
+	Enable_Positive := inDigitalInputs.1 OR HomeAxis,
+	Enable_Negative := inDigitalInputs.0,
 	Jog_Forward 	:= right,
 	Jog_Backwards 	:= left,
-	bCalibrationCam := NOT digitalInputs.1,
+	bCalibrationCam := NOT inDigitalInputs.1,
 	ActualPosition 	=> actualPosition,
 	Error 			=> error,
 	ErrorID 		=> errorID,
@@ -146,51 +146,51 @@ IF bSoEReset THEN
 	END_IF
 END_IF 
 
-IF azimuthAxis.MoveDone THEN
+IF axis.MoveDone THEN
 	moveAxis := FALSE;
 END_IF
 
-IF azimuthAxis.HomeDone THEN
+IF axis.HomeDone THEN
 	homeAxis := FALSE;
 END_IF
 	
-IF azimuthAxis.ResetDone THEN
+IF axis.ResetDone THEN
 	reset := FALSE;
 END_IF
 
-IF azimuthAxis.StopDone THEN
+IF axis.StopDone THEN
 	stopAxis := FALSE;
 END_IF
 diagnosticError := FALSE;
-IF diagnostic < 16#D012 AND diagnostic > 16#D014 THEN
+IF inDiagnostic < 16#D012 AND inDiagnostic > 16#D014 THEN
 	diagnosticError :=TRUE;
-	errorID := diagnostic;
+	errorID := inDiagnostic;
 END_IF
 
 readParameter(	
 	Axis 			:= axisRef, 
-	Enable 			:= azimuthAxis.InMotion, 
+	Enable 			:= axis.InMotion, 
 	ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
 	ReadMode 		:= E_ReadMode.READMODE_CYCLIC);
 IF readParameter.Valid THEN
 	slewTime := readParameter.Value;
 END_IF
 
-azimuthTorque := torque / 10.0;
-torqueError(IN := ABS(azimuthTorque) > 50.0);
+torque := inTorque / 10.0;
+torqueError(IN := ABS(torque) > 50.0);
 
-azimuthAxisEvent(	
+axisEvent(	
 	Trigger 		:= error, 
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'Azimuth Axis Error: %s',
 	OnMessage 		:= NCError_TO_STRING(ErrorID),
 	Comm 			:= comm);
 	
-AzimuthDiagnosticEvent(	
+diagnosticEvent(	
 	Trigger 		:= diagnosticError,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'Azimuth Axis Diagnostic Error: %s',
-	OnMessage 		:= NCError_TO_STRING(diagnostic),
+	OnMessage 		:= NCError_TO_STRING(inDiagnostic),
 	Comm 			:= comm);
 	
 TorqueWarning(	
@@ -224,11 +224,7 @@ END_VAR]]></Declaration>
       </Implementation>
     </Method>
     <LineIds Name="FB_AzimuthControl">
-      <LineId Id="1039" Count="42" />
-      <LineId Id="1083" Count="66" />
-      <LineId Id="1188" Count="1" />
-      <LineId Id="1150" Count="8" />
-      <LineId Id="1160" Count="26" />
+      <LineId Id="2374" Count="147" />
       <LineId Id="149" Count="0" />
     </LineIds>
     <LineIds Name="FB_AzimuthControl.FB_Init">
