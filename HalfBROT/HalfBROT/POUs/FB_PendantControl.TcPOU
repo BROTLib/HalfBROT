@@ -192,23 +192,23 @@ CASE Selection OF
 							
 	7:	// Elevation Control
 		
-		ElevationControl.up := direction_up AND ElevationControl.digital_inputs.0;
-		ElevationControl.down := direction_down AND ElevationControl.digital_inputs.1;
+		ElevationControl.up := direction_up AND ElevationControl.digitalInputs.0;
+		ElevationControl.down := direction_down AND ElevationControl.digitalInputs.1;
 		IF key_switch THEN
 			ElevationEnable(
 				SET := start_switch, 
 				Q := ElevationControl.enable);	
 		END_IF
 		ElevationControl.reset := reset_switch;
-		lamp_up := ElevationControl.digital_inputs.0;
-		lamp_down := ElevationControl.digital_inputs.1;
+		lamp_up := ElevationControl.digitalInputs.0;
+		lamp_down := ElevationControl.digitalInputs.1;
 		lamp_error := ElevationControl.error;
 		
 	8:	// Azimuth Control
-		lamp_left := AzimuthControl.digital_inputs.0; // NOT GVL_Telescope.azimut_limit_switch;
-		lamp_right := AzimuthControl.digital_inputs.1; // NOT GVL_Telescope.azimut_limit_switch;
-		AzimuthControl.left := direction_left AND AzimuthControl.digital_inputs.0;
-		AzimuthControl.right := direction_right AND AzimuthControl.digital_inputs.1;
+		lamp_left := AzimuthControl.digitalInputs.0; // NOT GVL_Telescope.azimut_limit_switch;
+		lamp_right := AzimuthControl.digitalInputs.1; // NOT GVL_Telescope.azimut_limit_switch;
+		AzimuthControl.left := direction_left AND AzimuthControl.digitalInputs.0;
+		AzimuthControl.right := direction_right AND AzimuthControl.digitalInputs.1;
 		AzimuthControl.reset := reset_switch;
 		IF key_switch THEN
 			AzimuthEnable(
@@ -248,14 +248,14 @@ CASE Selection OF
 			Q := TelescopeControl.power);
 		TelescopeControl.reset := reset_switch;
 		IF key_switch THEN
-			lamp_up := ElevationControl.digital_inputs.0;
-			lamp_down := ElevationControl.digital_inputs.1;
-			lamp_left := AzimuthControl.digital_inputs.0;
-			lamp_right := AzimuthControl.digital_inputs.1;
-			ElevationControl.up := direction_up AND ElevationControl.digital_inputs.0;
-			ElevationControl.down := direction_down AND ElevationControl.digital_inputs.1;
-			AzimuthControl.left := direction_left AND AzimuthControl.digital_inputs.0;
-			AzimuthControl.right := direction_right AND AzimuthControl.digital_inputs.1;
+			lamp_up := ElevationControl.digitalInputs.0;
+			lamp_down := ElevationControl.digitalInputs.1;
+			lamp_left := AzimuthControl.digitalInputs.0;
+			lamp_right := AzimuthControl.digitalInputs.1;
+			ElevationControl.up := direction_up AND ElevationControl.digitalInputs.0;
+			ElevationControl.down := direction_down AND ElevationControl.digitalInputs.1;
+			AzimuthControl.left := direction_left AND AzimuthControl.digitalInputs.0;
+			AzimuthControl.right := direction_right AND AzimuthControl.digitalInputs.1;
 			TelescopeControl.rightascension := TelescopeControl.rightascension_calc;
 			TelescopeControl.declination := TelescopeControl.declination_calc;
 		ELSE

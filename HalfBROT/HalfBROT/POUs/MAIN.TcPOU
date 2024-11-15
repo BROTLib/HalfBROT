@@ -47,7 +47,9 @@ FocusControl(
 );
 DerotatorControl();
 ElevationControl();
-AzimuthControl();
+AzimuthControl(
+	brakeOpen			:= HydraulicsControl.brakeOpen
+);
 TelescopeControl();
 PendantControl();
 
@@ -72,7 +74,10 @@ comm(
       <LineId Id="35" Count="0" />
       <LineId Id="37" Count="0" />
       <LineId Id="33" Count="0" />
-      <LineId Id="45" Count="4" />
+      <LineId Id="45" Count="2" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="48" Count="1" />
       <LineId Id="28" Count="0" />
       <LineId Id="38" Count="6" />
       <LineId Id="24" Count="0" />

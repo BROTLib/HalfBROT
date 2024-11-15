@@ -30,7 +30,7 @@ VAR
 	HydraulicsControl 	: REFERENCE TO FB_HydraulicsControl;
 	comm				: I_Comm;
 	
-	digital_inputs	AT%I*	: WORD;		// digitale inputs der Endlagen
+	digitalInputs	AT%I*	: WORD;		// digitale inputs der Endlagen
 	diagnostic		AT%I*	: UDINT;	// diagnostic number
 	torque			AT%I*	: INT;		// derotator torque feedback
 	sto				AT%I*	: BOOL;		// STO
@@ -110,23 +110,23 @@ MC_SetAcceptBlockedDriveSignal(
 	Enable := HomeAxis);
 	
 ElevationAxis(
-	Enable := 			enable AND HydraulicsControl.brakeOpen,
-	Reset := 			reset,
-	MoveAxis :=			moveAxis,
-	HomeAxis :=			homeAxis,
-	StopAxis :=			stopAxis,
-	Tracking :=			tracking,
-	Position := 		position, 
-	Velocity :=			velocity,
-	Enable_Positive :=  digital_inputs.0 OR homeAxis,
-	Enable_Negative := 	digital_inputs.1,
-	Jog_Forward :=		up,
-	Jog_Backwards := 	down,
-	bCalibrationCam :=	NOT digital_inputs.0,
-	ActualPosition => 	actualPosition,
-	Error => 			error,
-	ErrorID => 			errorID,
-	AxisRef :=			axisRef);
+	Enable 			:= enable AND HydraulicsControl.brakeOpen,
+	Reset 			:= reset,
+	MoveAxis 		:= moveAxis,
+	HomeAxis 		:= homeAxis,
+	StopAxis 		:= stopAxis,
+	Tracking 		:= tracking,
+	Position 		:= position, 
+	Velocity 		:= velocity,
+	Enable_Positive := digitalInputs.0 OR homeAxis,
+	Enable_Negative := digitalInputs.1,
+	Jog_Forward 	:= up,
+	Jog_Backwards 	:= down,
+	bCalibrationCam := NOT digitalInputs.0,
+	ActualPosition 	=> actualPosition,
+	Error 			=> error,
+	ErrorID 		=> errorID,
+	AxisRef 		:= axisRef);
 
 IF elevationAxis.MoveDone THEN
 	moveAxis := FALSE;
@@ -151,12 +151,12 @@ IF diagnostic < 16#D012 AND diagnostic > 16#D014 THEN
 END_IF
 
 elevationCalibration(
-	Axis := axisRef,
-	Execute := getlastposition AND lastPosition>=0.0 AND NOT calibrated,
-	Position := lastPosition);
+	Axis 		:= axisRef,
+	Execute 	:= getLastPosition AND lastPosition>=0.0 AND NOT calibrated,
+	Position 	:= lastPosition);
 
 IF elevationCalibration.Done THEN
-	getlastposition := FALSE;
+	getLastPosition := FALSE;
 END_IF
 
 IF calibrated THEN
@@ -179,10 +179,10 @@ END_IF
 readyDelay(IN :=  HydraulicsControl.brakeOpen, PT := T#6000MS, Q=> ready);
 
 readParameter(	
-	Axis := axisRef, 
-	Enable := elevationAxis.InMotion, 
+	Axis 			:= axisRef, 
+	Enable 			:= elevationAxis.InMotion, 
 	ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
-	ReadMode := E_ReadMode.READMODE_CYCLIC);
+	ReadMode 		:= E_ReadMode.READMODE_CYCLIC);
 				
 IF readParameter.Valid THEN
 	slewTime := readParameter.Value;
@@ -259,20 +259,7 @@ THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_ElevationControl">
-      <LineId Id="1693" Count="87" />
-      <LineId Id="1862" Count="0" />
-      <LineId Id="1781" Count="26" />
-      <LineId Id="1863" Count="0" />
-      <LineId Id="1808" Count="11" />
-      <LineId Id="1864" Count="0" />
-      <LineId Id="1820" Count="11" />
-      <LineId Id="1833" Count="0" />
-      <LineId Id="1865" Count="0" />
-      <LineId Id="1834" Count="5" />
-      <LineId Id="1867" Count="0" />
-      <LineId Id="1840" Count="5" />
-      <LineId Id="1868" Count="0" />
-      <LineId Id="1846" Count="15" />
+      <LineId Id="1869" Count="173" />
       <LineId Id="170" Count="0" />
     </LineIds>
     <LineIds Name="FB_ElevationControl.FB_Init">

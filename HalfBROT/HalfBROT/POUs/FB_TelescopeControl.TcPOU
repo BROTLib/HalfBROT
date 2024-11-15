@@ -189,7 +189,7 @@ ELSIF (derotation_calc < 20.0 AND DerotatorVelocity < 0.0) OR (derotation_calc <
 	derotation_calc := derotation_calc + 360.0;
 END_IF
 // get current coordinates	
-azimuth_current := AzimuthControl.act_position;
+azimuth_current := AzimuthControl.actualPosition;
 elevation_current := ElevationControl.actualPosition;
 derotator_current := DerotatorControl.actual_position;
 
@@ -362,7 +362,7 @@ IF MQTTTimer.Q THEN // publish new payload every second
 	comm.Publish('telescope', 'dome', 'elevation_offset', LREAL_TO_STRING(elevation_offset));
 	comm.Publish('telescope', 'dome', 'derotator_torque', LREAL_TO_STRING(DerotatorControl.derotator_torque));
 	comm.Publish('telescope', 'dome', 'elevation_torque', LREAL_TO_STRING(ElevationControl.elevationTorque));
-	comm.Publish('telescope', 'dome', 'azimuth_torque', LREAL_TO_STRING(AzimuthControl.azimuth_torque));
+	comm.Publish('telescope', 'dome', 'azimuth_torque', LREAL_TO_STRING(AzimuthControl.azimuthTorque));
 	
 	comm.Publish('telescope', 'dome', 'errorid',		UDINT_TO_STRING(errorid));
 	comm.Publish('telescope', 'dome', 'error',		BOOL_TO_STRING(error));
