@@ -30,14 +30,14 @@ VAR
 	HydraulicsControl 	: REFERENCE TO FB_HydraulicsControl;
 	comm				: I_Comm;
 	
-	digitalInputs	AT%I*	: WORD;		// digitale inputs der Endlagen
-	diagnostic		AT%I*	: UDINT;	// diagnostic number
-	torque			AT%I*	: INT;		// derotator torque feedback
-	sto				AT%I*	: BOOL;		// STO
+	inDigitalInputs	AT%I*	: WORD;		// digitale inputs der Endlagen
+	inDiagnostic	AT%I*	: UDINT;	// diagnostic number
+	inTorque		AT%I*	: INT;		// derotator torque feedback
+	inSTO			AT%I*	: BOOL;		// STO
 	axisRef					: AXIS_REF;	
 	
-	elevationAxis			: FB_Axis2;
-	elevationCalibration	: MC_SetPosition;
+	axis					: FB_Axis2;
+	axisCalibration			: MC_SetPosition;
 	fbSoEReset				: FB_SoEReset;
 	// delay until commutator angle is measured
 	readyDelay				: TON;
@@ -53,8 +53,8 @@ VAR
 	torqueWarning			: FB_EventLog;
 	calibrationEvent		: FB_Eventlog;
 	
-	elevationTorque		: REAL; 	// elevation torque in percent
-	torqueTimer			: TON;		// timer to trigger a warning if torque is high
+	torque					: REAL; 	// elevation torque in percent
+	torqueTimer				: TON;		// timer to trigger a warning if torque is high
 	readParameter			: MC_ReadParameter;
 	diagnosticError			: BOOL;
 END_VAR
@@ -85,11 +85,11 @@ IF enableTrigger.Q THEN
 	HydraulicsControl.close_brake();
 END_IF
 
-IF elevationAxis.Calibrated OR error THEN
+IF axis.Calibrated OR error THEN
 	homeAxis := FALSE;
 END_IF
 
-calibrated := ElevationAxis.Calibrated;
+calibrated := axis.Calibrated;
 
 IF homeAxis THEN
 	position := calibPosition;
@@ -109,7 +109,7 @@ MC_SetAcceptBlockedDriveSignal(
 	Axis := axisRef, 
 	Enable := HomeAxis);
 	
-ElevationAxis(
+axis(
 	Enable 			:= enable AND HydraulicsControl.brakeOpen,
 	Reset 			:= reset,
 	MoveAxis 		:= moveAxis,
@@ -118,44 +118,44 @@ ElevationAxis(
 	Tracking 		:= tracking,
 	Position 		:= position, 
 	Velocity 		:= velocity,
-	Enable_Positive := digitalInputs.0 OR homeAxis,
-	Enable_Negative := digitalInputs.1,
+	Enable_Positive := inDigitalInputs.0 OR homeAxis,
+	Enable_Negative := inDigitalInputs.1,
 	Jog_Forward 	:= up,
 	Jog_Backwards 	:= down,
-	bCalibrationCam := NOT digitalInputs.0,
+	bCalibrationCam := NOT inDigitalInputs.0,
 	ActualPosition 	=> actualPosition,
 	Error 			=> error,
 	ErrorID 		=> errorID,
 	AxisRef 		:= axisRef);
 
-IF elevationAxis.MoveDone THEN
+IF axis.MoveDone THEN
 	moveAxis := FALSE;
 END_IF
 
-IF elevationAxis.HomeDone THEN
+IF axis.HomeDone THEN
 	homeAxis := FALSE;
 END_IF
 	
-IF elevationAxis.ResetDone THEN
+IF axis.ResetDone THEN
 	reset := FALSE;
 END_IF
 
-IF elevationAxis.StopDone THEN
+IF axis.StopDone THEN
 	stopAxis := FALSE;
 END_IF
 
 diagnosticError := FALSE;
-IF diagnostic < 16#D012 AND diagnostic > 16#D014 THEN
+IF inDiagnostic < 16#D012 AND inDiagnostic > 16#D014 THEN
 	diagnosticError :=TRUE;
-	errorID := diagnostic;
+	errorID := inDiagnostic;
 END_IF
 
-elevationCalibration(
+axisCalibration(
 	Axis 		:= axisRef,
 	Execute 	:= getLastPosition AND lastPosition>=0.0 AND NOT calibrated,
 	Position 	:= lastPosition);
 
-IF elevationCalibration.Done THEN
+IF axisCalibration.Done THEN
 	getLastPosition := FALSE;
 END_IF
 
@@ -180,7 +180,7 @@ readyDelay(IN :=  HydraulicsControl.brakeOpen, PT := T#6000MS, Q=> ready);
 
 readParameter(	
 	Axis 			:= axisRef, 
-	Enable 			:= elevationAxis.InMotion, 
+	Enable 			:= axis.InMotion, 
 	ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
 	ReadMode 		:= E_ReadMode.READMODE_CYCLIC);
 				
@@ -188,8 +188,8 @@ IF readParameter.Valid THEN
 	slewTime := readParameter.Value;
 END_IF
 
-elevationTorque := torque / 10.0;
-torqueTimer(IN := ABS(elevationTorque) > 50.0, PT := T#1000MS);
+torque := inTorque / 10.0;
+torqueTimer(IN := ABS(torque) > 50.0, PT := T#1000MS);
 		
 axisEvent(	
 	Trigger 		:= error, 
@@ -202,7 +202,7 @@ diagnosticEvent(
 	Trigger 		:= DiagnosticError,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'Elevation Axis Diagnostic Error: %s',
-	OnMessage 		:= NCError_TO_STRING(diagnostic), 
+	OnMessage 		:= NCError_TO_STRING(inDiagnostic), 
 	comm 			:= comm);
 
 highElevationEvent(	
@@ -259,7 +259,7 @@ THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_ElevationControl">
-      <LineId Id="1869" Count="173" />
+      <LineId Id="2913" Count="173" />
       <LineId Id="170" Count="0" />
     </LineIds>
     <LineIds Name="FB_ElevationControl.FB_Init">

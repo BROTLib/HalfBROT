@@ -297,16 +297,16 @@ ELSE
 	TCSCTOEvent.OnMessage := 'NOCOMMAND';
 END_IF
  
-sliding := NOT tracking AND (ElevationControl.ElevationAxis.InMotion OR ElevationControl.ElevationAxis.InRamp OR
+sliding := NOT tracking AND (ElevationControl.axis.InMotion OR ElevationControl.axis.InRamp OR
 			AzimuthControl.axis.InMotion OR AzimuthControl.axis.InRamp OR
 			DerotatorControl.axis.InMotion OR DerotatorControl.axis.InRamp);
 
 // signal must be stable for 5500MS
-tracking_delay(in := ElevationControl.ElevationAxis.isTracking AND 
+tracking_delay(in := ElevationControl.axis.isTracking AND 
 			AzimuthControl.axis.isTracking AND
 			DerotatorControl.axis.isTracking,PT :=T#5500MS, Q => tracking);
 			
-stopped :=  (NOT ElevationControl.enable OR ElevationControl.ElevationAxis.StandStill) AND 
+stopped :=  (NOT ElevationControl.enable OR ElevationControl.axis.StandStill) AND 
 			(NOT AzimuthControl.Enable OR AzimuthControl.axis.StandStill) AND
 			(NOT DerotatorControl.enable OR DerotatorControl.axis.StandStill);
 			
@@ -322,7 +322,7 @@ ready := homed AND
 	DerotatorControl.enable AND HydraulicsControl.brakeOpen AND 
     NOT error;
 
-busy := ElevationControl.ElevationAxis.Busy OR
+busy := ElevationControl.axis.Busy OR
 		AzimuthControl.axis.Busy OR
 		DerotatorControl.axis.Busy OR
 		FocusControl.FocusAxis.Busy;
@@ -361,7 +361,7 @@ IF MQTTTimer.Q THEN // publish new payload every second
 	comm.Publish('telescope', 'dome', 'azimuth_offset', LREAL_TO_STRING(azimuth_offset));
 	comm.Publish('telescope', 'dome', 'elevation_offset', LREAL_TO_STRING(elevation_offset));
 	comm.Publish('telescope', 'dome', 'derotator_torque', LREAL_TO_STRING(DerotatorControl.torque));
-	comm.Publish('telescope', 'dome', 'elevation_torque', LREAL_TO_STRING(ElevationControl.elevationTorque));
+	comm.Publish('telescope', 'dome', 'elevation_torque', LREAL_TO_STRING(ElevationControl.torque));
 	comm.Publish('telescope', 'dome', 'azimuth_torque', LREAL_TO_STRING(AzimuthControl.torque));
 	
 	comm.Publish('telescope', 'dome', 'errorid',		UDINT_TO_STRING(errorid));
@@ -543,13 +543,13 @@ CASE Stage OF
 		ElevationControl.MoveAxis := TRUE;
 		AzimuthControl.MoveAxis := TRUE;
 		DerotatorControl.MoveAxis := TRUE;
-		IF ElevationControl.ElevationAxis.Busy AND
+		IF ElevationControl.axis.Busy AND
 			AzimuthControl.axis.Busy AND
 			DerotatorControl.axis.Busy THEN
 				Stage := 50;
 		END_IF
 	50:
-		IF NOT ElevationControl.ElevationAxis.Busy AND ElevationControl.ElevationAxis.MoveDone THEN
+		IF NOT ElevationControl.axis.Busy AND ElevationControl.axis.MoveDone THEN
 			ElevationControl.MoveAxis := FALSE;
 		END_IF
 		IF NOT AzimuthControl.axis.Busy AND AzimuthControl.axis.MoveDone THEN
@@ -611,7 +611,7 @@ IF ready AND stopped AND NOT busy AND NOT tracking THEN
 	DerotatorControl.MoveAxis := TRUE;	
 END_IF
 
-IF ElevationControl.ElevationAxis.MoveDone AND 
+IF ElevationControl.axis.MoveDone AND 
 	AzimuthControl.axis.MoveDone AND 
 	DerotatorControl.axis.MoveDone THEN
 	gohome := FALSE;
@@ -674,13 +674,13 @@ CASE Stage OF
 		DerotatorControl.position := telescopeConfig.derotatorPark;
 		DerotatorControl.Velocity := 10.0;
 		DerotatorControl.MoveAxis := TRUE;
-		IF ElevationControl.ElevationAxis.Busy AND
+		IF ElevationControl.axis.Busy AND
 			AzimuthControl.axis.Busy AND
 			DerotatorControl.axis.Busy THEN
 				Stage := 40;
 		END_IF
 	40:
-		IF ElevationControl.ElevationAxis.MoveDone THEN
+		IF ElevationControl.axis.MoveDone THEN
 			ElevationControl.MoveAxis := FALSE;
 		END_IF
 		IF AzimuthControl.axis.MoveDone THEN
@@ -830,13 +830,13 @@ CASE Stage OF
 		DerotatorControl.position := elevation + derotator_offset;
 		DerotatorControl.Velocity := 10.0;
 		DerotatorControl.MoveAxis := TRUE;
-		IF ElevationControl.ElevationAxis.Busy AND
+		IF ElevationControl.axis.Busy AND
 			AzimuthControl.axis.Busy AND
 			DerotatorControl.axis.Busy THEN
 				Stage := 50;
 		END_IF
 	50:
-		IF ElevationControl.ElevationAxis.MoveDone THEN
+		IF ElevationControl.axis.MoveDone THEN
 			ElevationControl.MoveAxis := FALSE;
 		END_IF
 		
@@ -906,9 +906,9 @@ ElevationControl.position := elevation_calc;
 IF NOT ElevationControl.Tracking THEN
 	ElevationControl.velocity := 10.0;
 	ElevationControl.MoveAxis := TRUE;
-	IF NOT ElevationControl.ElevationAxis.Busy AND ElevationControl.ElevationAxis.MoveDone THEN
+	IF NOT ElevationControl.axis.Busy AND ElevationControl.axis.MoveDone THEN
 		ElevationControl.MoveAxis := FALSE;
-		IF ElevationControl.ElevationAxis.isTracking THEN
+		IF ElevationControl.axis.isTracking THEN
 			ElevationControl.velocity := ElevationVelocity;
 		ELSE
 			ElevationControl.velocity := 3.0*ElevationVelocity;
