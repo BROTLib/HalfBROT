@@ -111,15 +111,15 @@ END_IF
 // enable only the selected item and connect lamps and buttons accordingly
 CASE Selection OF
 	1:	// reserved for Cover1 control
-		lamp_up := CoverControl.cover1_open;
-		lamp_down := CoverControl.cover1_closed;
+		lamp_up := CoverControl.cover1Open;
+		lamp_down := CoverControl.cover1Closed;
 		IF key_switch THEN
 			//CoverEnable(SET := enable, Q := CoverControl.enable);
 			//CoverControl.active_cover := 1;
 			//CoverControl.reset := reset;
-			CoverControl.open_cover1 := direction_up AND CoverControl.cover1_open;
-			CoverControl.close_cover1 := direction_down AND CoverControl.cover1_closed;
-			lamp_error := CoverControl.Cover1_Error;	
+			CoverControl.outOpenCover1 := direction_up AND CoverControl.cover1Open;
+			CoverControl.outCloseCover1 := direction_down AND CoverControl.cover1Closed;
+			lamp_error := CoverControl.cover1Error;	
 		ELSE
 			IF direction_down THEN 
 				CoverControl.close := TRUE;
@@ -130,14 +130,14 @@ CASE Selection OF
 		END_IF
 
 	2: // Cover2 control
-		lamp_up := CoverControl.cover2_open;
-		lamp_down := CoverControl.cover2_closed;
+		lamp_up := CoverControl.cover2Open;
+		lamp_down := CoverControl.cover2Closed;
 		IF key_switch THEN
 			//CoverEnable(SET := enable, Q := CoverControl.enable);
 			//CoverControl.active_cover := 2;
-			CoverControl.open_cover2 := direction_up AND CoverControl.cover2_open;
-			CoverControl.close_cover2 := direction_down AND CoverControl.cover2_closed;
-			lamp_error := CoverControl.Cover2_Error;
+			CoverControl.outOpenCover2 := direction_up AND CoverControl.cover2Open;
+			CoverControl.outCloseCover2 := direction_down AND CoverControl.cover2Closed;
+			lamp_error := CoverControl.cover2Error;
 		ELSE
 			IF direction_down THEN 
 				CoverControl.close := TRUE;
@@ -148,15 +148,15 @@ CASE Selection OF
 		END_IF
  	
 	3:  // Cover3 control
-		lamp_up := CoverControl.cover3_open;
-		lamp_down := CoverControl.cover3_closed;
+		lamp_up := CoverControl.cover3Open;
+		lamp_down := CoverControl.cover3Closed;
 		IF key_switch THEN
 			//CoverEnable(SET := enable, Q := CoverControl.enable);
 			//CoverControl.active_cover := 3;
-			CoverControl.open_cover3 := direction_up AND CoverControl.cover3_open;
-			CoverControl.close_cover3 := direction_down AND CoverControl.cover3_closed;
+			CoverControl.outOpenCover3 := direction_up AND CoverControl.cover3Open;
+			CoverControl.outCloseCover3 := direction_down AND CoverControl.cover3Closed;
 			//CoverControl.reset := reset;
-			lamp_error := CoverControl.Cover3_Error;
+			lamp_error := CoverControl.cover3Error;
 		ELSE
 			IF direction_down THEN 
 				CoverControl.close := TRUE;

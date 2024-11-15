@@ -5,7 +5,7 @@
       <Data>
         <o xml:space="preserve" t="VisualObject">
           <n n="LastVisuLanguageModelEntry" />
-          <v n="UniqueIdGenerator">"29"</v>
+          <v n="UniqueIdGenerator">"161"</v>
           <o n="VisualElemList" t="VisualElemList">
             <l n="VisualElementList" t="VisualElemCollection" cet="GenericVisualElem">
               <o>
@@ -2090,7 +2090,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.cover1_error"</v>
+                          <v n="Value">"MAIN.CoverControl.cover1Error"</v>
                         </o>
                       </l>
                     </o>
@@ -2330,7 +2330,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.close_cover1"</v>
+                          <v n="Value">"MAIN.CoverControl.outCloseCover1"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2436,7 +2436,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.open_cover1"</v>
+                          <v n="Value">"MAIN.CoverControl.outOpenCover1"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2676,7 +2676,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.cover1_closed"</v>
+                          <v n="Value">"MAIN.CoverControl.cover1Closed"</v>
                         </o>
                       </l>
                     </o>
@@ -2912,7 +2912,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.cover1_open"</v>
+                          <v n="Value">"MAIN.CoverControl.cover1Open"</v>
                         </o>
                       </l>
                     </o>
@@ -3475,7 +3475,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.cover2_error"</v>
+                          <v n="Value">"MAIN.CoverControl.cover2Error"</v>
                         </o>
                       </l>
                     </o>
@@ -3715,7 +3715,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.close_cover2"</v>
+                          <v n="Value">"MAIN.CoverControl.outCloseCover2"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3821,7 +3821,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.open_cover2"</v>
+                          <v n="Value">"MAIN.CoverControl.outOpenCover2"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -4061,7 +4061,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.cover2_closed"</v>
+                          <v n="Value">"MAIN.CoverControl.cover2Closed"</v>
                         </o>
                       </l>
                     </o>
@@ -4297,7 +4297,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.cover2_open"</v>
+                          <v n="Value">"MAIN.CoverControl.cover2Open"</v>
                         </o>
                       </l>
                     </o>
@@ -4860,7 +4860,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.cover3_error"</v>
+                          <v n="Value">"MAIN.CoverControl.cover3Error"</v>
                         </o>
                       </l>
                     </o>
@@ -5100,7 +5100,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.close_cover3"</v>
+                          <v n="Value">"MAIN.CoverControl.outCloseCover3"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -5206,7 +5206,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.open_cover3"</v>
+                          <v n="Value">"MAIN.CoverControl.outOpenCover3"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -5446,7 +5446,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.cover3_closed"</v>
+                          <v n="Value">"MAIN.CoverControl.cover3Closed"</v>
                         </o>
                       </l>
                     </o>
@@ -5682,7 +5682,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.cover3_open"</v>
+                          <v n="Value">"MAIN.CoverControl.cover3Open"</v>
                         </o>
                       </l>
                     </o>
@@ -6233,7 +6233,9 @@ END_VAR"</v>
             </d2>
             <v n="Version">2</v>
           </o>
-          <n n="FrameInterfaceDataModel" />
+          <o n="FrameInterfaceDataModel" t="HierarchicalProperties">
+            <l2 n="HierarchicalProperties" />
+          </o>
         </o>
       </Data>
       <TypeList>
@@ -6249,6 +6251,7 @@ END_VAR"</v>
         <Type n="GenericVisualElem">{f86c2928-8614-4cca-824b-e819ac4d58c4}</Type>
         <Type n="Guid">System.Guid</Type>
         <Type n="Hashtable">System.Collections.Hashtable</Type>
+        <Type n="HierarchicalProperties">{af53e824-e51f-4be1-b210-d001ef8efbd1}</Type>
         <Type n="HotkeyConfiguration">{6b108d46-58af-4e41-a3f4-174d8f160cc4}</Type>
         <Type n="Int16">System.Int16</Type>
         <Type n="Int32">System.Int32</Type>

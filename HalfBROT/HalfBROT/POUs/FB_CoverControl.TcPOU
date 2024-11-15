@@ -7,18 +7,16 @@ VAR_INPUT
 	open					: BOOL;		// open the cover in proper order
 	close					: BOOL;		// close the cover in proper order
 	
-	open_cover1		AT%Q*	: BOOL;	// open cover1 command
-	close_cover1	AT%Q*	: BOOL; // close cover1 command
-	open_cover2		AT%Q*	: BOOL; // open cover2 command
-	close_cover2	AT%Q*	: BOOL; // close cover2 command
-	open_cover3		AT%Q*	: BOOL; // open cover3 command
-	close_cover3	AT%Q*	: BOOL; // close cover3 command
-	
-
+	outOpenCover1	AT%Q*	: BOOL;	// open cover1 command
+	outCloseCover1	AT%Q*	: BOOL; // close cover1 command
+	outOpenCover2	AT%Q*	: BOOL; // open cover2 command
+	outCloseCover2	AT%Q*	: BOOL; // close cover2 command
+	outOpenCover3	AT%Q*	: BOOL; // open cover3 command
+	outCloseCover3	AT%Q*	: BOOL; // close cover3 command
 END_VAR
 VAR_OUTPUT
-	isopen				: BOOL;		// all covers are open
-	isclosed			: BOOL;		// all covers are closed
+	isOpen				: BOOL;		// all covers are open
+	isClosed			: BOOL;		// all covers are closed
 	error				: BOOL;		// any cover-driver reports an error
 	warning				: BOOL;		// warning state of the DC drives
 END_VAR
@@ -27,52 +25,42 @@ VAR
 	active_cover		: INT;		// actual active cover in manual mode, 0 for automatic = all covers active
 	
 	// limit switches
-	limit_cover1_open		AT%I*	: BOOL;
-	// DIN34 4.1
-	limit_cover1_closed		AT%I*	: BOOL;
-	// DIN35 4.2
-	limit_cover2_open		AT%I*	: BOOL;
-	// DIN36 4.3
-	limit_cover2_closed		AT%I*	: BOOL;
-	// DIN37 4.4
-	limit_cover3_open		AT%I*	: BOOL;
-	// DIN38 4.5
-	limit_cover3_closed		AT%I*	: BOOL;	
+	inCover1Open	AT%I*	: BOOL;	// limit coper 1 open
+	inCover1Closed	AT%I*	: BOOL;	// limit coper 1 closed
+	inCover2Open	AT%I*	: BOOL; // limit coper 2 open
+	inCoverClosed	AT%I*	: BOOL;	///limit coper 2 closed
+	inCover3Open	AT%I*	: BOOL;	// limit coper 3 open
+	inCover3Closed	AT%I*	: BOOL;	// limit coper 3 closed	
 	
-	cover1_open	  					: BOOL;	// cover1 is open 
-	cover1_closed					: BOOL; // cover1 is closed
-	cover1_error					: BOOL; // cover1 has error
+	cover1Open	  			: BOOL;	// cover1 is open 
+	cover1Closed			: BOOL; // cover1 is closed
+	cover1Error				: BOOL; // cover1 has error
 	
-	cover2_open						: BOOL; // cover2 is open
-	cover2_closed					: BOOL; // cover2 is closed
-	cover2_error					: BOOL; // cover2 has error
+	cover2Open				: BOOL; // cover2 is open
+	cover2Closed			: BOOL; // cover2 is closed
+	cover2Error				: BOOL; // cover2 has error
 
-	cover3_open						: BOOL; // cover3 is open
-	cover3_closed					: BOOL; // cover3 is closed
-	cover3_error					: BOOL; // cover3 has error	
+	cover3Open				: BOOL; // cover3 is open
+	cover3Closed			: BOOL; // cover3 is closed
+	cover3Error				: BOOL; // cover3 has error	
 	
-	// delay timer for opening cover2
-	open2_delay						: TON := (PT:=T#1S);
-	// dely timer for closing cover3
-	close3_delay 					: TON := (PT:=T#3S);
+	cover2ODelay			: TON := (PT:=T#1S);	// delay timer for opening cover2
+	cover3CloseDelay 		: TON := (PT:=T#3S);	// dely timer for closing cover3
 
-	// trigger for error
-	error_trigger					: SR;
+	errorTrigger			: SR;	// trigger for error
 	
-	cover1_event					: FB_EventLog;	// error event for cover1
-	cover2_event					: FB_EventLog;	// error event for cover2
-	cover3_event					: FB_EventLog;	// error event for cover3
+	cover1Event				: FB_EventLog;	// error event for cover1
+	cover2Event				: FB_EventLog;	// error event for cover2
+	cover3Event				: FB_EventLog;	// error event for cover3
 
+	cover1TimeoutEvent		: FB_EventLog; // timeout event for cover1
+	cover2TimeoutEvent		: FB_EventLog; // timeout event for cover2
+	cover3TimeoutEvent		: FB_EventLog; // timeout event for cover3
 	
-	cover1_timeout_event			: FB_EventLog; // timeout event for cover1
-	cover2_timeout_event			: FB_EventLog; // timeout event for cover2
-	cover3_timeout_event			: FB_EventLog; // timeout event for cover3
-	
-	covers_opened_event				: FB_EventLog; // log if covers are open
-	covers_closed_event				: FB_EventLog; // log if covers are closed
-	covers_error_event				: FB_EventLog; // Event log for a generic drive error
-	covers_warning_event			: FB_EventLog; // Event log for a generic drive warning
-	
+	coversOpenedEvent		: FB_EventLog; // log if covers are open
+	coversClosedEvent		: FB_EventLog; // log if covers are closed
+	coversErrorEvent		: FB_EventLog; // Event log for a generic drive error
+	coversWarningEvent		: FB_EventLog; // Event log for a generic drive warning
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -88,115 +76,127 @@ IF close THEN
 END_IF
 
 // limit switches are inverted
-cover1_open   := NOT limit_cover1_open;
-cover2_open   := NOT limit_cover2_open;
-cover3_open   := NOT limit_cover3_open;
-cover1_closed := NOT limit_cover1_closed;
-cover2_closed := NOT limit_cover2_closed;
-cover3_closed := NOT limit_cover3_closed;
+cover1Open   := NOT inCover1Open;
+cover2Open   := NOT inCover2Open;
+cover3Open   := NOT inCover3Open;
+cover1Closed := NOT inCover1Closed;
+cover2Closed := NOT inCoverClosed;
+cover3Closed := NOT inCover3Closed;
 
 // errors occur if covers are both opened and closed
-cover1_error := cover1_open AND cover1_closed;
-cover2_error := cover2_open AND cover2_closed;
-cover3_error := cover3_open AND cover3_closed;
+cover1Error := cover1Open AND cover1Closed;
+cover2Error := cover2Open AND cover2Closed;
+cover3Error := cover3Open AND cover3Closed;
 
 // wait for cover2 until cover3 has left the closed state
-open2_delay(IN := open AND NOT cover3_closed);
+cover2ODelay(IN := open AND NOT cover3Closed);
 // wait for cover3 until cover2 has left the open state
-close3_delay(IN := close AND NOT cover2_open);
+cover3CloseDelay(IN := close AND NOT cover2Open);
 
 // commands
 IF close THEN
-	close_cover1 := limit_cover1_closed AND NOT limit_cover3_closed;
-	close_cover2 := limit_cover2_closed;
-	close_cover3 := limit_cover3_closed AND close3_delay.Q;
+	outCloseCover1 := inCover1Closed AND NOT inCover3Closed;
+	outCloseCover2 := inCoverClosed;
+	outCloseCover3 := inCover3Closed AND cover3CloseDelay.Q;
 ELSIF open THEN
-	open_cover1 := limit_cover1_open;
-	open_cover2 := limit_cover2_open AND open2_delay.Q;
-	open_cover3 := limit_cover3_open;			
+	outOpenCover1 := inCover1Open;
+	outOpenCover2 := inCover2Open AND cover2ODelay.Q;
+	outOpenCover3 := inCover3Open;			
 END_IF
 
 // we are open, if all covers are open
-isopen := cover3_open AND cover2_open AND cover1_open;
+isopen := cover3Open AND cover2Open AND cover1Open;
 // we are closed, if all covers are closed
-isclosed := cover2_closed AND cover3_closed AND cover1_closed;
+isclosed := cover2Closed AND cover3Closed AND cover1Closed;
 
 // error indicates an axis error on any axis
-error_trigger(SET1 := Cover1_error OR Cover2_error OR Cover3_error,
-				RESET := reset,
-				Q1 => error);
+errorTrigger(
+	SET1 := cover1Error OR cover2Error OR cover3Error,
+	RESET := reset,
+	Q1 => error);
 
-IF isclosed THEN
+IF isClosed THEN
 	close := FALSE;
 END_IF
 
-IF isopen THEN
+IF isOpen THEN
 	open := FALSE;
 END_IF
 
-covers_error_event.OnMessage := 'Cover drive error';
+coversErrorEvent.OnMessage := 'Cover drive error';
 IF Error THEN
-	IF cover3_error THEN 
-		covers_error_event.OnMessage := 'Cover 3 has a drive error.';
+	IF cover3Error THEN 
+		coversErrorEvent.OnMessage := 'Cover 3 has a drive error.';
 	END_IF
-	IF cover2_error THEN 
-		covers_error_event.OnMessage := 'Cover 2 has a drive error.';
+	IF cover2Error THEN 
+		coversErrorEvent.OnMessage := 'Cover 2 has a drive error.';
 	END_IF
-	IF cover1_error THEN 
-		covers_error_event.OnMessage := 'Cover 1 has a drive error.';
+	IF cover1Error THEN 
+		coversErrorEvent.OnMessage := 'Cover 1 has a drive error.';
 	END_IF
 END_IF
 
-covers_error_event(Trigger 	:= error, 
-				   Level   	:= ADSLOG_MSGTYPE_ERROR, 
-				   Comm 	:= comm);
+coversErrorEvent(
+	Trigger 	:= error, 
+   	Level   	:= ADSLOG_MSGTYPE_ERROR, 
+	comm 		:= comm);
 
-covers_warning_event(Trigger := warning, 
-					 Level   := ADSLOG_MSGTYPE_WARN, 
-				     Comm 	 := comm);
+coversWarningEvent(
+	Trigger 	:= warning, 
+	Level   	:= ADSLOG_MSGTYPE_WARN, 
+	comm 		:= comm);
 
 // raise an error, if both opened and closed signals are activated
 // handle RoboTel differently
-cover1_event(Trigger   := cover1_open AND cover1_closed,
-			 Level     := ADSLOG_MSGTYPE_ERROR, 
-			 OnMessage := 'Cover1: limit switch error', 
-			 Comm	   := comm);
+cover1Event(
+	Trigger   	:= cover1Open AND cover1Closed,
+	Level     	:= ADSLOG_MSGTYPE_ERROR, 
+	OnMessage 	:= 'Cover1: limit switch error', 
+	comm	 	:= comm);
 
-cover2_event(Trigger   := cover2_open AND cover2_closed,
-			 Level     := ADSLOG_MSGTYPE_ERROR, 
-			 OnMessage := 'Cover2: limit switch error', 
-		     Comm 	   := comm);
+cover2Event(
+	Trigger   	:= cover2Open AND cover2Closed,
+    Level     	:= ADSLOG_MSGTYPE_ERROR, 
+	OnMessage 	:= 'Cover2: limit switch error', 
+	comm      	:= comm);
 
-cover3_event(Trigger   := cover3_open AND cover3_closed,
-			 Level     := ADSLOG_MSGTYPE_ERROR, 
-			 OnMessage := 'Cover3: limit switch error', 
-			 Comm 	   := comm);
+cover3Event(
+	Trigger   	:= cover3Open AND cover3Closed,
+	Level     	:= ADSLOG_MSGTYPE_ERROR, 
+	OnMessage 	:= 'Cover3: limit switch error', 
+	comm 	  	:= comm);
+
 //trigger an event, if we encounter a timeout
 // handle RoboTel differently
-
-cover1_timeout_event(Trigger   := FALSE,
-					 Level     := ADSLOG_MSGTYPE_ERROR, 
-					 OnMessage := 'Cover1: Timeout',
-					 Comm := comm);
-cover2_timeout_event(Trigger   := FALSE,
-					 Level     := ADSLOG_MSGTYPE_ERROR, 
-					 OnMessage := 'Cover2: Timeout',
-					 Comm := comm);
-cover3_timeout_event(Trigger   := FALSE,
-					 Level     := ADSLOG_MSGTYPE_ERROR, 
-					 OnMessage := 'Cover3: Timeout',
-					 Comm := comm);
+cover1TimeoutEvent(
+	Trigger   	:= FALSE,
+	Level     	:= ADSLOG_MSGTYPE_ERROR, 
+	OnMessage 	:= 'Cover1: Timeout',
+	comm 		:= comm);
+cover2TimeoutEvent(
+	Trigger   	:= FALSE,
+ 	Level     	:= ADSLOG_MSGTYPE_ERROR, 
+	OnMessage 	:= 'Cover2: Timeout',
+	comm 		:= comm);
+cover3TimeoutEvent(
+	Trigger   	:= FALSE,
+	Level     	:= ADSLOG_MSGTYPE_ERROR, 
+	OnMessage 	:= 'Cover3: Timeout',
+	comm 		:= comm);
 
 // Log if we are opened
-covers_opened_event(Trigger   := isopen,
-					Level     := ADSLOG_MSGTYPE_WARN,
-					OnMessage := 'All covers are open',
-					Comm := comm);
+coversOpenedEvent(
+	Trigger   	:= isOpen,
+	Level     	:= ADSLOG_MSGTYPE_WARN,
+	OnMessage 	:= 'All covers are open',
+	comm 		:= comm);
+	
 //log if we are closed
-covers_closed_event(Trigger   := isclosed,
-					Level     := ADSLOG_MSGTYPE_HINT,
-					OnMessage := 'All covers are closed',
-					Comm := comm);
+coversClosedEvent(
+	Trigger   	:= isClosed,
+	Level     	:= ADSLOG_MSGTYPE_HINT,
+	OnMessage 	:= 'All covers are closed',
+	comm 		:= comm);
 ]]></ST>
     </Implementation>
     <Method Name="CloseCover" Id="{da11c9a0-3757-4491-b03d-01cf2bd99294}">
@@ -244,7 +244,35 @@ END_VAR
       </Implementation>
     </Method>
     <LineIds Name="FB_CoverControl">
-      <LineId Id="1" Count="121" />
+      <LineId Id="2423" Count="46" />
+      <LineId Id="2544" Count="0" />
+      <LineId Id="2470" Count="24" />
+      <LineId Id="2545" Count="0" />
+      <LineId Id="2495" Count="3" />
+      <LineId Id="2546" Count="0" />
+      <LineId Id="2499" Count="5" />
+      <LineId Id="2547" Count="0" />
+      <LineId Id="2505" Count="4" />
+      <LineId Id="2548" Count="0" />
+      <LineId Id="2510" Count="4" />
+      <LineId Id="2549" Count="0" />
+      <LineId Id="2515" Count="2" />
+      <LineId Id="2550" Count="0" />
+      <LineId Id="2518" Count="1" />
+      <LineId Id="2521" Count="0" />
+      <LineId Id="2551" Count="0" />
+      <LineId Id="2522" Count="3" />
+      <LineId Id="2552" Count="0" />
+      <LineId Id="2526" Count="3" />
+      <LineId Id="2553" Count="0" />
+      <LineId Id="2530" Count="5" />
+      <LineId Id="2554" Count="0" />
+      <LineId Id="2536" Count="2" />
+      <LineId Id="2555" Count="0" />
+      <LineId Id="2539" Count="1" />
+      <LineId Id="2556" Count="0" />
+      <LineId Id="2541" Count="2" />
+      <LineId Id="122" Count="0" />
     </LineIds>
     <LineIds Name="FB_CoverControl.CloseCover">
       <LineId Id="1" Count="1" />
