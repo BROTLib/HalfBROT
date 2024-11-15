@@ -12,38 +12,38 @@ VAR_INPUT
 	tracking		: BOOL;		// tracking flag
 	stopAxis		: BOOL;		// stop the Axis
 	bSoEReset		: BOOL;		// diagnostic error code reset
-	calibration_position	: LREAL := 438.4623; // calibration in positive direction (was 460.0)
-	min_position	: LREAL;
-	max_position	: LREAL;
+	calibPosition	: LREAL := 438.4623; // calibration in positive direction (was 460.0)
+	minPosition		: LREAL;
+	maxPosition		: LREAL;
 END_VAR
 VAR_OUTPUT
-	Error			: BOOL;		// error flag
-	ErrorID			: UDINT;	// nc error id
-	actual_position	: LREAL;	// actual position of the derotator
-	Calibrated		: BOOL;		// calibrated flag
-	Ready			: BOOL;		// axis ready flag
-	slewtime		: LREAL;	// position to move the axis to
+	error			: BOOL;		// error flag
+	errorID			: UDINT;	// nc error id
+	actualPosition	: LREAL;	// actual position of the derotator
+	calibrated		: BOOL;		// calibrated flag
+	ready			: BOOL;		// axis ready flag
+	slewTime		: LREAL;	// position to move the axis to
 END_VAR
 VAR
 	comm			: I_Comm;	
-	TorqueError		: TON := (PT := T#3S);	// trigger for the torque error
-	DerotatorAxis	: FB_Axis2;	// axis function block
-	DerotatorEvent	: FB_EventLog;
-	TorqueWarning	: FB_EventLog;	// torque warning event
-	CalibrationEvent: FB_EventLog;	// torque calibration event
-	DerotatorDiagnosticEvent: FB_EventLog;	// diagnostic low-level event
-	derotator_torque: REAL;	// percentage of the derotator torque
-	ReadParameter	: MC_ReadParameter;	// read slewtime
+	torqueError		: TON := (PT := T#3S);	// trigger for the torque error
+	axis			: FB_Axis2;	// axis function block
+	axisEvent		: FB_EventLog;
+	torqueWarning	: FB_EventLog;	// torque warning event
+	calibrationEvent: FB_EventLog;	// torque calibration event
+	diagnosticEvent	: FB_EventLog;	// diagnostic low-level event
+	torque			: REAL;	// percentage of the derotator torque
+	readParameter	: MC_ReadParameter;	// read slewtime
 	fbSoEReset		: FB_SoEReset;
-	DiagnosticError	: BOOL;
+	diagnosticError	: BOOL;
 	left			: BOOL;		// decrease derotator angle
 	right			: BOOL;		// increase derotator angle
 	
-	digital_inputs	AT%I*	: WORD;		// digitale inputs der Endlagen
-	diagnostic		AT%I*	: UDINT;	// diagnostic number
-	torque			AT%I*	: INT;		// derotator torque feedback
-	sto				AT%I*	: BOOL;		// STO
-	axis_ref				: AXIS_REF;	
+	inDigitalInputs	AT%I*	: WORD;		// digitale inputs der Endlagen
+	inDiagnostic	AT%I*	: UDINT;	// diagnostic number
+	inTorque		AT%I*	: INT;		// derotator torque feedback
+	inSTO			AT%I*	: BOOL;		// STO
+	axisRef			: AXIS_REF;	
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -59,93 +59,94 @@ SPS-Interface:
 TcNc-Lib, siehe SPS-Funktion AxisSetAcceptBlockedDriveSignal in der TwinCAT  PLC Library: NC.
 *)
 
-position := LIMIT(min_position, position, max_position);
+position := LIMIT(minPosition, position, maxPosition);
 
-IF enable AND NOT DerotatorAxis.Calibrated THEN
-	HomeAxis := TRUE;
+IF enable AND NOT axis.Calibrated THEN
+	homeAxis := TRUE;
 END_IF
 
-IF DerotatorAxis.Calibrated THEN
-	HomeAxis := FALSE;
-	Calibrated := DerotatorAxis.Calibrated;
+IF axis.Calibrated THEN
+	homeAxis := FALSE;
+	calibrated := axis.Calibrated;
 END_IF
 	
-IF HomeAxis THEN
-	position := calibration_position;
+IF homeAxis THEN
+	position := calibPosition;
 END_IF
 
-DeRotatorAxis(
-	enable := 			enable,
-	Reset := 			Reset,
-	MoveAxis :=			MoveAxis,
-	HomeAxis :=			HomeAxis,
-	StopAxis :=			StopAxis,
-	HomingMode :=		MC_ForceCalibration,
-	Position := 		position, 
-	Velocity :=			Velocity,
-	Enable_Positive := 	NOT digital_inputs.0,
-	Enable_Negative := 	NOT digital_inputs.1,
-	Jog_Forward := 		right,
-	Jog_Backwards := 	left,
-	bCalibrationCam :=	digital_inputs.0,
-	isModuloAxis :=		FALSE,
-	Tracking :=			Tracking,
-	ActualPosition => 	actual_position,
-	Error => 			Error,
-	ErrorID => 			ErrorID,
-	AxisRef :=			axis_ref);
+axis(
+	enable 			:= enable,
+	Reset 			:= reset,
+	MoveAxis 		:= moveAxis,
+	HomeAxis 		:= homeAxis,
+	StopAxis 		:= stopAxis,
+	HomingMode 		:= MC_ForceCalibration,
+	Position 		:= position, 
+	Velocity 		:= velocity,
+	Enable_Positive := NOT inDigitalInputs.0,
+	Enable_Negative := NOT inDigitalInputs.1,
+	Jog_Forward 	:= right,
+	Jog_Backwards 	:= left,
+	bCalibrationCam := inDigitalInputs.0,
+	isModuloAxis 	:= FALSE,
+	Tracking 		:= tracking,
+	ActualPosition 	=> actualPosition,
+	Error 			=> error,
+	ErrorID 		=> errorID,
+	AxisRef 		:= axisRef);
 	
-IF DeRotatorAxis.MoveDone OR Reset OR Error THEN
-	MoveAxis := FALSE;
+IF axis.MoveDone OR reset OR error THEN
+	moveAxis := FALSE;
 END_IF
 
-IF DeRotatorAxis.HomeDone OR Reset OR Error THEN
-	HomeAxis := FALSE;
+IF axis.HomeDone OR reset OR error THEN
+	homeAxis := FALSE;
 END_IF
 	
-IF DeRotatorAxis.ResetDone THEN
+IF axis.ResetDone THEN
 	reset := FALSE;
 END_IF
 
-IF DeRotatorAxis.StopDone THEN
-	StopAxis := FALSE;
+IF axis.StopDone THEN
+	stopAxis := FALSE;
 END_IF
 
-DiagnosticError := FALSE;
-IF diagnostic < 16#D012 AND diagnostic > 16#D014 THEN
-	DiagnosticError := TRUE;
-	ErrorID := diagnostic;
+diagnosticError := FALSE;
+IF inDiagnostic < 16#D012 AND inDiagnostic > 16#D014 THEN
+	diagnosticError := TRUE;
+	errorID := inDiagnostic;
 	bSoeReset := reset;
 END_IF
 
-Ready := DeRotatorAxis.Ready;
+ready := axis.Ready;
 
-ReadParameter(	Axis := axis_ref, 
-				Enable := DeRotatorAxis.InMotion, 
-				ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
-				ReadMode := E_ReadMode.READMODE_CYCLIC);
+readParameter(	
+	Axis 			:= axisRef, 
+	Enable 			:= axis.InMotion, 
+	ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
+	ReadMode 		:= E_ReadMode.READMODE_CYCLIC);
 				
-IF ReadParameter.Valid THEN
-	slewtime := ReadParameter.Value;
+IF readParameter.Valid THEN
+	slewtime := readParameter.Value;
 END_IF
 
 IF bSoEReset THEN
 	fbSoEReset(
-		Axis := axis_ref,
+		Axis 	:= axisRef,
 		Execute := TRUE,
 		Timeout := DEFAULT_ADS_TIMEOUT);
  	IF NOT fbSoEReset.Busy THEN
-		fbSoEReset(Axis := axis_ref, Execute := FALSE);
+		fbSoEReset(Axis := axisRef, Execute := FALSE);
 		bSoEReset := FALSE;
-		Reset := TRUE;
+		reset := TRUE;
 	END_IF
 END_IF
 
-derotator_torque := torque / 10.0;
+torque := inTorque / 10.0;
 // nominal torque is 3%, max is 25%
-TorqueError(IN := ABS(derotator_torque) > 20.0);
+torqueError(IN := ABS(torque) > 20.0);
 
-DerotatorEvent(	
+axisEvent(	
 	Trigger 		:= Error, 
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString	:= 'Derotator Axis Error: %s',
@@ -154,11 +155,11 @@ DerotatorEvent(
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
 	Comm			:= comm);
 	
-DerotatorDiagnosticEvent(	
+diagnosticEvent(	
 	Trigger 		:= DiagnosticError, 
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString	:= 'Derotator Axis Diagnostic Error: %s',
-	OnMessage 		:= NCError_TO_STRING(diagnostic),
+	OnMessage 		:= NCError_TO_STRING(inDiagnostic),
 	Comm			:= comm);
 	
 TorqueWarning(	
@@ -196,7 +197,7 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IsInMaxLimit := digital_inputs.0;]]></ST>
+        <ST><![CDATA[IsInMaxLimit := inDigitalInputs.0;]]></ST>
       </Implementation>
     </Method>
     <Method Name="IsInMinLimit" Id="{62606f0a-fd18-40f4-8386-8e94886290d7}">
@@ -205,7 +206,7 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IsInMinLimit := digital_inputs.1;]]></ST>
+        <ST><![CDATA[IsInMinLimit := inDigitalInputs.1;]]></ST>
       </Implementation>
     </Method>
     <Method Name="IsReady" Id="{8cc15e49-347f-420a-b869-3556a24cdf75}">
@@ -238,7 +239,10 @@ END_VAR
       </Implementation>
     </Method>
     <LineIds Name="FB_DerotatorControl">
-      <LineId Id="1" Count="126" />
+      <LineId Id="1263" Count="73" />
+      <LineId Id="1389" Count="0" />
+      <LineId Id="1337" Count="51" />
+      <LineId Id="127" Count="0" />
     </LineIds>
     <LineIds Name="FB_DerotatorControl.FB_Init">
       <LineId Id="1" Count="0" />

@@ -191,7 +191,7 @@ END_IF
 // get current coordinates	
 azimuth_current := AzimuthControl.actualPosition;
 elevation_current := ElevationControl.actualPosition;
-derotator_current := DerotatorControl.actual_position;
+derotator_current := DerotatorControl.actualPosition;
 
 // calculate equatorial coordinates
 hor2eq(alt := elevation_current - PointingModelElevation(azimuth_calc, elevation_calc, elevation_offset, AN_E, AE_E, TF), 
@@ -299,16 +299,16 @@ END_IF
  
 sliding := NOT tracking AND (ElevationControl.ElevationAxis.InMotion OR ElevationControl.ElevationAxis.InRamp OR
 			AzimuthControl.AzimuthAxis.InMotion OR AzimuthControl.AzimuthAxis.InRamp OR
-			DerotatorControl.DerotatorAxis.InMotion OR DerotatorControl.DerotatorAxis.InRamp);
+			DerotatorControl.axis.InMotion OR DerotatorControl.axis.InRamp);
 
 // signal must be stable for 5500MS
 tracking_delay(in := ElevationControl.ElevationAxis.isTracking AND 
 			AzimuthControl.AzimuthAxis.isTracking AND
-			DerotatorControl.DerotatorAxis.isTracking,PT :=T#5500MS, Q => tracking);
+			DerotatorControl.axis.isTracking,PT :=T#5500MS, Q => tracking);
 			
 stopped :=  (NOT ElevationControl.enable OR ElevationControl.ElevationAxis.StandStill) AND 
 			(NOT AzimuthControl.Enable OR AzimuthControl.AzimuthAxis.StandStill) AND
-			(NOT DerotatorControl.enable OR DerotatorControl.DerotatorAxis.StandStill);
+			(NOT DerotatorControl.enable OR DerotatorControl.axis.StandStill);
 			
 homed := ElevationControl.Calibrated AND
 			AzimuthControl.calibrated AND
@@ -324,7 +324,7 @@ ready := homed AND
 
 busy := ElevationControl.ElevationAxis.Busy OR
 		AzimuthControl.AzimuthAxis.Busy OR
-		DerotatorControl.DerotatorAxis.Busy OR
+		DerotatorControl.axis.Busy OR
 		FocusControl.FocusAxis.Busy;
 
 // unset the STOP command if telescope is already stopped
@@ -360,7 +360,7 @@ IF MQTTTimer.Q THEN // publish new payload every second
 	comm.Publish('telescope', 'dome', 'Declination', LREAL_TO_STRING(declination_calc));
 	comm.Publish('telescope', 'dome', 'azimuth_offset', LREAL_TO_STRING(azimuth_offset));
 	comm.Publish('telescope', 'dome', 'elevation_offset', LREAL_TO_STRING(elevation_offset));
-	comm.Publish('telescope', 'dome', 'derotator_torque', LREAL_TO_STRING(DerotatorControl.derotator_torque));
+	comm.Publish('telescope', 'dome', 'derotator_torque', LREAL_TO_STRING(DerotatorControl.torque));
 	comm.Publish('telescope', 'dome', 'elevation_torque', LREAL_TO_STRING(ElevationControl.elevationTorque));
 	comm.Publish('telescope', 'dome', 'azimuth_torque', LREAL_TO_STRING(AzimuthControl.azimuthTorque));
 	
@@ -545,7 +545,7 @@ CASE Stage OF
 		DerotatorControl.MoveAxis := TRUE;
 		IF ElevationControl.ElevationAxis.Busy AND
 			AzimuthControl.AzimuthAxis.Busy AND
-			DerotatorControl.DerotatorAxis.Busy THEN
+			DerotatorControl.axis.Busy THEN
 				Stage := 50;
 		END_IF
 	50:
@@ -555,7 +555,7 @@ CASE Stage OF
 		IF NOT AzimuthControl.AzimuthAxis.Busy AND AzimuthControl.AzimuthAxis.MoveDone THEN
 			AzimuthControl.MoveAxis := FALSE;
 		END_IF
-		IF NOT DerotatorControl.DerotatorAxis.Busy AND DerotatorControl.DerotatorAxis.MoveDone THEN
+		IF NOT DerotatorControl.axis.Busy AND DerotatorControl.axis.MoveDone THEN
 			DerotatorControl.MoveAxis := FALSE;
 		END_IF
 		IF NOT ElevationControl.MoveAxis AND 
@@ -613,7 +613,7 @@ END_IF
 
 IF ElevationControl.ElevationAxis.MoveDone AND 
 	AzimuthControl.AzimuthAxis.MoveDone AND 
-	DerotatorControl.DerotatorAxis.MoveDone THEN
+	DerotatorControl.axis.MoveDone THEN
 	gohome := FALSE;
 	elevation := elevation_current;
 	azimuth := azimuth_current;
@@ -676,7 +676,7 @@ CASE Stage OF
 		DerotatorControl.MoveAxis := TRUE;
 		IF ElevationControl.ElevationAxis.Busy AND
 			AzimuthControl.AzimuthAxis.Busy AND
-			DerotatorControl.DerotatorAxis.Busy THEN
+			DerotatorControl.axis.Busy THEN
 				Stage := 40;
 		END_IF
 	40:
@@ -686,7 +686,7 @@ CASE Stage OF
 		IF AzimuthControl.AzimuthAxis.MoveDone THEN
 			AzimuthControl.MoveAxis := FALSE;
 		END_IF
-		IF DerotatorControl.DerotatorAxis.MoveDone THEN
+		IF DerotatorControl.axis.MoveDone THEN
 			DerotatorControl.MoveAxis := FALSE;
 		END_IF
 		IF NOT sliding THEN // all axis standstill
@@ -832,7 +832,7 @@ CASE Stage OF
 		DerotatorControl.MoveAxis := TRUE;
 		IF ElevationControl.ElevationAxis.Busy AND
 			AzimuthControl.AzimuthAxis.Busy AND
-			DerotatorControl.DerotatorAxis.Busy THEN
+			DerotatorControl.axis.Busy THEN
 				Stage := 50;
 		END_IF
 	50:
@@ -844,7 +844,7 @@ CASE Stage OF
 			AzimuthControl.MoveAxis := FALSE;
 		END_IF
 
-		IF DerotatorControl.DerotatorAxis.MoveDone THEN
+		IF DerotatorControl.axis.MoveDone THEN
 			DerotatorControl.MoveAxis := FALSE;
 		END_IF
 		IF NOT sliding AND stopped THEN // all axis standstill
@@ -944,9 +944,9 @@ DerotatorControl.position := derotation_calc;
 IF NOT DerotatorControl.Tracking THEN
 	DerotatorControl.Velocity := 10.0;
 	DerotatorControl.MoveAxis := TRUE;
-	IF NOT DerotatorControl.DerotatorAxis.Busy AND DerotatorControl.DerotatorAxis.MoveDone THEN
+	IF NOT DerotatorControl.axis.Busy AND DerotatorControl.axis.MoveDone THEN
 		DerotatorControl.MoveAxis := FALSE;
-		IF DerotatorControl.DerotatorAxis.isTracking THEN
+		IF DerotatorControl.axis.isTracking THEN
 			DerotatorControl.Velocity := DerotatorVelocity;
 		ELSE
 			DerotatorControl.Velocity := 3.0*DerotatorVelocity;

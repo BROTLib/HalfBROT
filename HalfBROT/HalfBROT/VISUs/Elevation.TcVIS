@@ -5,7 +5,7 @@
       <Data>
         <o xml:space="preserve" t="VisualObject">
           <n n="LastVisuLanguageModelEntry" />
-          <v n="UniqueIdGenerator">"54"</v>
+          <v n="UniqueIdGenerator">"66"</v>
           <o n="VisualElemList" t="VisualElemList">
             <l n="VisualElementList" t="VisualElemCollection" cet="GenericVisualElem">
               <o>
@@ -2247,8 +2247,8 @@
                         <o>
                           <v n="InputBoxVariable">""</v>
                           <v n="InputType">"InputWithLimits"</v>
-                          <v n="InputBoxMin">"MAIN.DerotatorControl.min_position"</v>
-                          <v n="InputBoxMax">"MAIN.DerotatorControl.max_position"</v>
+                          <v n="InputBoxMin">"MAIN.DerotatorControl.minPosition"</v>
+                          <v n="InputBoxMax">"MAIN.DerotatorControl.maxPosition"</v>
                           <v n="InputBoxDialogTitle">""</v>
                           <v n="Password">false</v>
                           <v n="UseTextOutputVariable">true</v>
@@ -3211,8 +3211,8 @@
                     <o>
                       <v n="InputBoxVariable">""</v>
                       <v n="InputType">"InputWithLimits"</v>
-                      <v n="InputBoxMin">"MAIN.DerotatorControl.min_position"</v>
-                      <v n="InputBoxMax">"MAIN.DerotatorControl.max_position"</v>
+                      <v n="InputBoxMin">"MAIN.DerotatorControl.minPosition"</v>
+                      <v n="InputBoxMax">"MAIN.DerotatorControl.maxPosition"</v>
                       <v n="InputBoxDialogTitle">""</v>
                       <v n="Password">false</v>
                       <v n="UseTextOutputVariable">true</v>

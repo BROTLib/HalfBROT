@@ -184,8 +184,8 @@ CASE Selection OF
 		lamp_right := DerotatorControl.IsReady() AND NOT DerotatorControl.IsInMaxLimit();
 		IF key_switch THEN
 			DerotatorEnable(SET := start_switch, Q := DerotatorControl.enable);
-			DerotatorControl.MoveLeft(direction_left AND NOT DerotatorControl.digital_inputs.1);
-			DerotatorControl.MoveRight(direction_right AND NOT DerotatorControl.digital_inputs.0);
+			DerotatorControl.MoveLeft(direction_left AND NOT DerotatorControl.inDigitalInputs.1);
+			DerotatorControl.MoveRight(direction_right AND NOT DerotatorControl.inDigitalInputs.0);
 			DerotatorControl.reset := reset_switch;
 			lamp_error := DerotatorControl.Error;
 		END_IF
