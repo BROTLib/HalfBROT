@@ -169,8 +169,8 @@ CASE Selection OF
 	4:	// Nasmyth / mirror M3 control
 		
 	5:	// Focus Control
-		lamp_up := FocusControl.Ready AND NOT FocusControl.limitFar;
-		lamp_down := FocusControl.Ready AND NOT FocusControl.limitNear;
+		lamp_up := FocusControl.Ready AND NOT FocusControl.inLimitFar;
+		lamp_down := FocusControl.Ready AND NOT FocusControl.inLimitNear;
 		IF key_switch THEN
 			FocusEnable(SET := start_switch, Q := FocusControl.enable);
 			FocusControl.MoveOut(direction_up);

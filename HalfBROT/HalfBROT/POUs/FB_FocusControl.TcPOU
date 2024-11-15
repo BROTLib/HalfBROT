@@ -25,21 +25,21 @@ VAR
 	comm				: I_Comm;	
 	inward				: BOOL;		// Move M2 closer to M1
 	outward				: BOOL;		// Move M2 away from M1	
-	focusUnlock	  AT%Q* : BOOL;		// whether focus is unlocked
+	outFocusUnlock	  AT%Q* : BOOL;		// whether focus is unlocked
 	focusDelay			: TON;
 	brakeDelay			: TON;
-	focusAxis			: FB_Axis2;
+	axis				: FB_Axis2;
 	actualPosition		: LREAL;
 	manualUnlock		: BOOL;		// manual override to unlock the focus
 	mqttTimer 			: TON := (PT:=T#5S);
 	//getlastposition:	BOOL := TRUE;
-	focusAxisEvent		: FB_EventLog;
+	axisEvent			: FB_EventLog;
 	calibrationEvent	: FB_EventLog;
 	homingMode			: MC_HOMINGMODE := 		MC_DefaultHoming;
 	setPosition			: MC_setPosition;
 	
-	limitNear	   AT%I*: BOOL;	// DIN29 3.4
-	limitFar  	   AT%I*: BOOL;	// DIN30 3.5
+	inLimitNear	   AT%I*: BOOL;	// DIN29 3.4
+	inLimitFar     AT%I*: BOOL;	// DIN30 3.5
 	axisRef				: AXIS_REF;
 END_VAR
 VAR PERSISTENT
@@ -61,18 +61,18 @@ Focus is locked by default
 position := LIMIT(minPosition, position, maxPosition);
 
 // focus is unlocked if enabled or manually unlocked
-focusUnlock := manualUnlock OR enable;
+outFocusUnlock := manualUnlock OR enable;
 
 // wait until the focus is unlocked for n milliseconds
-focusDelay(IN := focusUnlock, PT := T#500MS, Q => focusUnlocked);
+focusDelay(IN := outFocusUnlock, PT := T#500MS, Q => focusUnlocked);
 // wait for brake until we are at rest
-brakeDelay(IN := NOT focusAxis.Busy AND focusAxis.StandStill, PT := T#4000MS);
+brakeDelay(IN := NOT axis.Busy AND axis.StandStill, PT := T#4000MS);
 
 // if we are on automatic mode then position the focus
 IF telescopeMode = E_TelescopeMode.automatic AND NOT manualUnlock THEN
-	IF focusAxis.calibrated THEN
+	IF axis.calibrated THEN
 		IF ABS(position - actualPosition) > tolerance THEN
-			IF focusAxis.Ready THEN
+			IF axis.Ready THEN
 				moveAxis := TRUE;
 			ELSE
 				enable := TRUE;
@@ -83,11 +83,11 @@ IF telescopeMode = E_TelescopeMode.automatic AND NOT manualUnlock THEN
 			enable := FALSE;
 		END_IF
 		// store actual position, if we are calibrated and locked
-		IF NOT focusUnlock THEN
+		IF NOT outFocusUnlock THEN
 			lastPosition := actualPosition;
 		END_IF
 	ELSE // not calibrated
-		IF focusAxis.Ready THEN
+		IF axis.Ready THEN
 			homeAxis := TRUE;
 		END_IF
 	END_IF
@@ -111,7 +111,7 @@ END_IF
 MC_SetAcceptBlockedDriveSignal(Axis := axisRef, enable := homeAxis);
 setPosition(Axis := axisRef, Position := lastPosition);
 		
-focusAxis(	
+axis(	
 	enable 			:= focusUnlocked,
 	Reset 			:= reset,
 	moveAxis 		:= moveAxis AND focusUnlocked,
@@ -119,31 +119,31 @@ focusAxis(
 	homingMode 		:= homingMode,
 	Position 		:= position,
 	Velocity 		:= 0.04,
-	enable_Positive := NOT limitFar OR homeAxis,
-	enable_Negative := NOT limitNear,
+	enable_Positive := NOT inLimitFar OR homeAxis,
+	enable_Negative := NOT inLimitNear,
 	Jog_Forward 	:= outward AND focusUnlocked,
 	Jog_Backwards 	:= inward AND focusUnlocked,
-	bCalibrationCam := limitFar,
+	bCalibrationCam := inLimitFar,
 	ActualPosition 	=> actualPosition,
 	Error 			=> error,
 	ErrorID 		=> errorID,
 	AxisRef 		:= axisRef);	
 
-IF focusAxis.MoveDone THEN
+IF axis.MoveDone THEN
 	moveAxis := FALSE;
 END_IF
 
-IF focusAxis.HomeDone THEN
+IF axis.HomeDone THEN
 	homeAxis := FALSE;
 	enable := FALSE;
 	lastPosition := position;
 END_IF
 	
-IF focusAxis.ResetDone THEN
+IF axis.ResetDone THEN
 	reset := FALSE;
 END_IF
 
-IF focusAxis.calibrated OR Error THEN
+IF axis.calibrated OR Error THEN
 	homeAxis := FALSE;
 END_IF
 
@@ -153,8 +153,8 @@ IF Error THEN
 	calibrated := FALSE;
 END_IF
 
-calibrated := focusAxis.calibrated;
-Ready := focusAxis.Ready AND focusAxis.StandStill OR NOT focusUnlock;
+calibrated := axis.calibrated;
+Ready := axis.Ready AND axis.StandStill OR NOT outFocusUnlock;
 
 SendTelemetry();
 HandleEvents();]]></ST>
@@ -180,8 +180,8 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[focusAxisEvent(	
-	Trigger 		:= focusAxis.Error, 
+        <ST><![CDATA[axisEvent(	
+	Trigger 		:= axis.Error, 
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString	:= 'Focus Axis Error: %S',
 	OnMessage 		:= NCError_TO_STRING(ErrorID),
@@ -234,9 +234,7 @@ END_IF
       </Implementation>
     </Method>
     <LineIds Name="FB_FocusControl">
-      <LineId Id="1317" Count="106" />
-      <LineId Id="1425" Count="1" />
-      <LineId Id="1434" Count="0" />
+      <LineId Id="1655" Count="109" />
       <LineId Id="136" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.FB_Init">

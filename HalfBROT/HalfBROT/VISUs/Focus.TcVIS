@@ -5,7 +5,7 @@
       <Data>
         <o xml:space="preserve" t="VisualObject">
           <n n="LastVisuLanguageModelEntry" />
-          <v n="UniqueIdGenerator">"99"</v>
+          <v n="UniqueIdGenerator">"111"</v>
           <o n="VisualElemList" t="VisualElemList">
             <l n="VisualElementList" t="VisualElemCollection" cet="GenericVisualElem">
               <o>
@@ -2102,7 +2102,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.limitNear"</v>
+                          <v n="Value">"MAIN.FocusControl.inLimitNear"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2333,7 +2333,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.limitFar"</v>
+                          <v n="Value">"MAIN.FocusControl.inLimitFar"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>

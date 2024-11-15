@@ -325,7 +325,7 @@ ready := homed AND
 busy := ElevationControl.axis.Busy OR
 		AzimuthControl.axis.Busy OR
 		DerotatorControl.axis.Busy OR
-		FocusControl.FocusAxis.Busy;
+		FocusControl.axis.Busy;
 
 // unset the STOP command if telescope is already stopped
 IF stopped THEN
