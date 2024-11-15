@@ -9,14 +9,14 @@ STRUCT
 	altitude			: LREAL; // telescope site height above sea level: estimated
 	
 	// park position
-	elevationPark		: LREAL := 60.0;
-	azimuthPark			: LREAL := 359.999;
-	derotatorPark		: LREAL := 229.85;
+	elevationPark		: LREAL;
+	azimuthPark			: LREAL;
+	derotatorPark		: LREAL;
 
 	// home position
-	elevationHome		: LREAL := 55.0;
-	azimuthHome			: LREAL := 180.0;
-	derotatorHome		: LREAL := 229.85;
+	elevationHome		: LREAL;
+	azimuthHome			: LREAL;
+	derotatorHome		: LREAL;
 END_STRUCT
 END_TYPE
 ]]></Declaration>

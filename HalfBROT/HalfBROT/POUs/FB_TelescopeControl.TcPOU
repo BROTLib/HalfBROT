@@ -312,7 +312,7 @@ stopped :=  (NOT ElevationControl.enable OR ElevationControl.ElevationAxis.Stand
 			
 homed := ElevationControl.Calibrated AND
 			AzimuthControl.calibrated AND
-			//FocusControl.Calibrated AND
+			FocusControl.Calibrated AND
 			DerotatorControl.Calibrated;
 			
 ready := homed AND 
@@ -771,8 +771,8 @@ END_IF
 // start calibration of focus after elevation has been calibrated
 // this avoids imbalance by the M2 mirror on the elvation during its calibration
 IF ElevationControl.Calibrated AND NOT FocusControl.Calibrated THEN
-	//FocusControl.enable := TRUE;
-	//FocusControl.HomeAxis := TRUE;
+	FocusControl.enable := TRUE;
+	FocusControl.HomeAxis := TRUE;
 END_IF
 
 IF CoverControl.isopen AND 
