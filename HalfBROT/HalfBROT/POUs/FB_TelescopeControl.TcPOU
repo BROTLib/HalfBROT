@@ -578,7 +578,7 @@ CASE Stage OF
 		track := autotrack;
 		Stage := 0;
 END_CASE
-GoToEvent(Trigger := Stage > LastStage, FormatString := 'GoTo progress: %s', OnMessage := USINT_TO_STRING(Stage));
+GoToEvent(Trigger := Stage > LastStage, FormatString := 'GoTo progress: %s', OnMessage := USINT_TO_STRING(Stage), comm := comm);
 LastStage := Stage;
 ]]></ST>
       </Implementation>
@@ -625,7 +625,7 @@ END_IF
 HomeEvent(Trigger := hometelescope, 
 			Level := ADSLOG_MSGTYPE_HINT,
 			FormatString := '%s',
-			OnMessage := 'Telescope is homed.');
+			OnMessage := 'Telescope is homed.', comm := comm);
 ]]></ST>
       </Implementation>
     </Method>
@@ -723,7 +723,7 @@ CASE Stage OF
 			parktelescope := 100;
 			Stage := 0;	
 END_CASE
-ParkEvent(Trigger := Stage > LastStage, FormatString := 'Parking progress: %s', OnMessage := USINT_TO_STRING(Stage));
+ParkEvent(Trigger := Stage > LastStage, FormatString := 'Parking progress: %s', OnMessage := USINT_TO_STRING(Stage), comm := comm);
 LastStage := Stage;
 ]]></ST>
       </Implementation>
@@ -859,7 +859,7 @@ CASE Stage OF
 		slew := FALSE;
 		Stage := 0;
 END_CASE
-SlewEvent(Trigger := Stage > LastStage, FormatString := 'Slew progress: %s', OnMessage := USINT_TO_STRING(Stage));
+SlewEvent(Trigger := Stage > LastStage, FormatString := 'Slew progress: %s', OnMessage := USINT_TO_STRING(Stage), comm := comm);
 LastStage := Stage;		
 ]]></ST>
       </Implementation>
