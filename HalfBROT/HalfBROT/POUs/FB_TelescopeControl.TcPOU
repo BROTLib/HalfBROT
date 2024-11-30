@@ -28,6 +28,7 @@ see https://gitlab.aip.de/bmk10k/telescope_firmware/snippets/5
 	estopTriggered		: BOOL	:= FALSE;	// TODO: CHANGE
 	brakeClearing		: BOOL	:= TRUE;
 	mainReady			: BOOL	:= TRUE;
+	coversOpen			: BOOL	:= TRUE;
 	
 	telescopeConfig		: ST_TelescopeConfig;
 END_VAR
@@ -35,7 +36,6 @@ VAR
 	TelescopeAuxiliary	: FB_TelescopeAuxiliary;
 	
 	comm 				: I_Comm;	
-	CoverControl		: REFERENCE TO FB_CoverControl;
 	HydraulicsControl 	: REFERENCE TO FB_HydraulicsControl;
 	Focuscontrol 		: REFERENCE TO FB_Focuscontrol;
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
@@ -316,7 +316,7 @@ homed := ElevationControl.Calibrated AND
 			DerotatorControl.Calibrated;
 			
 ready := homed AND 
-	CoverControl.isopen AND 
+	coversOpen AND 
 	ElevationControl.enable AND
 	AzimuthControl.enable AND
 	DerotatorControl.enable AND HydraulicsControl.brakeOpen AND 
@@ -473,7 +473,6 @@ METHOD FB_Init: BOOL
 VAR_INPUT
     bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	cover			: REFERENCE TO FB_CoverControl;
 	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
 	focus			: REFERENCE TO FB_FocusControl;
 	elevation		: REFERENCE TO FB_ElevationControl;
@@ -483,7 +482,6 @@ VAR_INPUT
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[THIS^.HydraulicsControl REF= hydraulics;
-THIS^.CoverControl REF= cover;
 THIS^.FocusControl REF= focus;
 THIS^.ElevationControl REF= elevation;
 THIS^.AzimuthControl REF= azimuth;
@@ -964,7 +962,8 @@ END_IF
       <LineId Id="1" Count="353" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.FB_Init">
-      <LineId Id="1" Count="6" />
+      <LineId Id="1" Count="0" />
+      <LineId Id="3" Count="4" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.GotoTelescope">
       <LineId Id="1" Count="76" />
