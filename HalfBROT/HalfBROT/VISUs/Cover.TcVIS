@@ -5,7 +5,7 @@
       <Data>
         <o xml:space="preserve" t="VisualObject">
           <n n="LastVisuLanguageModelEntry" />
-          <v n="UniqueIdGenerator">"161"</v>
+          <v n="UniqueIdGenerator">"173"</v>
           <o n="VisualElemList" t="VisualElemList">
             <l n="VisualElementList" t="VisualElemCollection" cet="GenericVisualElem">
               <o>
@@ -819,7 +819,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.isclosed"</v>
+                          <v n="Value">"MAIN.CoverControl.is_closed"</v>
                         </o>
                       </l>
                     </o>
@@ -1055,7 +1055,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.isopen"</v>
+                          <v n="Value">"MAIN.CoverControl.is_open"</v>
                         </o>
                       </l>
                     </o>

@@ -224,6 +224,13 @@ END_VAR]]></Declaration>
         <ST><![CDATA[THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
+    <Method Name="IsClosed" Id="{0bd88b3d-0ccd-44d3-9ff3-3eb831f31b63}">
+      <Declaration><![CDATA[METHOD IsClosed : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IsClosed := is_closed;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="IsOpen" Id="{c4b9cdc7-29a2-4bcd-8657-0ea5ad75864e}">
       <Declaration><![CDATA[METHOD IsOpen : BOOL
 VAR_INPUT
@@ -260,6 +267,9 @@ END_VAR
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CoverControl.FB_Init">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.IsClosed">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_CoverControl.IsOpen">

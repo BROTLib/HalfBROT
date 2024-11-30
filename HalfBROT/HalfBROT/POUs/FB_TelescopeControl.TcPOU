@@ -28,14 +28,14 @@ see https://gitlab.aip.de/bmk10k/telescope_firmware/snippets/5
 	estopTriggered		: BOOL	:= FALSE;	// TODO: CHANGE
 	brakeClearing		: BOOL	:= TRUE;
 	mainReady			: BOOL	:= TRUE;
-	coversOpen			: BOOL	:= TRUE;
 	
 	telescopeConfig		: ST_TelescopeConfig;
 END_VAR
 VAR
 	TelescopeAuxiliary	: FB_TelescopeAuxiliary;
 	
-	comm 				: I_Comm;	
+	comm 				: I_Comm;
+	CoverControl		: I_MirrorCover;	
 	HydraulicsControl 	: REFERENCE TO FB_HydraulicsControl;
 	Focuscontrol 		: REFERENCE TO FB_Focuscontrol;
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
@@ -316,7 +316,7 @@ homed := ElevationControl.Calibrated AND
 			DerotatorControl.Calibrated;
 			
 ready := homed AND 
-	coversOpen AND 
+	CoverControl.IsOpen() AND 
 	ElevationControl.enable AND
 	AzimuthControl.enable AND
 	DerotatorControl.enable AND HydraulicsControl.brakeOpen AND 
@@ -473,6 +473,7 @@ METHOD FB_Init: BOOL
 VAR_INPUT
     bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
+	cover			: I_MirrorCover;
 	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
 	focus			: REFERENCE TO FB_FocusControl;
 	elevation		: REFERENCE TO FB_ElevationControl;
@@ -481,7 +482,8 @@ VAR_INPUT
 	comm			: I_Comm;   
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[THIS^.HydraulicsControl REF= hydraulics;
+        <ST><![CDATA[THIS^.CoverControl := cover;
+THIS^.HydraulicsControl REF= hydraulics;
 THIS^.FocusControl REF= focus;
 THIS^.ElevationControl REF= elevation;
 THIS^.AzimuthControl REF= azimuth;
@@ -658,7 +660,7 @@ CASE Stage OF
 			ElevationControl.enable := FALSE;
 			AzimuthControl.Enable := FALSE;
 			DerotatorControl.enable := FALSE;	
-			CoverControl.close := TRUE;	
+			CoverControl.CloseCover();	
 			Stage := 80;
 		END_IF
 		Stage := 20;
@@ -709,10 +711,10 @@ CASE Stage OF
 			stage := 60;
 		END_IF
 		IF HydraulicsControl.brakeClosed THEN
-			CoverControl.close := TRUE;
+			CoverControl.CloseCover();
 			HydraulicsControl.enable := FALSE;
 		END_IF
-		IF CoverControl.isclosed THEN
+		IF CoverControl.IsClosed() THEN
 			Stage := 100;
 		END_IF
 	100:
@@ -744,10 +746,10 @@ ELSE
 	powerfailure := FALSE;		
 END_IF
 // COVER MUST BE OPENED FOR A SUCCESSFUL WAKE & SHAKE COMMAND!
-Covercontrol.open := TRUE;
+Covercontrol.OpenCover();
 
 // enable elevation, enable azimuth
-IF mainReady AND CoverControl.isopen THEN
+IF mainReady AND CoverControl.IsOpen() THEN
 	ElevationControl.enable := TRUE;
 	AzimuthControl.enable := TRUE;
 	DerotatorControl.enable := TRUE;
@@ -773,7 +775,7 @@ IF ElevationControl.Calibrated AND NOT FocusControl.Calibrated THEN
 	FocusControl.HomeAxis := TRUE;
 END_IF
 
-IF CoverControl.isopen AND 
+IF CoverControl.IsOpen() AND 
 	ElevationControl.Calibrated AND
 	AzimuthControl.calibrated AND
 	DerotatorControl.Calibrated THEN
@@ -962,6 +964,7 @@ END_IF
       <LineId Id="1" Count="353" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.FB_Init">
+      <LineId Id="8" Count="0" />
       <LineId Id="1" Count="0" />
       <LineId Id="3" Count="4" />
     </LineIds>
