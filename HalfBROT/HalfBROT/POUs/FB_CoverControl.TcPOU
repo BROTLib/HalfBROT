@@ -15,8 +15,8 @@ VAR_INPUT
 	outCloseCover3	AT%Q*	: BOOL; // close cover3 command
 END_VAR
 VAR_OUTPUT
-	isOpen				: BOOL;		// all covers are open
-	isClosed			: BOOL;		// all covers are closed
+	is_open				: BOOL;		// all covers are open
+	is_closed			: BOOL;		// all covers are closed
 	error				: BOOL;		// any cover-driver reports an error
 	warning				: BOOL;		// warning state of the DC drives
 END_VAR
@@ -105,9 +105,9 @@ ELSIF open THEN
 END_IF
 
 // we are open, if all covers are open
-isopen := cover3Open AND cover2Open AND cover1Open;
+is_open := cover3Open AND cover2Open AND cover1Open;
 // we are closed, if all covers are closed
-isclosed := cover2Closed AND cover3Closed AND cover1Closed;
+is_closed := cover2Closed AND cover3Closed AND cover1Closed;
 
 // error indicates an axis error on any axis
 errorTrigger(
@@ -115,11 +115,11 @@ errorTrigger(
 	RESET := reset,
 	Q1 => error);
 
-IF isClosed THEN
+IF is_closed THEN
 	close := FALSE;
 END_IF
 
-IF isOpen THEN
+IF is_open THEN
 	open := FALSE;
 END_IF
 
@@ -186,14 +186,14 @@ cover3TimeoutEvent(
 
 // Log if we are opened
 coversOpenedEvent(
-	Trigger   	:= isOpen,
+	Trigger   	:= is_open,
 	Level     	:= ADSLOG_MSGTYPE_WARN,
 	OnMessage 	:= 'All covers are open',
 	comm 		:= comm);
 	
 //log if we are closed
 coversClosedEvent(
-	Trigger   	:= isClosed,
+	Trigger   	:= is_closed,
 	Level     	:= ADSLOG_MSGTYPE_HINT,
 	OnMessage 	:= 'All covers are closed',
 	comm 		:= comm);
@@ -224,6 +224,15 @@ END_VAR]]></Declaration>
         <ST><![CDATA[THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
+    <Method Name="IsOpen" Id="{c4b9cdc7-29a2-4bcd-8657-0ea5ad75864e}">
+      <Declaration><![CDATA[METHOD IsOpen : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IsOpen := is_open;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="OpenCover" Id="{bb6e1357-2f21-45f8-bb34-0ba057923977}">
       <Declaration><![CDATA[METHOD OpenCover : BOOL
 VAR_INPUT
@@ -244,40 +253,16 @@ END_VAR
       </Implementation>
     </Method>
     <LineIds Name="FB_CoverControl">
-      <LineId Id="2423" Count="46" />
-      <LineId Id="2544" Count="0" />
-      <LineId Id="2470" Count="24" />
-      <LineId Id="2545" Count="0" />
-      <LineId Id="2495" Count="3" />
-      <LineId Id="2546" Count="0" />
-      <LineId Id="2499" Count="5" />
-      <LineId Id="2547" Count="0" />
-      <LineId Id="2505" Count="4" />
-      <LineId Id="2548" Count="0" />
-      <LineId Id="2510" Count="4" />
-      <LineId Id="2549" Count="0" />
-      <LineId Id="2515" Count="2" />
-      <LineId Id="2550" Count="0" />
-      <LineId Id="2518" Count="1" />
-      <LineId Id="2521" Count="0" />
-      <LineId Id="2551" Count="0" />
-      <LineId Id="2522" Count="3" />
-      <LineId Id="2552" Count="0" />
-      <LineId Id="2526" Count="3" />
-      <LineId Id="2553" Count="0" />
-      <LineId Id="2530" Count="5" />
-      <LineId Id="2554" Count="0" />
-      <LineId Id="2536" Count="2" />
-      <LineId Id="2555" Count="0" />
-      <LineId Id="2539" Count="1" />
-      <LineId Id="2556" Count="0" />
-      <LineId Id="2541" Count="2" />
+      <LineId Id="2690" Count="132" />
       <LineId Id="122" Count="0" />
     </LineIds>
     <LineIds Name="FB_CoverControl.CloseCover">
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CoverControl.FB_Init">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.IsOpen">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_CoverControl.OpenCover">
