@@ -654,7 +654,7 @@ CASE Stage OF
 		track := 	FALSE;
 		goto := 	FALSE;
 		slew := 	FALSE;
-		Focuscontrol.position := 53.6;
+		Focuscontrol.position := telescopeConfig.focusPark;
 		IF Error THEN // emergency park
 			HydraulicsControl.close_brake();
 			ElevationControl.enable := FALSE;

@@ -12,6 +12,7 @@ STRUCT
 	elevationPark		: LREAL;
 	azimuthPark			: LREAL;
 	derotatorPark		: LREAL;
+	focusPark			: LREAL;
 
 	// home position
 	elevationHome		: LREAL;
