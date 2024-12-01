@@ -775,7 +775,7 @@ IF ElevationControl.Calibrated AND NOT FocusControl.Calibrated THEN
 	FocusControl.HomeAxis := TRUE;
 END_IF
 
-IF CoverControl.IsOpen() AND 
+IF CoverControl.AreCoversOpen() AND 
 	ElevationControl.Calibrated AND
 	AzimuthControl.calibrated AND
 	DerotatorControl.Calibrated THEN
