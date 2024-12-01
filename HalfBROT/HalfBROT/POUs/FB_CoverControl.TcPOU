@@ -1,18 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_CoverControl" Id="{febe04fb-b0fe-4b52-a725-1c7655537933}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_CoverControl IMPLEMENTS I_MirrorCover
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_CoverControl IMPLEMENTS I_MirrorCovers
 VAR_INPUT
-	reset					: BOOL;		// resets all drives after an error has occured
-	open					: BOOL;		// open the cover in proper order
-	close					: BOOL;		// close the cover in proper order
-	
-	outOpenCover1	AT%Q*	: BOOL;	// open cover1 command
-	outCloseCover1	AT%Q*	: BOOL; // close cover1 command
-	outOpenCover2	AT%Q*	: BOOL; // open cover2 command
-	outCloseCover2	AT%Q*	: BOOL; // close cover2 command
-	outOpenCover3	AT%Q*	: BOOL; // open cover3 command
-	outCloseCover3	AT%Q*	: BOOL; // close cover3 command
 END_VAR
 VAR_OUTPUT
 	is_open				: BOOL;		// all covers are open
@@ -22,45 +12,37 @@ VAR_OUTPUT
 END_VAR
 VAR
 	comm				: I_Comm;	
-	active_cover		: INT;		// actual active cover in manual mode, 0 for automatic = all covers active
+
+	reset				: BOOL;		// resets all drives after an error has occured
+	open				: BOOL;		// open the cover in proper order
+	close				: BOOL;		// close the cover in proper order
+
+	// output signals for opening/closing covers	
+	out_open_cover	AT%Q* : ARRAY[1..3] OF BOOL;	// open cover1-3 command
+	out_close_cover	AT%Q* : ARRAY[1..3] OF BOOL;   // close cover1-3 command
 	
 	// limit switches
-	inCover1Open	AT%I*	: BOOL;	// limit coper 1 open
-	inCover1Closed	AT%I*	: BOOL;	// limit coper 1 closed
-	inCover2Open	AT%I*	: BOOL; // limit coper 2 open
-	inCoverClosed	AT%I*	: BOOL;	///limit coper 2 closed
-	inCover3Open	AT%I*	: BOOL;	// limit coper 3 open
-	inCover3Closed	AT%I*	: BOOL;	// limit coper 3 closed	
+	in_cover_open	AT%I* : ARRAY[1..3] OF BOOL;	// limit coper 1 open switch
+	in_cover_closed	AT%I* : ARRAY[1..3] OF BOOL;	// limit coper 1 closed switch
 	
-	cover1Open	  			: BOOL;	// cover1 is open 
-	cover1Closed			: BOOL; // cover1 is closed
-	cover1Error				: BOOL; // cover1 has error
+	// status
+	cover_open			: ARRAY[1..3] OF BOOL;	// cover is open
+	cover_closed		: ARRAY[1..3] OF BOOL;	// cover is closed
+	cover_error			: ARRAY[1..3] OF BOOL;	// cover has error
+	cover_event			: ARRAY[1..3] OF FB_EventLog;	// cover event
+	cover_timeout_event : ARRAY[1..3] OF FB_EventLog;	// cover has timeout
 	
-	cover2Open				: BOOL; // cover2 is open
-	cover2Closed			: BOOL; // cover2 is closed
-	cover2Error				: BOOL; // cover2 has error
+	cover2_open_delay		: TON := (PT:=T#1S);	// delay timer for opening cover2
+	cover3_close_delay 		: TON := (PT:=T#3S);	// dely timer for closing cover3
 
-	cover3Open				: BOOL; // cover3 is open
-	cover3Closed			: BOOL; // cover3 is closed
-	cover3Error				: BOOL; // cover3 has error	
+	error_trigger			: SR;	// trigger for error
 	
-	cover2ODelay			: TON := (PT:=T#1S);	// delay timer for opening cover2
-	cover3CloseDelay 		: TON := (PT:=T#3S);	// dely timer for closing cover3
-
-	errorTrigger			: SR;	// trigger for error
+	covers_opened_event		: FB_EventLog; // log if covers are open
+	covers_closed_event		: FB_EventLog; // log if covers are closed
+	covers_error_event		: FB_EventLog; // Event log for a generic drive error
+	covers_warning_event	: FB_EventLog; // Event log for a generic drive warning
 	
-	cover1Event				: FB_EventLog;	// error event for cover1
-	cover2Event				: FB_EventLog;	// error event for cover2
-	cover3Event				: FB_EventLog;	// error event for cover3
-
-	cover1TimeoutEvent		: FB_EventLog; // timeout event for cover1
-	cover2TimeoutEvent		: FB_EventLog; // timeout event for cover2
-	cover3TimeoutEvent		: FB_EventLog; // timeout event for cover3
-	
-	coversOpenedEvent		: FB_EventLog; // log if covers are open
-	coversClosedEvent		: FB_EventLog; // log if covers are closed
-	coversErrorEvent		: FB_EventLog; // Event log for a generic drive error
-	coversWarningEvent		: FB_EventLog; // Event log for a generic drive warning
+	i	: UINT;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -75,43 +57,40 @@ IF close THEN
 	open := FALSE;
 END_IF
 
-// limit switches are inverted
-cover1Open   := NOT inCover1Open;
-cover2Open   := NOT inCover2Open;
-cover3Open   := NOT inCover3Open;
-cover1Closed := NOT inCover1Closed;
-cover2Closed := NOT inCoverClosed;
-cover3Closed := NOT inCover3Closed;
-
-// errors occur if covers are both opened and closed
-cover1Error := cover1Open AND cover1Closed;
-cover2Error := cover2Open AND cover2Closed;
-cover3Error := cover3Open AND cover3Closed;
+// do stuff for all covers
+FOR i := 1 TO 3 BY 1 DO
+	// limit switches are inverted
+    cover_open[i]   := NOT in_cover_open[i];
+	cover_closed[i] := NOT in_cover_closed[i];
+	
+	// errors occur if covers are both opened and closed
+	cover_error[i] := cover_open[i] AND cover_closed[i];
+END_FOR;
 
 // wait for cover2 until cover3 has left the closed state
-cover2ODelay(IN := open AND NOT cover3Closed);
+cover2_open_delay(IN := open AND NOT cover_closed[3]);
 // wait for cover3 until cover2 has left the open state
-cover3CloseDelay(IN := close AND NOT cover2Open);
+cover3_close_delay(IN := close AND NOT cover_open[2]);
 
 // commands
 IF close THEN
-	outCloseCover1 := inCover1Closed AND NOT inCover3Closed;
-	outCloseCover2 := inCoverClosed;
-	outCloseCover3 := inCover3Closed AND cover3CloseDelay.Q;
+	out_close_cover[1] := in_cover_closed[1] AND NOT in_cover_closed[3];
+	out_close_cover[2] := in_cover_closed[2];
+	out_close_cover[3] := in_cover_closed[3] AND cover3_close_delay.Q;
 ELSIF open THEN
-	outOpenCover1 := inCover1Open;
-	outOpenCover2 := inCover2Open AND cover2ODelay.Q;
-	outOpenCover3 := inCover3Open;			
+	out_open_cover[1] := in_cover_open[1];
+	out_open_cover[2] := in_cover_open[2] AND cover2_open_delay.Q;
+	out_open_cover[3] := in_cover_open[3];			
 END_IF
 
 // we are open, if all covers are open
-is_open := cover3Open AND cover2Open AND cover1Open;
+is_open := cover_open[1] AND cover_open[2] AND cover_open[3];
 // we are closed, if all covers are closed
-is_closed := cover2Closed AND cover3Closed AND cover1Closed;
+is_closed := cover_closed[1] AND cover_closed[2] AND cover_closed[3];
 
 // error indicates an axis error on any axis
-errorTrigger(
-	SET1 := cover1Error OR cover2Error OR cover3Error,
+error_trigger(
+	SET1 := cover_error[1] OR cover_error[2] OR cover_error[3],
 	RESET := reset,
 	Q1 => error);
 
@@ -123,84 +102,110 @@ IF is_open THEN
 	open := FALSE;
 END_IF
 
-coversErrorEvent.OnMessage := 'Cover drive error';
+covers_error_event.OnMessage := 'Cover drive error';
 IF Error THEN
-	IF cover3Error THEN 
-		coversErrorEvent.OnMessage := 'Cover 3 has a drive error.';
+	IF cover_error[3] THEN 
+		covers_error_event.OnMessage := 'Cover 3 has a drive error.';
 	END_IF
-	IF cover2Error THEN 
-		coversErrorEvent.OnMessage := 'Cover 2 has a drive error.';
+	IF cover_error[2] THEN 
+		covers_error_event.OnMessage := 'Cover 2 has a drive error.';
 	END_IF
-	IF cover1Error THEN 
-		coversErrorEvent.OnMessage := 'Cover 1 has a drive error.';
+	IF cover_error[1] THEN 
+		covers_error_event.OnMessage := 'Cover 1 has a drive error.';
 	END_IF
 END_IF
 
-coversErrorEvent(
+covers_error_event(
 	Trigger 	:= error, 
    	Level   	:= ADSLOG_MSGTYPE_ERROR, 
 	comm 		:= comm);
 
-coversWarningEvent(
+covers_warning_event(
 	Trigger 	:= warning, 
 	Level   	:= ADSLOG_MSGTYPE_WARN, 
 	comm 		:= comm);
 
 // raise an error, if both opened and closed signals are activated
 // handle RoboTel differently
-cover1Event(
-	Trigger   	:= cover1Open AND cover1Closed,
+cover_event[1](
+	Trigger   	:= cover_open[1] AND cover_closed[1],
 	Level     	:= ADSLOG_MSGTYPE_ERROR, 
 	OnMessage 	:= 'Cover1: limit switch error', 
 	comm	 	:= comm);
 
-cover2Event(
-	Trigger   	:= cover2Open AND cover2Closed,
+cover_event[2](
+	Trigger   	:= cover_open[2] AND cover_closed[2],
     Level     	:= ADSLOG_MSGTYPE_ERROR, 
 	OnMessage 	:= 'Cover2: limit switch error', 
 	comm      	:= comm);
 
-cover3Event(
-	Trigger   	:= cover3Open AND cover3Closed,
+cover_event[3](
+	Trigger   	:= cover_open[3] AND cover_closed[3],
 	Level     	:= ADSLOG_MSGTYPE_ERROR, 
 	OnMessage 	:= 'Cover3: limit switch error', 
 	comm 	  	:= comm);
 
 //trigger an event, if we encounter a timeout
 // handle RoboTel differently
-cover1TimeoutEvent(
+cover_timeout_event[1](
 	Trigger   	:= FALSE,
 	Level     	:= ADSLOG_MSGTYPE_ERROR, 
 	OnMessage 	:= 'Cover1: Timeout',
 	comm 		:= comm);
-cover2TimeoutEvent(
+cover_timeout_event[2](
 	Trigger   	:= FALSE,
  	Level     	:= ADSLOG_MSGTYPE_ERROR, 
 	OnMessage 	:= 'Cover2: Timeout',
 	comm 		:= comm);
-cover3TimeoutEvent(
+cover_timeout_event[3](
 	Trigger   	:= FALSE,
 	Level     	:= ADSLOG_MSGTYPE_ERROR, 
 	OnMessage 	:= 'Cover3: Timeout',
 	comm 		:= comm);
 
 // Log if we are opened
-coversOpenedEvent(
+covers_opened_event(
 	Trigger   	:= is_open,
 	Level     	:= ADSLOG_MSGTYPE_WARN,
 	OnMessage 	:= 'All covers are open',
 	comm 		:= comm);
 	
 //log if we are closed
-coversClosedEvent(
+covers_closed_event(
 	Trigger   	:= is_closed,
 	Level     	:= ADSLOG_MSGTYPE_HINT,
 	OnMessage 	:= 'All covers are closed',
 	comm 		:= comm);
 ]]></ST>
     </Implementation>
-    <Method Name="CloseCover" Id="{da11c9a0-3757-4491-b03d-01cf2bd99294}">
+    <Method Name="AreCoversClosed" Id="{0bd88b3d-0ccd-44d3-9ff3-3eb831f31b63}">
+      <Declaration><![CDATA[METHOD AreCoversClosed : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[AreCoversClosed := is_closed;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AreCoversOpen" Id="{c4b9cdc7-29a2-4bcd-8657-0ea5ad75864e}">
+      <Declaration><![CDATA[METHOD AreCoversOpen : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[AreCoversOpen := is_open;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CloseCover" Id="{7787d870-e582-4e1a-8ee1-611b396b8c73}">
       <Declaration><![CDATA[METHOD CloseCover : BOOL
+VAR_INPUT
+	cover	: UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[out_close_cover[cover] := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CloseCovers" Id="{da11c9a0-3757-4491-b03d-01cf2bd99294}">
+      <Declaration><![CDATA[METHOD CloseCovers : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -224,24 +229,48 @@ END_VAR]]></Declaration>
         <ST><![CDATA[THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="IsClosed" Id="{0bd88b3d-0ccd-44d3-9ff3-3eb831f31b63}">
-      <Declaration><![CDATA[METHOD IsClosed : BOOL
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IsClosed := is_closed;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="IsOpen" Id="{c4b9cdc7-29a2-4bcd-8657-0ea5ad75864e}">
-      <Declaration><![CDATA[METHOD IsOpen : BOOL
+    <Method Name="HasError" Id="{4bfbf39c-510e-4101-bd9e-a7d7463cfc01}">
+      <Declaration><![CDATA[METHOD HasError : BOOL
 VAR_INPUT
+	cover	: UINT;
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IsOpen := is_open;]]></ST>
+        <ST><![CDATA[HasError := cover_error[cover];]]></ST>
       </Implementation>
     </Method>
-    <Method Name="OpenCover" Id="{bb6e1357-2f21-45f8-bb34-0ba057923977}">
+    <Method Name="IsCoverClosed" Id="{e3fc3af5-8269-4cc1-9f6b-866416b724d6}">
+      <Declaration><![CDATA[METHOD IsCoverClosed : BOOL
+VAR_INPUT
+	cover	: UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IsCoverClosed := cover_closed[cover];]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="IsCoverOpen" Id="{a56a8256-3336-4119-bafb-439174bac704}">
+      <Declaration><![CDATA[METHOD IsCoverOpen : BOOL
+VAR_INPUT
+	cover	: UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IsCoverOpen := cover_open[cover];]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="OpenCover" Id="{b58c0a9e-f3af-470d-ac73-8e5bf7d24571}">
       <Declaration><![CDATA[METHOD OpenCover : BOOL
+VAR_INPUT
+	cover	: UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[out_open_cover[cover] := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="OpenCovers" Id="{bb6e1357-2f21-45f8-bb34-0ba057923977}">
+      <Declaration><![CDATA[METHOD OpenCovers : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -250,35 +279,58 @@ END_VAR
 close := FALSE;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="ResetCover" Id="{3fcca07c-1b9c-4f16-918b-5d284513a3d3}">
-      <Declaration><![CDATA[METHOD ResetCover : BOOL
+    <Method Name="ResetCovers" Id="{3fcca07c-1b9c-4f16-918b-5d284513a3d3}">
+      <Declaration><![CDATA[METHOD ResetCovers : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[ResetCover := TRUE;]]></ST>
+        <ST><![CDATA[ResetCovers := TRUE;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_CoverControl">
-      <LineId Id="2690" Count="132" />
+      <LineId Id="3488" Count="11" />
+      <LineId Id="3624" Count="0" />
+      <LineId Id="3629" Count="0" />
+      <LineId Id="3625" Count="1" />
+      <LineId Id="3630" Count="0" />
+      <LineId Id="3632" Count="1" />
+      <LineId Id="3623" Count="0" />
+      <LineId Id="3506" Count="0" />
+      <LineId Id="3512" Count="108" />
       <LineId Id="122" Count="0" />
     </LineIds>
+    <LineIds Name="FB_CoverControl.AreCoversClosed">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.AreCoversOpen">
+      <LineId Id="1" Count="0" />
+    </LineIds>
     <LineIds Name="FB_CoverControl.CloseCover">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.CloseCovers">
       <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_CoverControl.FB_Init">
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_CoverControl.IsClosed">
+    <LineIds Name="FB_CoverControl.HasError">
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_CoverControl.IsOpen">
+    <LineIds Name="FB_CoverControl.IsCoverClosed">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.IsCoverOpen">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_CoverControl.OpenCover">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.OpenCovers">
       <LineId Id="1" Count="1" />
     </LineIds>
-    <LineIds Name="FB_CoverControl.ResetCover">
+    <LineIds Name="FB_CoverControl.ResetCovers">
       <LineId Id="1" Count="0" />
     </LineIds>
   </POU>

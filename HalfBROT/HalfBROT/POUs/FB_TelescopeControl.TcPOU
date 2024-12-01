@@ -35,7 +35,7 @@ VAR
 	TelescopeAuxiliary	: FB_TelescopeAuxiliary;
 	
 	comm 				: I_Comm;
-	CoverControl		: I_MirrorCover;	
+	CoverControl		: I_MirrorCovers;	
 	HydraulicsControl 	: REFERENCE TO FB_HydraulicsControl;
 	Focuscontrol 		: REFERENCE TO FB_Focuscontrol;
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
@@ -316,7 +316,7 @@ homed := ElevationControl.Calibrated AND
 			DerotatorControl.Calibrated;
 			
 ready := homed AND 
-	CoverControl.IsOpen() AND 
+	CoverControl.AreCoversOpen() AND 
 	ElevationControl.enable AND
 	AzimuthControl.enable AND
 	DerotatorControl.enable AND HydraulicsControl.brakeOpen AND 
@@ -473,7 +473,7 @@ METHOD FB_Init: BOOL
 VAR_INPUT
     bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	cover			: I_MirrorCover;
+	cover			: I_MirrorCovers;
 	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
 	focus			: REFERENCE TO FB_FocusControl;
 	elevation		: REFERENCE TO FB_ElevationControl;
@@ -660,7 +660,7 @@ CASE Stage OF
 			ElevationControl.enable := FALSE;
 			AzimuthControl.Enable := FALSE;
 			DerotatorControl.enable := FALSE;	
-			CoverControl.CloseCover();	
+			CoverControl.CloseCovers();	
 			Stage := 80;
 		END_IF
 		Stage := 20;
@@ -711,10 +711,10 @@ CASE Stage OF
 			stage := 60;
 		END_IF
 		IF HydraulicsControl.brakeClosed THEN
-			CoverControl.CloseCover();
+			CoverControl.CloseCovers();
 			HydraulicsControl.enable := FALSE;
 		END_IF
-		IF CoverControl.IsClosed() THEN
+		IF CoverControl.AreCoversClosed() THEN
 			Stage := 100;
 		END_IF
 	100:
@@ -746,10 +746,10 @@ ELSE
 	powerfailure := FALSE;		
 END_IF
 // COVER MUST BE OPENED FOR A SUCCESSFUL WAKE & SHAKE COMMAND!
-Covercontrol.OpenCover();
+Covercontrol.OpenCovers();
 
 // enable elevation, enable azimuth
-IF mainReady AND CoverControl.IsOpen() THEN
+IF mainReady AND CoverControl.AreCoversOpen() THEN
 	ElevationControl.enable := TRUE;
 	AzimuthControl.enable := TRUE;
 	DerotatorControl.enable := TRUE;
