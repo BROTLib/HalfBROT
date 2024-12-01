@@ -1424,6 +1424,15 @@ External Setpoint Generation:
 			</Relations>
 		</DataType>
 		<DataType>
+			<Name GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..3] OF BOOL</Name>
+			<BitSize>24</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000030}">BOOL</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>3</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
 			<Name GUID="{18071995-0000-0000-0000-002000000007}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..6] OF BIT</Name>
 			<BitSize>7</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000010}">BIT</BaseType>
@@ -2966,41 +2975,11 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{363DA9F7-A2C1-43F1-A4FF-717FB38D77B2}" Name="HalfBROT" PrjFilePath="HalfBROT\HalfBROT.plcproj" TmcFilePath="HalfBROT\HalfBROT.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{564A20F8-EECC-61E5-03EE-8AF4B682B8E4}" TmcPath="HalfBROT\HalfBROT.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{8DB9F779-AA48-FE11-078E-19D9A4D98A85}" TmcPath="HalfBROT\HalfBROT.tmc">
 					<Name>HalfBROT Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
 						<Name>PlcTask Outputs</Name>
-						<Var>
-							<Name>MAIN.CoverControl.outOpenCover1</Name>
-							<Comment><![CDATA[ open cover1 command]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.outCloseCover1</Name>
-							<Comment><![CDATA[ close cover1 command]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.outOpenCover2</Name>
-							<Comment><![CDATA[ open cover2 command]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.outCloseCover2</Name>
-							<Comment><![CDATA[ close cover2 command]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.outOpenCover3</Name>
-							<Comment><![CDATA[ open cover3 command]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.outCloseCover3</Name>
-							<Comment><![CDATA[ close cover3 command]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
 						<Var>
 							<Name>MAIN.HydraulicsControl.outOilPumpEnable</Name>
 							<Comment><![CDATA[DOUT4 0.3]]></Comment>
@@ -3025,7 +3004,7 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.FocusControl.focusUnlock</Name>
+							<Name>MAIN.FocusControl.outFocusUnlock</Name>
 							<Comment><![CDATA[ whether focus is unlocked]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
@@ -3044,32 +3023,6 @@ External Setpoint Generation:
 						<Var>
 							<Name>MAIN.AzimuthControl.axisRef.PlcToNc</Name>
 							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.lamp_up</Name>
-							<Comment><![CDATA[ Outputs
-DOUT9 1.0]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.lamp_down</Name>
-							<Comment><![CDATA[DOUT10 1.1]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.lamp_right</Name>
-							<Comment><![CDATA[DOUT11 1.2]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.lamp_left</Name>
-							<Comment><![CDATA[DOUT12 1.3]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.lamp_error</Name>
-							<Comment><![CDATA[DOUT13 1.4]]></Comment>
-							<Type>BOOL</Type>
 						</Var>
 						<Var>
 							<Name>MAIN.Run</Name>
@@ -3098,38 +3051,45 @@ DOUT9 1.0]]></Comment>
 							<Name>MAIN.Reset_STO_Derotator</Name>
 							<Type>BOOL</Type>
 						</Var>
+						<Var>
+							<Name>MAIN.CoverControl.out_open_cover</Name>
+							<Comment><![CDATA[ open cover1-3 command]]></Comment>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.CoverControl.out_close_cover</Name>
+							<Comment><![CDATA[ close cover1-3 command]]></Comment>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.lamp_up</Name>
+							<Comment><![CDATA[ Outputs
+DOUT9 1.0]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.lamp_down</Name>
+							<Comment><![CDATA[DOUT10 1.1]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.lamp_right</Name>
+							<Comment><![CDATA[DOUT11 1.2]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.lamp_left</Name>
+							<Comment><![CDATA[DOUT12 1.3]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.lamp_error</Name>
+							<Comment><![CDATA[DOUT13 1.4]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
 					</Vars>
 					<Vars VarGrpType="1">
 						<Name>PlcTask Inputs</Name>
-						<Var>
-							<Name>MAIN.CoverControl.inCover1Open</Name>
-							<Comment><![CDATA[ limit coper 1 open]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.inCover1Closed</Name>
-							<Comment><![CDATA[ limit coper 1 closed]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.inCover2Open</Name>
-							<Comment><![CDATA[ limit coper 2 open]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.inCoverClosed</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.inCover3Open</Name>
-							<Comment><![CDATA[limit coper 2 closed]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.inCover3Closed</Name>
-							<Comment><![CDATA[ limit coper 3 closed	]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
 						<Var>
 							<Name>MAIN.HydraulicsControl.inOilLow</Name>
 							<Comment><![CDATA[ 2.1]]></Comment>
@@ -3186,12 +3146,12 @@ DOUT9 1.0]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.FocusControl.limitNear</Name>
+							<Name>MAIN.FocusControl.inLimitNear</Name>
 							<Comment><![CDATA[ DIN29 3.4]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.FocusControl.limitFar</Name>
+							<Name>MAIN.FocusControl.inLimitFar</Name>
 							<Comment><![CDATA[ DIN30 3.5]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
@@ -3224,22 +3184,22 @@ DOUT9 1.0]]></Comment>
 							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.ElevationControl.digitalInputs</Name>
+							<Name>MAIN.ElevationControl.inDigitalInputs</Name>
 							<Comment><![CDATA[ digitale inputs der Endlagen]]></Comment>
 							<Type>WORD</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.ElevationControl.diagnostic</Name>
+							<Name>MAIN.ElevationControl.inDiagnostic</Name>
 							<Comment><![CDATA[ diagnostic number]]></Comment>
 							<Type>UDINT</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.ElevationControl.torque</Name>
+							<Name>MAIN.ElevationControl.inTorque</Name>
 							<Comment><![CDATA[ derotator torque feedback]]></Comment>
 							<Type>INT</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.ElevationControl.sto</Name>
+							<Name>MAIN.ElevationControl.inSTO</Name>
 							<Comment><![CDATA[ STO]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
@@ -3248,22 +3208,22 @@ DOUT9 1.0]]></Comment>
 							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.AzimuthControl.digitalInputs</Name>
+							<Name>MAIN.AzimuthControl.inDigitalInputs</Name>
 							<Comment><![CDATA[ digitale inputs der Endlagen]]></Comment>
 							<Type>WORD</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.AzimuthControl.diagnostic</Name>
+							<Name>MAIN.AzimuthControl.inDiagnostic</Name>
 							<Comment><![CDATA[ diagnostic number]]></Comment>
 							<Type>UDINT</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.AzimuthControl.torque</Name>
+							<Name>MAIN.AzimuthControl.inTorque</Name>
 							<Comment><![CDATA[ derotator torque feedback]]></Comment>
 							<Type>INT</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.AzimuthControl.sto</Name>
+							<Name>MAIN.AzimuthControl.inSTO</Name>
 							<Comment><![CDATA[ STO]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
@@ -3280,6 +3240,28 @@ DOUT9 1.0]]></Comment>
 							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM1</Name>
 							<Comment><![CDATA[ // BT10]]></Comment>
 							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.Error</Name>
+							<Comment><![CDATA[ Safety Error Condition]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.State</Name>
+							<Comment><![CDATA[ Stop signal coming from Safety
+ Stop		AT%I*:	BOOL;
+ state variable]]></Comment>
+							<Type>USINT</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.CoverControl.in_cover_open</Name>
+							<Comment><![CDATA[ limit coper 1 open switch]]></Comment>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.CoverControl.in_cover_closed</Name>
+							<Comment><![CDATA[ limit coper 1 closed switch]]></Comment>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
 						</Var>
 						<Var>
 							<Name>MAIN.PendantControl.BCD0</Name>
@@ -3335,18 +3317,6 @@ DOUT9 1.0]]></Comment>
 							<Name>MAIN.PendantControl.direction_right</Name>
 							<Comment><![CDATA[DIN27 3.2]]></Comment>
 							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.Error</Name>
-							<Comment><![CDATA[ Safety Error Condition]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.State</Name>
-							<Comment><![CDATA[ Stop signal coming from Safety
- Stop		AT%I*:	BOOL;
- state variable]]></Comment>
-							<Type>USINT</Type>
 						</Var>
 					</Vars>
 					<Contexts>
@@ -7095,24 +7065,6 @@ Bit1: Value smaller than Limit2]]></Comment>
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 13 (EL3164)">
 				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inOilLevel" VarB="AI Standard Channel 3^MAIN.HydraulicsControl.in_oil_level"/>
 			</OwnerB>
-			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 16 (EL2004)">
-				<Link VarA="PlcTask Outputs^MAIN.CoverControl.outCloseCover1" VarB="Channel 2^MAIN.CoverControl.close_cover1"/>
-				<Link VarA="PlcTask Outputs^MAIN.CoverControl.outCloseCover2" VarB="Channel 4^MAIN.CoverControl.close_cover2"/>
-				<Link VarA="PlcTask Outputs^MAIN.CoverControl.outOpenCover1" VarB="Channel 1^MAIN.CoverControl.open_cover1"/>
-				<Link VarA="PlcTask Outputs^MAIN.CoverControl.outOpenCover2" VarB="Channel 3^MAIN.CoverControl.open_cover2"/>
-			</OwnerB>
-			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 17 (EL2004)">
-				<Link VarA="PlcTask Outputs^MAIN.CoverControl.outCloseCover3" VarB="Channel 2^MAIN.CoverControl.close_cover3"/>
-				<Link VarA="PlcTask Outputs^MAIN.CoverControl.outOpenCover3" VarB="Channel 1^MAIN.CoverControl.open_cover3"/>
-			</OwnerB>
-			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 18 (EL1008)">
-				<Link VarA="PlcTask Inputs^MAIN.CoverControl.inCover1Closed" VarB="Channel 2^MAIN.CoverControl.limit_cover1_closed"/>
-				<Link VarA="PlcTask Inputs^MAIN.CoverControl.inCover1Open" VarB="Channel 1^MAIN.CoverControl.limit_cover1_open"/>
-				<Link VarA="PlcTask Inputs^MAIN.CoverControl.inCover2Open" VarB="Channel 3^MAIN.CoverControl.limit_cover2_open"/>
-				<Link VarA="PlcTask Inputs^MAIN.CoverControl.inCover3Closed" VarB="Channel 6^MAIN.CoverControl.limit_cover3_closed"/>
-				<Link VarA="PlcTask Inputs^MAIN.CoverControl.inCover3Open" VarB="Channel 5^MAIN.CoverControl.limit_cover3_open"/>
-				<Link VarA="PlcTask Inputs^MAIN.CoverControl.inCoverClosed" VarB="Channel 4^MAIN.CoverControl.limit_cover2_closed"/>
-			</OwnerB>
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 5 (EL6910)">
 				<Link VarA="PlcTask Outputs^MAIN.ErrAck" VarB="StandardOutputs^Standard In Var 1"/>
 				<Link VarA="PlcTask Outputs^MAIN.Restart" VarB="StandardOutputs^Standard In Var 3"/>
@@ -7123,8 +7075,8 @@ Bit1: Value smaller than Limit2]]></Comment>
 				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.outOilSuctionEnable" VarB="Channel 3^MAIN.HydraulicsControl.out_oil_suction_enable"/>
 			</OwnerB>
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 9 (EL1008)">
-				<Link VarA="PlcTask Inputs^MAIN.FocusControl.limitFar" VarB="Channel 5^MAIN.FocusControl.focus_limit_far"/>
-				<Link VarA="PlcTask Inputs^MAIN.FocusControl.limitNear" VarB="Channel 4^MAIN.FocusControl.focus_limit_near"/>
+				<Link VarA="PlcTask Inputs^MAIN.FocusControl.inLimitFar" VarB="Channel 5^MAIN.FocusControl.focus_limit_far"/>
+				<Link VarA="PlcTask Inputs^MAIN.FocusControl.inLimitNear" VarB="Channel 4^MAIN.FocusControl.focus_limit_near"/>
 				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inPumpRunning" VarB="Channel 1^MAIN.HydraulicsControl.in_pump_running"/>
 				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.inSuctionRunning" VarB="Channel 2^MAIN.HydraulicsControl.in_suction_running"/>
 			</OwnerB>

@@ -26,7 +26,7 @@ VAR_OUTPUT
 	slewTime		: LREAL;	// time to reach target position
 END_VAR
 VAR
-	CoverControl		: REFERENCE TO FB_CoverControl;
+	CoverControl		: I_MirrorCovers;
 	HydraulicsControl 	: REFERENCE TO FB_HydraulicsControl;
 	comm				: I_Comm;
 	
@@ -69,8 +69,8 @@ position := LIMIT(0.0, position, 90.0);
 //if we enable the axis, we have to open the brake first
 IF enable THEN
 	IF NOT calibrated THEN
-		CoverControl.open := TRUE;
-		IF CoverControl.isopen THEN
+		CoverControl.OpenCovers();
+		IF CoverControl.AreCoversOpen() THEN
 			HydraulicsControl.open_brake();
 		END_IF
 	ELSE
@@ -248,13 +248,13 @@ METHOD FB_Init: BOOL
 VAR_INPUT
     bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	cover			: REFERENCE TO FB_CoverControl;
+	cover			: I_MirrorCovers;
 	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
 	comm			: I_Comm;
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[THIS^.HydraulicsControl REF= hydraulics;
-THIS^.CoverControl REF= cover;
+THIS^.CoverControl := cover;
 THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>

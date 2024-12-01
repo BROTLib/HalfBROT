@@ -10,7 +10,7 @@ VAR
 	DerotatorControl	: FB_DerotatorControl(comm := comm);
 	ElevationControl	: FB_ElevationControl(comm := comm, cover := CoverControl, hydraulics := HydraulicsControl);
 	AzimuthControl		: FB_AzimuthControl(comm := comm);
-	TelescopeControl	: FB_TelescopeControl(comm := comm, cover := CoverControl, hydraulics := HydraulicsControl, focus := FocusControl, elevation := ElevationControl, azimuth := AzimuthControl, derotator := DerotatorControl);
+	TelescopeControl	: FB_TelescopeControl(comm := comm,  cover := CoverControl, hydraulics := HydraulicsControl, focus := FocusControl, elevation := ElevationControl, azimuth := AzimuthControl, derotator := DerotatorControl);
 	PendantControl		: FB_PendantControl(comm := comm, cover := CoverControl, hydraulics := HydraulicsControl, focus := FocusControl, elevation := ElevationControl, azimuth := AzimuthControl, derotator := DerotatorControl, telescope := TelescopeControl);
 	
 	// Safety Error Condition
@@ -77,7 +77,8 @@ comm(
       <LineId Id="45" Count="2" />
       <LineId Id="52" Count="0" />
       <LineId Id="51" Count="0" />
-      <LineId Id="48" Count="1" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="49" Count="0" />
       <LineId Id="28" Count="0" />
       <LineId Id="38" Count="6" />
       <LineId Id="24" Count="0" />
