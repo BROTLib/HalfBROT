@@ -7,7 +7,7 @@ END_VAR
 VAR
 	CoverControl		: I_MirrorCovers;
 	HydraulicsControl	: REFERENCE TO FB_HydraulicsControl;
-	Focuscontrol 		: REFERENCE TO FB_Focuscontrol;
+	Focuscontrol 		: I_Focus;
 	ElevationControl	: REFERENCE TO FB_ElevationControl;
 	AzimuthControl 		: REFERENCE TO FB_AzimuthControl;
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
@@ -19,7 +19,7 @@ VAR
 	// error on the pendant control
 	Error:		BOOL;
 	horn:			BOOL;
-	FocusEnable: 		FB_ButtonEnable;
+	FocusEnable: 		R_TRIG;
 	DerotatorEnable:	FB_ButtonEnable;
 	ElevationEnable: 	FB_ButtonEnable;
 	AzimuthEnable: 		FB_ButtonEnable;
@@ -32,6 +32,8 @@ VAR
 	down_trigger:	R_TRIG;	
 	// manual or automatic operation of the telescope
 	telescope_mode : E_TelescopeMode;
+	
+	reset_trigger		: R_TRIG;
 
 	//DIN17 2.0
 	BCD0		AT%I*: BOOL;
@@ -108,6 +110,9 @@ ELSE
 	telescope_mode := E_TelescopeMode.automatic;
 END_IF
 
+// reset pushed?
+reset_trigger(CLK := reset_switch);
+
 // enable only the selected item and connect lamps and buttons accordingly
 CASE Selection OF
 	1, 2, 3:	// reserved for Cover 1-3 control
@@ -131,14 +136,19 @@ CASE Selection OF
 	4:	// Nasmyth / mirror M3 control
 		
 	5:	// Focus Control
-		lamp_up := FocusControl.Ready AND NOT FocusControl.inLimitFar;
-		lamp_down := FocusControl.Ready AND NOT FocusControl.inLimitNear;
+		lamp_up := FocusControl.Ready AND NOT FocusControl.InFarLimit;
+		lamp_down := FocusControl.Ready AND NOT FocusControl.InNearLimit;
 		IF key_switch THEN
-			FocusEnable(SET := start_switch, Q := FocusControl.enable);
+			FocusEnable(CLK := start_switch);
+			IF FocusEnable.Q THEN
+				FocusControl.Enable := NOT FocusControl.Enable;
+			END_IF
 			FocusControl.MoveOut(direction_up);
 			FocusControl.MoveIn(direction_down);
-			Focuscontrol.reset := reset_switch;
-			lamp_error := FocusControl.error;
+			IF reset_trigger.Q THEN
+				Focuscontrol.Reset();
+			END_IF
+			lamp_error := FocusControl.Error;
 		END_IF
 							
 	6:	// Derotator control
@@ -281,7 +291,7 @@ VAR_INPUT
     bInCopyCode: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
 	cover			: I_MirrorCovers;
 	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
-	focus			: REFERENCE TO FB_FocusControl;
+	focus			: I_Focus;
 	elevation		: REFERENCE TO FB_ElevationControl;
 	azimuth			: REFERENCE TO FB_AzimuthControl;
 	derotator		: REFERENCE TO FB_DerotatorControl;
@@ -291,7 +301,7 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[THIS^.HydraulicsControl REF= hydraulics;
 THIS^.CoverControl := cover;
-THIS^.FocusControl REF= focus;
+THIS^.FocusControl := focus;
 THIS^.ElevationControl REF= elevation;
 THIS^.AzimuthControl REF= azimuth;
 THIS^.DerotatorControl REF= derotator;
@@ -300,7 +310,11 @@ THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_PendantControl">
-      <LineId Id="1" Count="41" />
+      <LineId Id="1" Count="34" />
+      <LineId Id="241" Count="0" />
+      <LineId Id="240" Count="0" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="36" Count="6" />
       <LineId Id="237" Count="0" />
       <LineId Id="46" Count="0" />
       <LineId Id="238" Count="0" />
@@ -308,7 +322,13 @@ THIS^.comm := comm;]]></ST>
       <LineId Id="239" Count="0" />
       <LineId Id="48" Count="3" />
       <LineId Id="53" Count="3" />
-      <LineId Id="94" Count="141" />
+      <LineId Id="94" Count="7" />
+      <LineId Id="248" Count="2" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="244" Count="0" />
+      <LineId Id="105" Count="130" />
     </LineIds>
     <LineIds Name="FB_PendantControl.FB_Init">
       <LineId Id="1" Count="5" />

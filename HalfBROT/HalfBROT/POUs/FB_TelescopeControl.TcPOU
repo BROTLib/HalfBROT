@@ -55,6 +55,8 @@ VAR
 	eq2hor				: FB_EQ2HOR;
 	hor2eq				: FB_HOR2EQ;
 	
+	reset_trigger		: R_TRIG;
+	
 	powerfailure		: BOOL;		// triggers power-failure event
 	poweronwarning		: TP;		// triggers power warning
 	power_timeout		: TON;		// power on timeout
@@ -120,6 +122,7 @@ lst := CT2LST(telescopeConfig.longitude, jd);
 	//reset := TRUE;
 //END_IF
 
+reset_trigger(CLK := reset);
 
 IF ElevationControl.error THEN
 	errorid := ElevationControl.ErrorID;
@@ -127,9 +130,11 @@ IF ElevationControl.error THEN
 ELSIF AzimuthControl.error THEN
 	errorid := AzimuthControl.ErrorID;
 	AzimuthControl.Reset := reset;
-ELSIF Focuscontrol.Error THEN
+ELSIF Focuscontrol.bError THEN
 	errorid := Focuscontrol.ErrorID;
-	FocusControl.reset := reset;
+	IF reset_trigger.Q THEN
+		FocusControl.Reset();
+	END_IF
 ELSIF DerotatorControl.Error THEN
 	errorid := DerotatorControl.ErrorID;
 	DerotatorControl.reset := reset;
@@ -137,7 +142,7 @@ END_IF
 
 error := ElevationControl.error OR 
 		 AzimuthControl.error OR
-		 Focuscontrol.Error OR
+		 Focuscontrol.bError OR
 		 DerotatorControl.Error;
 
 slewtime := MAX(MAX(ElevationControl.slewtime, AzimuthControl.slewtime), DerotatorControl.slewtime);
@@ -312,7 +317,7 @@ stopped :=  (NOT ElevationControl.enable OR ElevationControl.axis.StandStill) AN
 			
 homed := ElevationControl.Calibrated AND
 			AzimuthControl.calibrated AND
-			FocusControl.Calibrated AND
+			FocusControl.bCalibrated AND
 			DerotatorControl.Calibrated;
 			
 ready := homed AND 
@@ -325,7 +330,7 @@ ready := homed AND
 busy := ElevationControl.axis.Busy OR
 		AzimuthControl.axis.Busy OR
 		DerotatorControl.axis.Busy OR
-		FocusControl.axis.Busy;
+		FocusControl.fbAxis.Busy;
 
 // unset the STOP command if telescope is already stopped
 IF stopped THEN
@@ -654,7 +659,7 @@ CASE Stage OF
 		track := 	FALSE;
 		goto := 	FALSE;
 		slew := 	FALSE;
-		Focuscontrol.position := telescopeConfig.focusPark;
+		Focuscontrol.Position := telescopeConfig.focusPark;
 		IF Error THEN // emergency park
 			HydraulicsControl.close_brake();
 			ElevationControl.enable := FALSE;
@@ -770,8 +775,8 @@ END_IF
 
 // start calibration of focus after elevation has been calibrated
 // this avoids imbalance by the M2 mirror on the elvation during its calibration
-IF ElevationControl.Calibrated AND NOT FocusControl.Calibrated THEN
-	FocusControl.enable := TRUE;
+IF ElevationControl.Calibrated AND NOT FocusControl.bCalibrated THEN
+	FocusControl.Enable := TRUE;
 	FocusControl.HomeAxis := TRUE;
 END_IF
 
@@ -961,7 +966,13 @@ END_IF
       </Implementation>
     </Method>
     <LineIds Name="FB_TelescopeControl">
-      <LineId Id="1" Count="353" />
+      <LineId Id="1" Count="9" />
+      <LineId Id="356" Count="0" />
+      <LineId Id="11" Count="9" />
+      <LineId Id="357" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="358" Count="0" />
+      <LineId Id="22" Count="332" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.FB_Init">
       <LineId Id="8" Count="0" />

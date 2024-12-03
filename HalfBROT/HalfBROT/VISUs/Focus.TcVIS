@@ -5,7 +5,7 @@
       <Data>
         <o xml:space="preserve" t="VisualObject">
           <n n="LastVisuLanguageModelEntry" />
-          <v n="UniqueIdGenerator">"111"</v>
+          <v n="UniqueIdGenerator">"243"</v>
           <o n="VisualElemList" t="VisualElemList">
             <l n="VisualElementList" t="VisualElemCollection" cet="GenericVisualElem">
               <o>
@@ -91,7 +91,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.enable"</v>
+                          <v n="Value">"MAIN.FocusControl.bEnable"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -197,7 +197,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.reset"</v>
+                          <v n="Value">"MAIN.FocusControl.bReset"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -561,7 +561,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.error"</v>
+                          <v n="Value">"MAIN.FocusControl.bError"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -792,7 +792,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.ready"</v>
+                          <v n="Value">"MAIN.FocusControl.bReady"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -890,7 +890,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.Calibrated"</v>
+                          <v n="Value">"MAIN.FocusControl.bCalibrated"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -1451,7 +1451,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.manualUnlock"</v>
+                          <v n="Value">"MAIN.FocusControl.bManualUnlock"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -1682,7 +1682,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.focusUnlocked"</v>
+                          <v n="Value">"MAIN.FocusControl.bFocusUnlocked"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2102,7 +2102,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.inLimitNear"</v>
+                          <v n="Value">"MAIN.FocusControl.IbLimitNear"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2333,7 +2333,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.inLimitFar"</v>
+                          <v n="Value">"MAIN.FocusControl.IbLimitFar"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3019,7 +3019,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.MoveAxis"</v>
+                          <v n="Value">"MAIN.FocusControl.bMoveAxis"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3323,7 +3323,7 @@
                         </o>
                         <o>
                           <v n="Id">2477733581L</v>
-                          <v n="Value">"MAIN.FocusControl.actualPosition"</v>
+                          <v n="Value">"MAIN.FocusControl.fActualPosition"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3631,7 +3631,7 @@
                         </o>
                         <o>
                           <v n="Id">2477733581L</v>
-                          <v n="Value">"MAIN.FocusControl.position"</v>
+                          <v n="Value">"MAIN.FocusControl.fPosition"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3760,7 +3760,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.inward"</v>
+                          <v n="Value">"MAIN.FocusControl.bInward"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3999,7 +3999,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.outward"</v>
+                          <v n="Value">"MAIN.FocusControl.bOutward"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -4286,7 +4286,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.HomeAxis"</v>
+                          <v n="Value">"MAIN.FocusControl.bHomeAxis"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -4658,7 +4658,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.HomeAxis"</v>
+                          <v n="Value">"MAIN.FocusControl.bHomeAxis"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>

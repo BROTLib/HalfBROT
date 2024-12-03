@@ -1,49 +1,49 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_FocusControl" Id="{27922653-650e-4327-85ba-374d2f945b2c}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl IMPLEMENTS I_Focus
 VAR_INPUT
-	enable				: BOOL;		// enable the axis
-	reset				: BOOL;		// reset the axis(-error)
-	moveAxis			: BOOL;		// move the axis to new position
-	homeAxis			: BOOL;		// calibrate the focus axis
-	position			: LREAL;	// focus position in millimeters
-	minPosition			: LREAL := 0;	// minimum position
-	maxPosition			: LREAL := 100;	// maximum position
-	telescopeMode		: E_TelescopeMode;
-	homingPosition		: LREAL := 92.02; // 104.02 - 12.00 	// reference position for homing
-	tolerance			: LREAL := 0.005;
+	fMinPosition		: LREAL := 0;	// minimum position
+	fMaxPosition		: LREAL := 100;	// maximum position
+	eTelescopeMode		: E_TelescopeMode;
+	fHomingPosition		: LREAL := 92.02; // 104.02 - 12.00 	// reference position for homing
+	fTolerance			: LREAL := 0.005;
 END_VAR
 VAR_OUTPUT
-	calibrated			: BOOL;		// true if absolute calibration
-	error				: BOOL;		// true if error
-	errorID				: UDINT;	// ID of NC axis error
-	ready				: BOOL;		// ready signal = drive ready + standstill
-	focusUnlocked		: BOOL;
+	bCalibrated			: BOOL;		// true if absolute calibration
+	bError				: BOOL;		// true if error
+	nErrorID			: UDINT;	// ID of NC axis error
+	bReady				: BOOL;		// ready signal = drive ready + standstill
+	bFocusUnlocked		: BOOL;
 END_VAR
 VAR
-	comm				: I_Comm;	
-	inward				: BOOL;		// Move M2 closer to M1
-	outward				: BOOL;		// Move M2 away from M1	
-	outFocusUnlock	  AT%Q* : BOOL;		// whether focus is unlocked
-	focusDelay			: TON;
-	brakeDelay			: TON;
-	axis				: FB_Axis2;
-	actualPosition		: LREAL;
-	manualUnlock		: BOOL;		// manual override to unlock the focus
-	mqttTimer 			: TON := (PT:=T#5S);
+	fbComm				: I_Comm;
+	bEnable				: BOOL;		// enable the axis
+	bReset				: BOOL;		// reset the axis(-error)
+	bMoveAxis			: BOOL;		// move the axis to new position
+	bHomeAxis			: BOOL;		// calibrate the focus axis
+	fPosition			: LREAL;	// focus position in millimeters	
+	bInward				: BOOL;		// Move M2 closer to M1
+	bOutward			: BOOL;		// Move M2 away from M1	
+	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
+	tonFocusDelay		: TON;
+	tonBrakeDelay		: TON;
+	fbAxis				: FB_Axis2;
+	fActualPosition		: LREAL;
+	bManualUnlock		: BOOL;		// manual override to unlock the focus
+	tonMqttTimer 		: TON := (PT:=T#5S);
 	//getlastposition:	BOOL := TRUE;
-	axisEvent			: FB_EventLog;
-	calibrationEvent	: FB_EventLog;
-	homingMode			: MC_HOMINGMODE := 		MC_DefaultHoming;
-	setPosition			: MC_setPosition;
+	fbAxisEvent			: FB_EventLog;
+	fbCalibrationEvent	: FB_EventLog;
+	eHomingMode			: MC_HOMINGMODE := MC_DefaultHoming;
+	fbSetPosition		: MC_SetPosition;
 	
-	inLimitNear	   AT%I*: BOOL;	// DIN29 3.4
-	inLimitFar     AT%I*: BOOL;	// DIN30 3.5
-	axisRef				: AXIS_REF;
+	IbLimitNear    AT%I*: BOOL;	// DIN29 3.4
+	IbLimitFar     AT%I*: BOOL;	// DIN30 3.5
+	refAxis			: AXIS_REF;
 END_VAR
 VAR PERSISTENT
-	lastPosition		: LREAL := -1.0;
+	fLastPposition		: LREAL := -1.0;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -58,107 +58,148 @@ Focus is locked by default
 *)
 
 // limit to sane positions
-position := LIMIT(minPosition, position, maxPosition);
+fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
 
 // focus is unlocked if enabled or manually unlocked
-outFocusUnlock := manualUnlock OR enable;
+ObFocusUnlock := bManualUnlock OR bEnable;
 
 // wait until the focus is unlocked for n milliseconds
-focusDelay(IN := outFocusUnlock, PT := T#500MS, Q => focusUnlocked);
+tonFocusDelay(IN := ObFocusUnlock, PT := T#500MS, Q => bFocusUnlocked);
 // wait for brake until we are at rest
-brakeDelay(IN := NOT axis.Busy AND axis.StandStill, PT := T#4000MS);
+tonBrakeDelay(IN := NOT fbAxis.Busy AND fbAxis.StandStill, PT := T#4000MS);
 
 // if we are on automatic mode then position the focus
-IF telescopeMode = E_TelescopeMode.automatic AND NOT manualUnlock THEN
-	IF axis.calibrated THEN
-		IF ABS(position - actualPosition) > tolerance THEN
-			IF axis.Ready THEN
-				moveAxis := TRUE;
+IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
+	IF fbAxis.calibrated THEN
+		IF ABS(fPosition - fActualPosition) > fTolerance THEN
+			IF fbAxis.Ready THEN
+				bMoveAxis := TRUE;
 			ELSE
-				enable := TRUE;
+				bEnable := TRUE;
 			END_IF
 		END_IF
 		// disable the drive and lock the brake, if we stand for more than n seconds
-		IF brakeDelay.Q THEN
-			enable := FALSE;
+		IF tonBrakeDelay.Q THEN
+			bEnable := FALSE;
 		END_IF
 		// store actual position, if we are calibrated and locked
-		IF NOT outFocusUnlock THEN
-			lastPosition := actualPosition;
+		IF NOT ObFocusUnlock THEN
+			fLastPposition := fActualPosition;
 		END_IF
 	ELSE // not calibrated
-		IF axis.Ready THEN
-			homeAxis := TRUE;
+		IF fbAxis.Ready THEN
+			bHomeAxis := TRUE;
 		END_IF
 	END_IF
 END_IF
 
-IF homeAxis THEN
-	IF lastPosition > 0.0 THEN
-		homingMode := MC_ForceCalibration; // MC_Direct
-		position := lastPosition;
-		setPosition.Execute := TRUE;
+IF bHomeAxis THEN
+	IF fLastPposition > 0.0 THEN
+		eHomingMode := MC_ForceCalibration; // MC_Direct
+		fPosition := fLastPposition;
+		fbSetPosition.Execute := TRUE;
 	ELSE
-		homingMode := MC_DefaultHoming;
-		position := homingPosition;
-		setPosition.Execute := FALSE;
+		eHomingMode := MC_DefaultHoming;
+		fPosition := fHomingPosition;
+		fbSetPosition.Execute := FALSE;
 	END_IF
 ELSE
-	setPosition.Execute := FALSE;	
+	fbSetPosition.Execute := FALSE;	
 END_IF
 
 // deactivate limit switches on homing
-MC_SetAcceptBlockedDriveSignal(Axis := axisRef, enable := homeAxis);
-setPosition(Axis := axisRef, Position := lastPosition);
+MC_SetAcceptBlockedDriveSignal(Axis := refAxis, enable := bHomeAxis);
+fbSetPosition(Axis := refAxis, Position := fLastPposition);
 		
-axis(	
-	enable 			:= focusUnlocked,
-	Reset 			:= reset,
-	moveAxis 		:= moveAxis AND focusUnlocked,
-	homeAxis 		:= homeAxis AND focusUnlocked,
-	homingMode 		:= homingMode,
-	Position 		:= position,
+fbAxis(	
+	enable 			:= bFocusUnlocked,
+	Reset 			:= bReset,
+	moveAxis 		:= bMoveAxis AND bFocusUnlocked,
+	homeAxis 		:= bHomeAxis AND bFocusUnlocked,
+	homingMode 		:= eHomingMode,
+	Position 		:= fPosition,
 	Velocity 		:= 0.04,
-	enable_Positive := NOT inLimitFar OR homeAxis,
-	enable_Negative := NOT inLimitNear,
-	Jog_Forward 	:= outward AND focusUnlocked,
-	Jog_Backwards 	:= inward AND focusUnlocked,
-	bCalibrationCam := inLimitFar,
-	ActualPosition 	=> actualPosition,
-	Error 			=> error,
-	ErrorID 		=> errorID,
-	AxisRef 		:= axisRef);	
+	enable_Positive := NOT IbLimitFar OR bHomeAxis,
+	enable_Negative := NOT IbLimitNear,
+	Jog_Forward 	:= bOutward AND bFocusUnlocked,
+	Jog_Backwards 	:= bInward AND bFocusUnlocked,
+	bCalibrationCam := IbLimitFar,
+	ActualPosition 	=> fActualPosition,
+	Error 			=> bError,
+	ErrorID 		=> nErrorID,
+	axisRef 		:= refAxis);	
 
-IF axis.MoveDone THEN
-	moveAxis := FALSE;
+IF fbAxis.MoveDone THEN
+	bMoveAxis := FALSE;
 END_IF
 
-IF axis.HomeDone THEN
-	homeAxis := FALSE;
-	enable := FALSE;
-	lastPosition := position;
+IF fbAxis.HomeDone THEN
+	bHomeAxis := FALSE;
+	bEnable := FALSE;
+	fLastPposition := fPosition;
 END_IF
 	
-IF axis.ResetDone THEN
-	reset := FALSE;
+IF fbAxis.ResetDone THEN
+	bReset := FALSE;
 END_IF
 
-IF axis.calibrated OR Error THEN
-	homeAxis := FALSE;
+IF fbAxis.calibrated OR bError THEN
+	bHomeAxis := FALSE;
 END_IF
 
-IF Error THEN
-	lastPosition := -1.0;
+IF bError THEN
+	fLastPposition := -1.0;
 	//focusAxis.calibrated := FALSE;
-	calibrated := FALSE;
+	bCalibrated := FALSE;
 END_IF
 
-calibrated := axis.calibrated;
-Ready := axis.Ready AND axis.StandStill OR NOT outFocusUnlock;
+bCalibrated := fbAxis.calibrated;
+bReady := fbAxis.Ready AND fbAxis.StandStill OR NOT ObFocusUnlock;
 
 SendTelemetry();
 HandleEvents();]]></ST>
     </Implementation>
+    <Property Name="Enable" Id="{d85a2cd2-fc8a-4560-88ef-f424b966e06d}">
+      <Declaration><![CDATA[PROPERTY PUBLIC Enable : BOOL]]></Declaration>
+      <Get Name="Get" Id="{20f30f6f-4f10-4bde-b34e-0aa8098d493a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Enable := bEnable;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{34860b6b-e7e9-4b02-921d-4215a7786776}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bEnable := Enable;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Error" Id="{5a2c17b3-263f-4fe2-b10e-19fa2b22766e}">
+      <Declaration><![CDATA[PROPERTY Error : BOOL]]></Declaration>
+      <Get Name="Get" Id="{0cff5db8-b6a6-4843-911b-6b7ad0fc9685}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Error := bError;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="ErrorID" Id="{1a7e2b48-efd1-42d1-9e39-26171d2a17d9}">
+      <Declaration><![CDATA[PROPERTY PUBLIC ErrorID : UDINT]]></Declaration>
+      <Get Name="Get" Id="{7433ddc8-6866-48e3-8683-74a0f3f4d07f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ErrorID := nErrorID;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="FB_Init" Id="{c74882ff-aa80-4625-bc9f-1892a4f93fe8}">
       <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
 //The return value is not evaluated. For a specific influence, you can also declare the
@@ -171,7 +212,7 @@ VAR_INPUT
 	comm			: I_Comm;   
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[THIS^.comm := comm;]]></ST>
+        <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
       </Implementation>
     </Method>
     <Method Name="HandleEvents" Id="{375f50c9-e6ea-4fcd-9fab-a26147b70ce8}">
@@ -180,41 +221,121 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[axisEvent(	
-	Trigger 		:= axis.Error, 
+        <ST><![CDATA[fbAxisEvent(	
+	Trigger 		:= fbAxis.Error, 
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString	:= 'Focus Axis Error: %S',
-	OnMessage 		:= NCError_TO_STRING(ErrorID),
+	OnMessage 		:= NCError_TO_STRING(nErrorID),
 	OffMEssage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
-	comm 			:= comm);
+	comm 			:= fbComm);
 
-CalibrationEvent(
-	Trigger 		:=	calibrated,
+fbCalibrationEvent(
+	Trigger 		:=	bCalibrated,
 	Level 			:=	ADSLOG_MSGTYPE_HINT,
 	OnMessage 		:= 'Focus is calibrated.',
-	comm 			:= comm);
+	comm 			:= fbComm);
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="HomeAxis" Id="{e02e07a4-f2a8-44c7-8582-0e85797e0e6a}">
+      <Declaration><![CDATA[PROPERTY PUBLIC HomeAxis : BOOL]]></Declaration>
+      <Get Name="Get" Id="{17d5f339-ee5c-43c7-9050-5514f862f670}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[HomeAxis := bHomeAxis;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{d14c72c8-5bbe-46e7-bde2-c0f8a0287adc}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bHomeAxis := HomeAxis;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="InFarLimit" Id="{66e2cfb2-3f2c-47bf-8a02-ad3ba18a05bd}">
+      <Declaration><![CDATA[PROPERTY PUBLIC InFarLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{d6be74e5-be21-4625-abd6-363742161882}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[InFarLimit := IbLimitFar;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="InNearLimit" Id="{1d25a9c6-c26c-4c20-9f13-eca88477ee48}">
+      <Declaration><![CDATA[PROPERTY PUBLIC InNearLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{88be5ca6-56e1-4d6b-8cc7-729df9681a1a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[InNearLimit := IbLimitNear;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="MoveIn" Id="{457ec480-c410-4034-8eef-3a888cb86380}">
       <Declaration><![CDATA[METHOD PUBLIC MoveIn : BOOL
 VAR_INPUT
-	enable	: BOOL;
+	bEnable	: BOOL;
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[inward := enable;]]></ST>
+        <ST><![CDATA[bInward := bEnable;]]></ST>
       </Implementation>
     </Method>
     <Method Name="MoveOut" Id="{dde23261-8560-4e1b-95b2-82960b603ca9}">
       <Declaration><![CDATA[METHOD PUBLIC MoveOut : BOOL
 VAR_INPUT
-	enable	: BOOL;
+	bEnable	: BOOL;
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[outward := enable;]]></ST>
+        <ST><![CDATA[bOutward := bEnable;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="Position" Id="{9245675b-7db6-4073-a061-c27547cd133b}">
+      <Declaration><![CDATA[PROPERTY PUBLIC Position : LREAL]]></Declaration>
+      <Get Name="Get" Id="{c9bc8b82-c894-45e7-a011-22d23e510c42}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Position := fActualPosition;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{605fb951-7442-405e-ba00-2c40c30c6dc6}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[fPosition := Position;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Ready" Id="{5e5f5652-436f-4f92-addf-c957df0cf4ed}">
+      <Declaration><![CDATA[PROPERTY PUBLIC Ready : BOOL]]></Declaration>
+      <Get Name="Get" Id="{df33b0c4-4a10-4db2-8775-1f51c56a773c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Ready := bReady;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{ba1340c0-e48c-49fd-b076-64f2c1dce9cd}">
+      <Declaration><![CDATA[METHOD Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bReset := TRUE;]]></ST>
       </Implementation>
     </Method>
     <Method Name="SendTelemetry" Id="{9492de4d-6d2e-401c-bc97-10786d283636}">
@@ -223,19 +344,31 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[mqttTimer(IN:=TRUE);
-IF mqttTimer.Q THEN // publish new payload every second
-	mqttTimer(IN:=FALSE);
-	comm.Publish('telescope', 'dome', 'FocusPosition', LREAL_TO_FMTSTR(actualPosition, 5, TRUE));
-	comm.Publish('telescope', 'dome', 'Focuscalibrated', BOOL_TO_STRING(calibrated));	
-	comm.Publish('telescope', 'dome', 'FocusReady', BOOL_TO_STRING(ready));	
+        <ST><![CDATA[tonMqttTimer(IN:=TRUE);
+IF tonMqttTimer.Q THEN // publish new payload every second
+	tonMqttTimer(IN:=FALSE);
+	fbComm.Publish('telescope', 'dome', 'FocusPosition', LREAL_TO_FMTSTR(fActualPosition, 5, TRUE));
+	fbComm.Publish('telescope', 'dome', 'Focuscalibrated', BOOL_TO_STRING(bCalibrated));	
+	fbComm.Publish('telescope', 'dome', 'FocusReady', BOOL_TO_STRING(bReady));	
 END_IF
 ]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_FocusControl">
-      <LineId Id="1655" Count="109" />
+      <LineId Id="5725" Count="109" />
       <LineId Id="136" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.Enable.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.Enable.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.Error.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.ErrorID.Get">
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.FB_Init">
       <LineId Id="1" Count="0" />
@@ -243,10 +376,34 @@ END_IF
     <LineIds Name="FB_FocusControl.HandleEvents">
       <LineId Id="1" Count="14" />
     </LineIds>
+    <LineIds Name="FB_FocusControl.HomeAxis.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.HomeAxis.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.InFarLimit.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.InNearLimit.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
     <LineIds Name="FB_FocusControl.MoveIn">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.MoveOut">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.Position.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.Position.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.Ready.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.Reset">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.SendTelemetry">

@@ -43,7 +43,7 @@ HydraulicsControl(
 	panPercentMax		:= 56.0
 );
 FocusControl(
-	telescopeMode 		:= E_TelescopeMode.automatic
+	eTelescopeMode 		:= E_TelescopeMode.automatic
 );
 DerotatorControl();
 ElevationControl();

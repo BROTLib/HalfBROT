@@ -9,7 +9,7 @@
     <WriteProductVersion>true</WriteProductVersion>
     <GenerateTpy>false</GenerateTpy>
     <Name>HalfBROT</Name>
-    <ProgramVersion>3.1.4026.11</ProgramVersion>
+    <ProgramVersion>3.1.4026.12</ProgramVersion>
     <Application>{a145adb0-cd69-419d-b01f-bae90fc5ebc0}</Application>
     <TypeSystem>{cd4114a4-39fe-4757-946f-b137190e982f}</TypeSystem>
     <Implicit_Task_Info>{e50e788c-df4e-4c31-b986-cbcf3cc5eef0}</Implicit_Task_Info>
