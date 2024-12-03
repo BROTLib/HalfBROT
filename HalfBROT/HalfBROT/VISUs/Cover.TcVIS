@@ -5,7 +5,7 @@
       <Data>
         <o xml:space="preserve" t="VisualObject">
           <n n="LastVisuLanguageModelEntry" />
-          <v n="UniqueIdGenerator">"185"</v>
+          <v n="UniqueIdGenerator">"227"</v>
           <o n="VisualElemList" t="VisualElemList">
             <l n="VisualElementList" t="VisualElemCollection" cet="GenericVisualElem">
               <o>
@@ -229,7 +229,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.open"</v>
+                          <v n="Value">"MAIN.CoverControl.bOpen"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -473,7 +473,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.close"</v>
+                          <v n="Value">"MAIN.CoverControl.bClose"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -717,7 +717,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.reset"</v>
+                          <v n="Value">"MAIN.CoverControl.bReset"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -819,7 +819,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.is_closed"</v>
+                          <v n="Value">"MAIN.CoverControl.bAllClosed"</v>
                         </o>
                       </l>
                     </o>
@@ -1055,7 +1055,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.is_open"</v>
+                          <v n="Value">"MAIN.CoverControl.bAllOpen"</v>
                         </o>
                       </l>
                     </o>
@@ -1291,7 +1291,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.warning"</v>
+                          <v n="Value">"MAIN.CoverControl.bWarning"</v>
                         </o>
                       </l>
                     </o>
@@ -1527,7 +1527,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.CoverControl.error"</v>
+                          <v n="Value">"MAIN.CoverControl.bError"</v>
                         </o>
                       </l>
                     </o>
