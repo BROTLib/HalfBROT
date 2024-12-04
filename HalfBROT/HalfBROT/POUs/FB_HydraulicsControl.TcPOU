@@ -3,75 +3,75 @@
   <POU Name="FB_HydraulicsControl" Id="{0d9c5732-af19-4096-a83e-065687a13da0}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_HydraulicsControl
 VAR_INPUT
-	enable				: BOOL := FALSE;	// start the hydraulics
-	reset				: BOOL;				// reset any hydraulics error
-	suctionManual		: BOOL;				// manual override to start the suction pump
-	pumpManualStop		: BOOL;				// manual override to stop the pump
-	brakeClearing		: BOOL;				// external clearing for brakes
-	azimutLimitSwitch	: BOOL;				// external signal for azimuth limit switch
-	panLevelMin			: INT := 0;			// minimum oil level from sensor
-	panLevelMax			: INT := 16383;		// maximum oil level from sensor
-	panPercentMin		: REAL := 0;		// oil level percentage to be seen as empty
-	panPercentMax		: REAL := 90;		// oil level percentage to be seen as full
+	bEnable				: BOOL := FALSE;	// start the hydraulics
+	bReset				: BOOL;				// reset any hydraulics error
+	bManualSuction		: BOOL;				// manual override to start the suction pump
+	bManualPumpStop		: BOOL;				// manual override to stop the pump
+	bBrakeClearing		: BOOL;				// external clearing for brakes
+	bAzimutLimitSwitch	: BOOL;				// external signal for azimuth limit switch
+	nMinPanLevel		: INT := 0;			// minimum oil level from sensor
+	nMaxPanLevel		: INT := 16383;		// maximum oil level from sensor
+	fMinPanPercent		: REAL := 0;		// oil level percentage to be seen as empty
+	fMaxPanPercent		: REAL := 90;		// oil level percentage to be seen as full
 	
 END_VAR
 VAR_OUTPUT
-	brakeOpen			: BOOL;				// status of the brake: is the brake open?
-	brakeClosed			: BOOL;				// is the brake closed?
-	pressureFailure		: BOOL;				// pump is running, but the pressure remains low
-	suctionFailure		: BOOL;				// suction was started, but it is not running
-	hydraulicsFailure	: BOOL;				// main pump is running but suction has a timeout
-	mainPumpFailure		: BOOL;
-	oilLow				: BOOL;				// oil is low
-	oilHigh				: BOOL;				// oil is high (unused?)
-	oilPressureOK		: BOOL;				// oil pressure is 25 bars
-	oilWarning			: BOOL;				// oil is on reserve
-	oilFilterDirty		: BOOL;				// oil filter is dirty
-	oilCold				: BOOL;				// oil is below 10°C
-	oilHot				: BOOL;				// oil is above 50°C
-	oilpanMaximum		: BOOL;				// swimmer
-	pumpRunning			: BOOL;				// main pump is running
-	suctionRunning 		: BOOL := FALSE;	// suction pump is running
-	error				: BOOL;				// error condition
+	bBrakeOpen			: BOOL;				// status of the brake: is the brake open?
+	bBrakeClosed		: BOOL;				// is the brake closed?
+	bPressureFailure	: BOOL;				// pump is running, but the pressure remains low
+	bSuctionFailure		: BOOL;				// suction was started, but it is not running
+	bHydraulicsFailure	: BOOL;				// main pump is running but suction has a timeout
+	bMainPumpFailure	: BOOL;
+	bOilLow				: BOOL;				// oil is low
+	bOilHigh			: BOOL;				// oil is high (unused?)
+	bOilPressureOK		: BOOL;				// oil pressure is 25 bars
+	bOilWarning			: BOOL;				// oil is on reserve
+	bOilFilterDirty		: BOOL;				// oil filter is dirty
+	bOilCold			: BOOL;				// oil is below 10°C
+	bOilHot				: BOOL;				// oil is above 50°C
+	bOilPanMaximum		: BOOL;				// swimmer
+	bPumpRunning		: BOOL;				// main pump is running
+	bSuctionRunning 	: BOOL := FALSE;	// suction pump is running
+	bError				: BOOL;				// error condition
 END_VAR
 VAR
-	comm				: I_Comm; 
-	inOilLow			AT%I*	: BOOL;	// 2.1
-	inOilHigh			AT%I*	: BOOL;	// ?
-	inOilPressureOK		AT%I*	: BOOL;	// 2.3
-	inOilOvertemperature	AT%I*	: BOOL;	// 2.4
-	inOilUndertemperature	AT%I*	: BOOL;	// 2.5
-	inOilfilterDirty	AT%I*	: BOOL;	// 2.6
-	inPumpRunning		AT%I*	: BOOL;	// 2.7
-	inSuctionRunning	AT%I*	: BOOL;	// 2.8
-	inOilLevel			AT%I*	: INT;	//BT2
-	inOilpanMaximum		AT%I*	: BOOL;	//DIN39 4.6
-	inOilReserve		AT%I*	: BOOL;	//DIN40 4.7
-	outOilPumpEnable	AT%Q*	: BOOL;	//DOUT4 0.3
-	outOilSuctionEnable	AT%Q*	: BOOL; //DOUT5 0.4	
-	brakeAzimuthEve		AT%Q*	: BOOL;	// brake set
-	resetOilPump		AT%Q*: BOOL;
-	resetSucPump		AT%Q*: BOOL;
+	fbComm				: I_Comm; 
+	IbOilLow			AT%I* : BOOL;	// 2.1
+	IbOilHigh			AT%I* : BOOL;	// ?
+	IbOilPressureOK		AT%I* : BOOL;	// 2.3
+	IbOilHot			AT%I* : BOOL;	// 2.4
+	IbOilCold			AT%I* : BOOL;	// 2.5
+	IbOilFilterDirty	AT%I* : BOOL;	// 2.6
+	IbPumpRunning		AT%I* : BOOL;	// 2.7
+	IbSuctionRunning	AT%I* : BOOL;	// 2.8
+	InOilLevel			AT%I* : INT;	//BT2
+	IbOilpanMaximum		AT%I* : BOOL;	//DIN39 4.6
+	IbOilReserve		AT%I* : BOOL;	//DIN40 4.7
+	ObOilPumpEnable		AT%Q* : BOOL;	//DOUT4 0.3
+	ObOilSuctionEnable	AT%Q* : BOOL; //DOUT5 0.4	
+	ObBrakeAzEl			AT%Q* : BOOL;	// brake set
+	ObResetOilPump		AT%Q* : BOOL;
+	ObResetSuctionPump	AT%Q* : BOOL;
 	
-	iOpenBrake			: BOOL := FALSE;	// command to open the brake
-	iCloseBrake			: BOOL;				// command to open the brake
-	pressureWatchdog	: TON;				// monitors the pressure of the pump is running
-	suctionWatchdog		: TON;				// monitors the activation of the suction pump
-	mainPumpWatchdog	: TON;				// monitors the activation of the main pump			
-	hydraulicsWatchdog	: TON;				// watch the hydraulics and suction pumps
+	bOpenBrake			: BOOL := FALSE;	// command to open the brake
+	bCloseBrake			: BOOL;				// command to open the brake
+	tonPressureWatchdog	: TON;				// monitors the pressure of the pump is running
+	tonSuctionWatchdog	: TON;				// monitors the activation of the suction pump
+	tonMainPumpWatchdog	: TON;				// monitors the activation of the main pump			
+	tonHydraulicsWatchdog	: TON;				// watch the hydraulics and suction pumps
 	
-	oilPumpState		: RS;				// represents the state of the main pump
+	rsOilPumpState		: RS;				// represents the state of the main pump
 	
-	brakeState			: RS;				// represents the state of the brake
-	brakeOpenDelay		: TON;				// wait for the brake to open after pressure has been established
-	brakeOpenedDelay	: TON;				// report brake opend after a short delay
+	rsBrakeState		: RS;				// represents the state of the brake
+	tonBrakeOpenDelay	: TON;				// wait for the brake to open after pressure has been established
+	tonBrakeOpenedDelay	: TON;				// report brake opend after a short delay
 	
-	errorState			: SR;				// error state (set dominant)
-	suctionTrigger		: SR;				// trigger for suction pump
-	hydraulicsOffTimer	: TON  := (PT := T#300S);	// timer to shut off hydraulics after break was closed
-	offTrigger			: F_TRIG;
-	oilLevel			: REAL;
-	lastOilLevel		: REAL;
+	srErrorState			: SR;				// error state (set dominant)
+	srSuctionTrigger		: SR;				// trigger for suction pump
+	tonHydraulicsOffTimer	: TON  := (PT := T#300S);	// timer to shut off hydraulics after break was closed
+	fbOffTrigger			: F_TRIG;
+	fOilLevel			: REAL;
+	fLastOilLevel		: REAL;
 	hydraulicsLog,
 	pumpLog,
 	reserveLog,
@@ -101,41 +101,41 @@ Main control Logic for the Hydraulics system
 *)
 
 // get values from sensors
-oilLow 			:= NOT inOilLow;
-oilHigh 		:= NOT inOilHigh;
-oilWarning 		:= inOilReserve;
-oilPressureOK 	:= inOilPressureOK;
-oilFilterDirty 	:= NOT inOilfilterDirty;
-oilCold 		:= NOT inOilUndertemperature;
-oilHot 			:= inOilOvertemperature;
+bOilLow 		:= NOT IbOilLow;
+bOilHigh 		:= NOT IbOilHigh;
+bOilWarning 	:= IbOilReserve;
+bOilPressureOK 	:= IbOilPressureOK;
+bOilFilterDirty := NOT IbOilFilterDirty;
+bOilCold 		:= NOT IbOilCold;
+bOilHot 		:= IbOilHot;
 //oil_level 			:= F_YREAL(in_oil_level, 0, 16383, 0.0, 5.0);
-oilLevel		:= F_YREAL(inOilLevel, panLevelMin, panLevelMax, 0, 100, cut := FALSE); 
-oilpanMaximum	:= inOilpanMaximum;
-pumpRunning 	:= inPumpRunning;
-suctionRunning 	:= inSuctionRunning;
+fOilLevel		:= F_YREAL(inOilLevel, nMinPanLevel, nMaxPanLevel, 0, 100, cut := FALSE); 
+bOilPanMaximum	:= IbOilpanMaximum;
+bPumpRunning 	:= IbPumpRunning;
+bSuctionRunning := IbSuctionRunning;
 
 // reset pumps
-resetOilPump := reset;
-resetSucPump := reset;
+ObResetOilPump     := bReset;
+ObResetSuctionPump := bReset;
 
 // error state?
-errorState(
-	SET1 := pressureFailure OR	suctionFailure OR hydraulicsFailure OR oilLow OR mainPumpFailure,
-	RESET := reset,
-	Q1 => error);
+srErrorState(
+	SET1  := bPressureFailure OR bSuctionFailure OR bHydraulicsFailure OR bOilLow OR bMainPumpFailure,
+	RESET := bReset,
+	Q1    => bError);
 			
 // clear reset, if no error present
-IF NOT error THEN
-	reset := FALSE;
+IF NOT bError THEN
+	bReset := FALSE;
 END_IF
 
 // pump state
-oilPumpState(
-	SET := enable,
-	RESET1 := NOT enable OR error OR pumpManualStop OR inOilpanMaximum);
+rsOilPumpState(
+	SET    := bEnable,
+	RESET1 := NOT bEnable OR bError OR bManualPumpStop OR IbOilpanMaximum);
 
 // switch oil pump
-outOilPumpEnable := oilPumpState.Q1;
+ObOilPumpEnable := rsOilPumpState.Q1;
 
 (* This section controls the hydraulic brake responsible for azimuth and elevation. 
 Especially the elevation is imbalanced if not in the position control loop. 
@@ -143,209 +143,209 @@ The brake must only be opened, if the elevation drive is activated concurrently.
 *)
 
 // close the brake if the pump is not running	
-IF iCloseBrake OR NOT pumpRunning THEN 
-	iOpenBrake := FALSE;
+IF bCloseBrake OR NOT bPumpRunning THEN 
+	bOpenBrake := FALSE;
 END_IF
 
 // wait for pressure to build up (hack for oil_pressure_ok)
-brakeOpenDelay(
-	IN := pumpRunning AND oilPressureOK,
+tonBrakeOpenDelay(
+	IN := bPumpRunning AND bOilPressureOK,
 	PT := T#3S);
 		
-brakeState(
-	SET := brakeOpenDelay.Q AND iOpenBrake AND brakeClearing,
-	RESET1 := azimutLimitSwitch	OR iCloseBrake OR NOT pumpRunning OR NOT brakeClearing,
-	Q1 => brakeAzimuthEve);
+rsBrakeState(
+	SET    := tonBrakeOpenDelay.Q AND bOpenBrake AND bBrakeClearing,
+	RESET1 := bAzimutLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR NOT bBrakeClearing,
+	Q1     => ObBrakeAzEl);
 
 // signal that the brake is open after one second
-brakeOpenedDelay(
-	IN := brakeState.Q1, 
+tonBrakeOpenedDelay(
+	IN := rsBrakeState.Q1, 
 	PT := T#1000MS,
-	Q  => brakeOpen);
+	Q  => bBrakeOpen);
 
 // brake closed?
-brakeClosed := NOT brakeOpen;
-IF brakeClosed THEN
-	iCloseBrake := FALSE;
+bBrakeClosed := NOT bBrakeOpen;
+IF bBrakeClosed THEN
+	bCloseBrake := FALSE;
 END_IF
 
 // turn off the hydraulics if the brake is closed and the pump is still running
-hydraulicsOffTimer(IN := brakeClosed AND enable );
-offTrigger(CLK := hydraulicsOffTimer.Q);
-IF hydraulicsOffTimer.Q THEN
-	enable := FALSE;
+tonHydraulicsOffTimer(IN := bBrakeClosed AND bEnable );
+fbOffTrigger(CLK := tonHydraulicsOffTimer.Q);
+IF tonHydraulicsOffTimer.Q THEN
+	bEnable := FALSE;
 END_IF
 
 (* This is the end of the brake control section *)
 
-suctionTrigger(
-	SET1  := oilpanMaximum OR oilLevel>panPercentMax,
-	RESET := oilLevel<panPercentMin);
-outOilSuctionEnable := suctionTrigger.Q1 OR suctionManual;					
-suctionWatchdog(
-	IN := outOilSuctionEnable AND NOT suctionRunning,
+srSuctionTrigger(
+	SET1  := bOilPanMaximum OR fOilLevel>fMaxPanPercent,
+	RESET := fOilLevel<fMinPanPercent);
+ObOilSuctionEnable := srSuctionTrigger.Q1 OR bManualSuction;					
+tonSuctionWatchdog(
+	IN := ObOilSuctionEnable AND NOT bSuctionRunning,
 	PT := T#15S,
-	Q  => suctionFailure);
+	Q  => bSuctionFailure);
 					
-pressureWatchdog(
-	IN := outOilPumpEnable AND	NOT oilPressureOK,
+tonPressureWatchdog(
+	IN := ObOilPumpEnable AND	NOT bOilPressureOK,
 	PT := T#30S,
-	Q  => pressureFailure);
-hydraulicsWatchdog(
-	IN := pumpRunning AND NOT suctionRunning,
+	Q  => bPressureFailure);
+tonHydraulicsWatchdog(
+	IN := bPumpRunning AND NOT bSuctionRunning,
 	PT := T#140S,
-	Q  => hydraulicsFailure);
+	Q  => bHydraulicsFailure);
 
-mainPumpWatchdog(
-	IN := outOilPumpEnable AND NOT pumpRunning,
+tonMainPumpWatchdog(
+	IN := ObOilPumpEnable AND NOT bPumpRunning,
 	PT := T#10S,
-	Q  => mainPumpFailure);
+	Q  => bMainPumpFailure);
 
-statusWord.0 := oilLow;
-statusWord.1 := oilHigh;
-statusWord.2 := oilWarning;
-statusWord.3 := oilPressureOK;
-statusWord.4 := oilFilterDirty;
-statusWord.5 := oilCold;
-statusWord.6 := oilHot;
-statusWord.7 := brakeOpen;
-statusWord.8 := brakeClearing;
-statusWord.9 := pumpRunning;
-statusWord.10 := suctionRunning;
-statusWord.11 := oilpanMaximum;
-statusWord.12 := outOilPumpEnable;
-statusWord.13 := outOilSuctionEnable;
-IF ABS(lastOilLevel - oilLevel) > 5 THEN
+statusWord.0 := bOilLow;
+statusWord.1 := bOilHigh;
+statusWord.2 := bOilWarning;
+statusWord.3 := bOilPressureOK;
+statusWord.4 := bOilFilterDirty;
+statusWord.5 := bOilCold;
+statusWord.6 := bOilHot;
+statusWord.7 := bBrakeOpen;
+statusWord.8 := bBrakeClearing;
+statusWord.9 := bPumpRunning;
+statusWord.10 := bSuctionRunning;
+statusWord.11 := bOilPanMaximum;
+statusWord.12 := ObOilPumpEnable;
+statusWord.13 := ObOilSuctionEnable;
+IF ABS(fLastOilLevel - fOilLevel) > 5 THEN
 	statusWord.15 := TRUE;
-	lastOilLevel := oilLevel;
+	fLastOilLevel := fOilLevel;
 ELSE
 	statusWord.15 := FALSE;
 END_IF
 
 IF statusWord<>LastStatus THEN // publish new payload every second
 	LastStatus := statusWord;
-	comm.Publish('hydraulics', 'base', 'OilLow',		BOOL_TO_STRING(oilLow));
-	comm.Publish('hydraulics', 'base', 'OilHigh',		BOOL_TO_STRING(oilHigh));
-	comm.Publish('hydraulics', 'base', 'OilMaximum',	BOOL_TO_STRING(oilpanMaximum));
-	comm.Publish('hydraulics', 'base', 'OilReserve',	BOOL_TO_STRING(oilWarning));
-	comm.Publish('hydraulics', 'base', 'OilPressureOK', BOOL_TO_STRING(oilPressureOK));
-	comm.Publish('hydraulics', 'base', 'OilFilterDirty',BOOL_TO_STRING(oilFilterDirty));
-	comm.Publish('hydraulics', 'base', 'OilCold',		BOOL_TO_STRING(oilCold));
-	comm.Publish('hydraulics', 'base', 'OilHot',		BOOL_TO_STRING(oilHot));
-	comm.Publish('hydraulics', 'base', 'BrakeOpen',		BOOL_TO_STRING(brakeOpen));
-	comm.Publish('hydraulics', 'base', 'BrakeClearing',	BOOL_TO_STRING(brakeClearing));
-	comm.Publish('hydraulics', 'base', 'PumpRunning',	BOOL_TO_STRING(pumpRunning));
-	comm.Publish('hydraulics', 'base', 'SuctionRunning',BOOL_TO_STRING(suctionRunning));
-	comm.Publish('hydraulics', 'base', 'OilLevel',		REAL_TO_STRING(oilLevel));
-	comm.Publish('hydraulics', 'base', 'StatusWord',	UDINT_TO_STRING(statusWord));
+	fbComm.Publish('hydraulics', 'base', 'OilLow',		BOOL_TO_STRING(bOilLow));
+	fbComm.Publish('hydraulics', 'base', 'OilHigh',		BOOL_TO_STRING(bOilHigh));
+	fbComm.Publish('hydraulics', 'base', 'OilMaximum',	BOOL_TO_STRING(bOilPanMaximum));
+	fbComm.Publish('hydraulics', 'base', 'OilReserve',	BOOL_TO_STRING(bOilWarning));
+	fbComm.Publish('hydraulics', 'base', 'OilPressureOK', BOOL_TO_STRING(bOilPressureOK));
+	fbComm.Publish('hydraulics', 'base', 'OilFilterDirty',BOOL_TO_STRING(bOilFilterDirty));
+	fbComm.Publish('hydraulics', 'base', 'OilCold',		BOOL_TO_STRING(bOilCold));
+	fbComm.Publish('hydraulics', 'base', 'OilHot',		BOOL_TO_STRING(bOilHot));
+	fbComm.Publish('hydraulics', 'base', 'BrakeOpen',		BOOL_TO_STRING(bBrakeOpen));
+	fbComm.Publish('hydraulics', 'base', 'BrakeClearing',	BOOL_TO_STRING(bBrakeClearing));
+	fbComm.Publish('hydraulics', 'base', 'PumpRunning',	BOOL_TO_STRING(bPumpRunning));
+	fbComm.Publish('hydraulics', 'base', 'SuctionRunning',BOOL_TO_STRING(bSuctionRunning));
+	fbComm.Publish('hydraulics', 'base', 'OilLevel',		REAL_TO_STRING(fOilLevel));
+	fbComm.Publish('hydraulics', 'base', 'StatusWord',	UDINT_TO_STRING(statusWord));
 END_IF
 
 			  
 hydraulicsLog(
-	Trigger 		:= pressureFailure OR mainPumpFailure,
+	Trigger 		:= bPressureFailure OR bMainPumpFailure,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'Main hydraulics pump / pressure: %s',
 	OnMessage 		:= 'FAILURE',
 	OffMessage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
-	comm 			:= comm);
+	comm 			:= fbComm);
 
 pumpLog(
-	Trigger 		:= pumpRunning,
+	Trigger 		:= bPumpRunning,
 	Level 			:= ADSLOG_MSGTYPE_HINT,
 	FormatString 	:= 'Main hydraulics pump: %s',
 	OnMessage 		:= 'START',
 	OffMessage 		:= 'STOP',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
-	comm 			:= comm);
+	comm 			:= fbComm);
 	
 reserveLog(
-	Trigger 		:= oilWarning,
+	Trigger 		:= bOilWarning,
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= 'oil reserve: %s',
 	OnMessage 		:= 'LOW',
 	OffMessage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
-	comm	 		:= comm);
+	comm	 		:= fbComm);
 
 oilLowLog(
-	Trigger 		:= oilLow,
+	Trigger 		:= bOilLow,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'oil level: %s',
 	OnMessage 		:= 'LOW',
 	OffMessage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
-	comm 			:= comm);
+	comm 			:= fbComm);
 
 oilMaxLog(
-	Trigger 		:= oilpanMaximum,
+	Trigger 		:= bOilPanMaximum,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'oil level: %s',
 	OnMessage 		:= 'MAXIMUM',
 	OffMessage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
-	comm 			:= comm);	
+	comm 			:= fbComm);	
 				
 filterLog(
-	Trigger 		:= oilFilterDirty,
+	Trigger 		:= bOilFilterDirty,
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= 'Hydraulics Filter is %s',
 	OnMessage 		:= 'dirty.', 
-	comm 			:= comm);
+	comm 			:= fbComm);
 
 overTemperatureLog(
-	Trigger 		:= oilHot,
+	Trigger 		:= bOilHot,
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= 'Hydraulics Temperature is %s',
 	OnMessage 		:= 'high.', 
-	comm 			:= comm);
+	comm 			:= fbComm);
 				
 underTemperatureLog(
-	Trigger 		:= oilCold,
+	Trigger 		:= bOilCold,
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= 'Hydraulics Temperature is %s',
 	OnMessage 		:= 'low.', 
-	comm 			:= comm);
+	comm 			:= fbComm);
 
 suctionLog(
-	Trigger 		:= suctionFailure,
+	Trigger 		:= bSuctionFailure,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'suction pump: %s',
 	OnMessage 		:= 'FAILURE',
 	OffMessage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
-	comm 			:= comm);
+	comm 			:= fbComm);
 
 hydraulicsFailureLog(
-	Trigger 		:= hydraulicsFailure,
+	Trigger 		:= bHydraulicsFailure,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'suction pump while running main pump: %s',
 	OnMessage 		:= 'FAILURE',
 	OffMessage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
-	comm 			:= comm);
+	comm 			:= fbComm);
 				
 brakeClearingWarning(
-	Trigger 		:= NOT brakeClearing AND iOpenBrake,
+	Trigger 		:= NOT bBrakeClearing AND bOpenBrake,
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Cannot open brake without brake clearing.', 
-	comm 			:= comm);
+	comm 			:= fbComm);
 
 brakeWarning(	
-	Trigger 		:= brakeOpen,
+	Trigger 		:= bBrakeOpen,
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Brake is open.',
 	OffMessage 		:= 'Brake is closed.', 
-	comm 			:= comm);
+	comm 			:= fbComm);
 
 brakeHydraulicsWarning(
-	Trigger 		:= NOT enable AND iOpenBrake,
+	Trigger 		:= NOT bEnable AND bOpenBrake,
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Cannot open brake without running hydraulics.', 
-	comm 			:= comm);]]></ST>
+	comm 			:= fbComm);]]></ST>
     </Implementation>
     <Method Name="close_brake" Id="{8645e358-9c1d-4f56-a320-d20acf3a9f78}">
       <Declaration><![CDATA[METHOD close_brake : BOOL
@@ -354,9 +354,9 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[// close the brake
-iCloseBrake := TRUE;
+bCloseBrake := TRUE;
 
-RETURN(brakeClosed);]]></ST>
+RETURN(bBrakeClosed);]]></ST>
       </Implementation>
     </Method>
     <Method Name="FB_Init" Id="{f8304cff-71fd-40f3-8c17-0d2ac2c6aa2c}">
@@ -371,7 +371,7 @@ VAR_INPUT
 	comm			: I_Comm;   
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[THIS^.comm := comm;]]></ST>
+        <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
       </Implementation>
     </Method>
     <Method Name="open_brake" Id="{803f79af-0083-4059-9845-1aae86bb3efd}">
@@ -381,64 +381,16 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[// start the pump
-enable := TRUE;
+bEnable := TRUE;
 // open the brake
-IF oilPressureOK THEN
-	iOpenBrake := TRUE;
+IF bOilPressureOK THEN
+	bOpenBrake := TRUE;
 END_IF;
-RETURN(brakeOpen);]]></ST>
+RETURN(bBrakeOpen);]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_HydraulicsControl">
-      <LineId Id="8751" Count="58" />
-      <LineId Id="8989" Count="0" />
-      <LineId Id="8810" Count="2" />
-      <LineId Id="8990" Count="0" />
-      <LineId Id="8813" Count="0" />
-      <LineId Id="8817" Count="3" />
-      <LineId Id="8991" Count="0" />
-      <LineId Id="8821" Count="18" />
-      <LineId Id="8992" Count="0" />
-      <LineId Id="8840" Count="2" />
-      <LineId Id="8993" Count="0" />
-      <LineId Id="8843" Count="3" />
-      <LineId Id="8994" Count="0" />
-      <LineId Id="8847" Count="2" />
-      <LineId Id="8995" Count="0" />
-      <LineId Id="8850" Count="3" />
-      <LineId Id="8996" Count="0" />
-      <LineId Id="8854" Count="41" />
-      <LineId Id="8897" Count="1" />
-      <LineId Id="8997" Count="0" />
-      <LineId Id="8899" Count="7" />
-      <LineId Id="8999" Count="0" />
-      <LineId Id="8907" Count="7" />
-      <LineId Id="9000" Count="0" />
-      <LineId Id="8915" Count="7" />
-      <LineId Id="9001" Count="0" />
-      <LineId Id="8923" Count="7" />
-      <LineId Id="9002" Count="0" />
-      <LineId Id="8931" Count="7" />
-      <LineId Id="9003" Count="0" />
-      <LineId Id="8939" Count="3" />
-      <LineId Id="9004" Count="0" />
-      <LineId Id="8944" Count="0" />
-      <LineId Id="9005" Count="0" />
-      <LineId Id="8945" Count="5" />
-      <LineId Id="9006" Count="0" />
-      <LineId Id="8951" Count="3" />
-      <LineId Id="9007" Count="0" />
-      <LineId Id="8956" Count="0" />
-      <LineId Id="9008" Count="0" />
-      <LineId Id="8957" Count="7" />
-      <LineId Id="9009" Count="0" />
-      <LineId Id="8965" Count="7" />
-      <LineId Id="9010" Count="0" />
-      <LineId Id="8973" Count="5" />
-      <LineId Id="9011" Count="0" />
-      <LineId Id="8979" Count="6" />
-      <LineId Id="9012" Count="0" />
-      <LineId Id="8986" Count="2" />
+      <LineId Id="13858" Count="254" />
       <LineId Id="234" Count="0" />
     </LineIds>
     <LineIds Name="FB_HydraulicsControl.close_brake">

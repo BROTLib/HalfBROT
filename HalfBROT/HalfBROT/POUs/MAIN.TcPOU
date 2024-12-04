@@ -39,8 +39,8 @@ END_VAR]]></Declaration>
 TelescopeControl(telescopeConfig := telescopeConfig);
 CoverControl();
 HydraulicsControl(
-	panPercentMin		:= 26.0,
-	panPercentMax		:= 56.0
+	fMinPanPercent		:= 26.0,
+	fMaxPanPercent		:= 56.0
 );
 FocusControl(
 	eTelescopeMode 		:= E_TelescopeMode.automatic
@@ -48,7 +48,7 @@ FocusControl(
 DerotatorControl();
 ElevationControl();
 AzimuthControl(
-	brakeOpen			:= HydraulicsControl.brakeOpen
+	brakeOpen			:= HydraulicsControl.bBrakeOpen
 );
 TelescopeControl();
 PendantControl();

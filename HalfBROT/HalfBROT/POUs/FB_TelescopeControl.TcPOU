@@ -208,7 +208,7 @@ hor2eq(alt := elevation_current - PointingModelElevation(azimuth_calc, elevation
 		ra => rightascension_calc,
 		dec => declination_calc);		
 	
-poweronwarning(IN := power OR (NOT ElevationControl.enable AND HydraulicsControl.brakeOpen), PT := T#250MS);
+poweronwarning(IN := power OR (NOT ElevationControl.enable AND HydraulicsControl.bBrakeOpen), PT := T#250MS);
 
 power_timeout(IN := TCS_command = E_TCSCommand.no_command AND NOT isparked, PT := T#12H);
 command_timeout();
@@ -324,7 +324,7 @@ ready := homed AND
 	CoverControl.AreCoversOpen() AND 
 	ElevationControl.enable AND
 	AzimuthControl.enable AND
-	DerotatorControl.enable AND HydraulicsControl.brakeOpen AND 
+	DerotatorControl.enable AND HydraulicsControl.bBrakeOpen AND 
     NOT error;
 
 busy := ElevationControl.axis.Busy OR
@@ -715,9 +715,9 @@ CASE Stage OF
 		IF ElevationControl.enable OR AzimuthControl.Enable OR DerotatorControl.enable THEN
 			stage := 60;
 		END_IF
-		IF HydraulicsControl.brakeClosed THEN
+		IF HydraulicsControl.bBrakeClosed THEN
 			CoverControl.CloseCovers();
-			HydraulicsControl.enable := FALSE;
+			HydraulicsControl.bEnable := FALSE;
 		END_IF
 		IF CoverControl.AreCoversClosed() THEN
 			Stage := 100;

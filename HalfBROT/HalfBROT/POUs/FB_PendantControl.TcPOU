@@ -248,7 +248,7 @@ CASE Selection OF
 		END_IF
 		ResetDelay(IN := reset_switch, PT := T#3S);
 		// wait for suction pump to stop
-		TwinCATRestart(NETID := '', RESTART := ResetDelay.Q AND NOT HydraulicsControl.suctionRunning, TMOUT := T#60S);
+		TwinCATRestart(NETID := '', RESTART := ResetDelay.Q AND NOT HydraulicsControl.bSuctionRunning, TMOUT := T#60S);
 	
 	14: horn := key_switch;
 		lamp_up := key_switch;
@@ -257,15 +257,15 @@ CASE Selection OF
 		lamp_right := key_switch;
 	
 	15:	// Hydraulics control
-		lamp_up := HydraulicsControl.oilPressureOK AND Hydraulicscontrol.brakeClosed;
-		lamp_down := HydraulicsControl.oilPressureOK AND Hydraulicscontrol.brakeOpen;
-		lamp_left := HydraulicsControl.pumpRunning;
-		lamp_right := HydraulicsControl.suctionRunning;
+		lamp_up := HydraulicsControl.bOilPressureOK AND Hydraulicscontrol.bBrakeClosed;
+		lamp_down := HydraulicsControl.bOilPressureOK AND Hydraulicscontrol.bBrakeOpen;
+		lamp_left := HydraulicsControl.bPumpRunning;
+		lamp_right := HydraulicsControl.bSuctionRunning;
 		IF key_switch THEN
 			HydraulicsEnable(
 				SET := start_switch, 
-				Q := Hydraulicscontrol.enable);
-			Hydraulicscontrol.reset := reset_switch;
+				Q := Hydraulicscontrol.bEnable);
+			Hydraulicscontrol.bReset := reset_switch;
 			
 			IF direction_up THEN
 				Hydraulicscontrol.open_brake();
@@ -273,9 +273,9 @@ CASE Selection OF
 			IF direction_down THEN
 				Hydraulicscontrol.close_brake();
 			END_IF
-			HydraulicsControl.suctionManual := direction_right;
-			HydraulicsControl.pumpManualStop := direction_left;
-			lamp_error := HydraulicsControl.error;
+			HydraulicsControl.bManualSuction := direction_right;
+			HydraulicsControl.bManualPumpStop := direction_left;
+			lamp_error := HydraulicsControl.bError;
 		END_IF
 END_CASE
 ]]></ST>

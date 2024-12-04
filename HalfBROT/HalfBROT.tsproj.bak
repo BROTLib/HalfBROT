@@ -2975,21 +2975,11 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{363DA9F7-A2C1-43F1-A4FF-717FB38D77B2}" Name="HalfBROT" PrjFilePath="HalfBROT\HalfBROT.plcproj" TmcFilePath="HalfBROT\HalfBROT.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{A9E06335-8C23-B5F4-508F-AA07E235FA93}" TmcPath="HalfBROT\HalfBROT.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{18A3F935-03E0-C741-18A0-A77E1A42E7F1}" TmcPath="HalfBROT\HalfBROT.tmc">
 					<Name>HalfBROT Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
 						<Name>PlcTask Outputs</Name>
-						<Var>
-							<Name>MAIN.CoverControl.out_open_cover</Name>
-							<Comment><![CDATA[ open cover1-3 command]]></Comment>
-							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.out_close_cover</Name>
-							<Comment><![CDATA[ close cover1-3 command]]></Comment>
-							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
-						</Var>
 						<Var>
 							<Name>MAIN.HydraulicsControl.outOilPumpEnable</Name>
 							<Comment><![CDATA[DOUT4 0.3]]></Comment>
@@ -3087,19 +3077,19 @@ DOUT9 1.0]]></Comment>
 							<Name>MAIN.Reset_STO_Derotator</Name>
 							<Type>BOOL</Type>
 						</Var>
+						<Var>
+							<Name>MAIN.CoverControl.OabOpenCover</Name>
+							<Comment><![CDATA[ open cover1-3 command]]></Comment>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.CoverControl.OabCloseCover</Name>
+							<Comment><![CDATA[ close cover1-3 command]]></Comment>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
+						</Var>
 					</Vars>
 					<Vars VarGrpType="1">
 						<Name>PlcTask Inputs</Name>
-						<Var>
-							<Name>MAIN.CoverControl.in_cover_open</Name>
-							<Comment><![CDATA[ limit coper 1 open switch]]></Comment>
-							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.in_cover_closed</Name>
-							<Comment><![CDATA[ limit coper 1 closed switch]]></Comment>
-							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
-						</Var>
 						<Var>
 							<Name>MAIN.HydraulicsControl.inOilLow</Name>
 							<Comment><![CDATA[ 2.1]]></Comment>
@@ -3317,6 +3307,16 @@ DOUT9 1.0]]></Comment>
  Stop		AT%I*:	BOOL;
  state variable]]></Comment>
 							<Type>USINT</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.CoverControl.IabCoverOpen</Name>
+							<Comment><![CDATA[ limit coper 1 open switch]]></Comment>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.CoverControl.IabCoverClosed</Name>
+							<Comment><![CDATA[ limit coper 1 closed switch]]></Comment>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
 						</Var>
 					</Vars>
 					<Contexts>

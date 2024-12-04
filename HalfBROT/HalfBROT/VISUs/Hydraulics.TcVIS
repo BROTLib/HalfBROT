@@ -5,7 +5,7 @@
       <Data>
         <o xml:space="preserve" t="VisualObject">
           <n n="LastVisuLanguageModelEntry" />
-          <v n="UniqueIdGenerator">"165"</v>
+          <v n="UniqueIdGenerator">"297"</v>
           <o n="VisualElemList" t="VisualElemList">
             <l n="VisualElementList" t="VisualElemCollection" cet="GenericVisualElem">
               <o>
@@ -91,7 +91,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.enable"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bEnable"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -197,7 +197,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.reset"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bReset"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -561,7 +561,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.error"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bError"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -792,7 +792,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.pumpRunning"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bPumpRunning"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -890,7 +890,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.suctionRunning"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bSuctionRunning"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -988,7 +988,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.oilPressureOK"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bOilPressureOK"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -1682,7 +1682,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.iOpenBrake"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bOpenBrake"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2046,7 +2046,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.brakeClearing"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bBrakeClearing"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2152,7 +2152,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.iCloseBrake"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bCloseBrake"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2383,7 +2383,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.brakeOpen"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bBrakeOpen"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2481,7 +2481,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.brakeClosed"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bBrakeClosed"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2776,7 +2776,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.suctionManual"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bManualSuction"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2882,7 +2882,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.pumpManualStop"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bManualPumpStop"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3435,7 +3435,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.oilLow"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bOilLow"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3666,7 +3666,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.oilHigh"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bOilHigh"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3897,7 +3897,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.oilWarning"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bOilWarning"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -4128,7 +4128,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.oilCold"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bOilCold"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -4359,7 +4359,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.oilHot"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bOilHot"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -4590,7 +4590,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.oilpanMaximum"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.bOilPanMaximum"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -5045,7 +5045,7 @@
                         </o>
                         <o>
                           <v n="Id">2216112L</v>
-                          <v n="Value">"MAIN.HydraulicsControl.oilLevel"</v>
+                          <v n="Value">"MAIN.HydraulicsControl.fOilLevel"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
