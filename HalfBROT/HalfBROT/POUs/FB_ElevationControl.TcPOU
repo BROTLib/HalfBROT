@@ -26,9 +26,9 @@ VAR_OUTPUT
 	slewTime		: LREAL;	// time to reach target position
 END_VAR
 VAR
-	CoverControl		: I_MirrorCovers;
-	HydraulicsControl 	: REFERENCE TO FB_HydraulicsControl;
-	comm				: I_Comm;
+	CoverControl	: I_MirrorCovers;
+	fbBrake 		: I_Brake;
+	comm			: I_Comm;
 	
 	inDigitalInputs	AT%I*	: WORD;		// digitale inputs der Endlagen
 	inDiagnostic	AT%I*	: UDINT;	// diagnostic number
@@ -71,10 +71,10 @@ IF enable THEN
 	IF NOT calibrated THEN
 		CoverControl.OpenCovers();
 		IF CoverControl.AreCoversOpen() THEN
-			HydraulicsControl.open_brake();
+			fbBrake.OpenBrake();
 		END_IF
 	ELSE
-		HydraulicsControl.open_brake();
+		fbBrake.OpenBrake();
 	END_IF
 	
 END_IF
@@ -82,7 +82,7 @@ END_IF
 enableTrigger(CLK := enable);
 // close the brake on the falling edge of the enable signal
 IF enableTrigger.Q THEN
-	HydraulicsControl.close_brake();
+	fbBrake.CloseBrake();
 END_IF
 
 IF axis.Calibrated OR error THEN
@@ -110,7 +110,7 @@ MC_SetAcceptBlockedDriveSignal(
 	Enable := HomeAxis);
 	
 axis(
-	Enable 			:= enable AND HydraulicsControl.bBrakeOpen,
+	Enable 			:= enable AND fbBrake.BrakeOpen,
 	Reset 			:= reset,
 	MoveAxis 		:= moveAxis,
 	HomeAxis 		:= homeAxis,
@@ -176,7 +176,7 @@ IF bSoEReset THEN
 	END_IF
 END_IF 
 
-readyDelay(IN :=  HydraulicsControl.bBrakeOpen, PT := T#6000MS, Q=> ready);
+readyDelay(IN :=  fbBrake.BrakeOpen, PT := T#6000MS, Q=> ready);
 
 readParameter(	
 	Axis 			:= axisRef, 
@@ -220,7 +220,7 @@ lowElevationEvent(
 	comm 			:= comm);
 				
 brakeEvent( 
-	Trigger 		:= NOT enable AND HydraulicsControl.bBrakeOpen, 
+	Trigger 		:= NOT enable AND fbBrake.BrakeOpen, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Brake was opened without elevation axis enabled!', 
@@ -249,17 +249,17 @@ VAR_INPUT
     bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
 	cover			: I_MirrorCovers;
-	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
+	brake			: I_Brake;
 	comm			: I_Comm;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[THIS^.HydraulicsControl REF= hydraulics;
+        <ST><![CDATA[THIS^.fbBrake := brake;
 THIS^.CoverControl := cover;
 THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_ElevationControl">
-      <LineId Id="2913" Count="173" />
+      <LineId Id="3435" Count="173" />
       <LineId Id="170" Count="0" />
     </LineIds>
     <LineIds Name="FB_ElevationControl.FB_Init">

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_HydraulicsControl" Id="{0d9c5732-af19-4096-a83e-065687a13da0}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_HydraulicsControl
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_HydraulicsControl IMPLEMENTS I_Hydraulics, I_Brake
 VAR_INPUT
 	bEnable				: BOOL := FALSE;	// start the hydraulics
 	bReset				: BOOL;				// reset any hydraulics error
@@ -347,8 +347,19 @@ brakeHydraulicsWarning(
 	OnMessage 		:= 'Cannot open brake without running hydraulics.', 
 	comm 			:= fbComm);]]></ST>
     </Implementation>
-    <Method Name="close_brake" Id="{8645e358-9c1d-4f56-a320-d20acf3a9f78}">
-      <Declaration><![CDATA[METHOD close_brake : BOOL
+    <Property Name="BrakeOpen" Id="{0f49c805-8206-4d47-881c-fcf69eddebfe}">
+      <Declaration><![CDATA[PROPERTY BrakeOpen : BOOL]]></Declaration>
+      <Get Name="Get" Id="{119366c2-8763-4dc0-833d-a2c993e1da3b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[BrakeOpen := bBrakeOpen;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="CloseBrake" Id="{8645e358-9c1d-4f56-a320-d20acf3a9f78}">
+      <Declaration><![CDATA[METHOD CloseBrake : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -374,8 +385,8 @@ END_VAR]]></Declaration>
         <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="open_brake" Id="{803f79af-0083-4059-9845-1aae86bb3efd}">
-      <Declaration><![CDATA[METHOD open_brake : BOOL
+    <Method Name="OpenBrake" Id="{803f79af-0083-4059-9845-1aae86bb3efd}">
+      <Declaration><![CDATA[METHOD OpenBrake : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -393,13 +404,16 @@ RETURN(bBrakeOpen);]]></ST>
       <LineId Id="13858" Count="254" />
       <LineId Id="234" Count="0" />
     </LineIds>
-    <LineIds Name="FB_HydraulicsControl.close_brake">
+    <LineIds Name="FB_HydraulicsControl.BrakeOpen.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.CloseBrake">
       <LineId Id="1" Count="3" />
     </LineIds>
     <LineIds Name="FB_HydraulicsControl.FB_Init">
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_HydraulicsControl.open_brake">
+    <LineIds Name="FB_HydraulicsControl.OpenBrake">
       <LineId Id="1" Count="6" />
     </LineIds>
   </POU>

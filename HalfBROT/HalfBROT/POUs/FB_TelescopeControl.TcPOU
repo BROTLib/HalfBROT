@@ -35,8 +35,9 @@ VAR
 	TelescopeAuxiliary	: FB_TelescopeAuxiliary;
 	
 	comm 				: I_Comm;
-	CoverControl		: I_MirrorCovers;	
-	HydraulicsControl 	: REFERENCE TO FB_HydraulicsControl;
+	CoverControl		: I_MirrorCovers;
+	fbBrake				: I_Brake;	
+	HydraulicsControl   : REFERENCE TO FB_HydraulicsControl;
 	Focuscontrol 		: REFERENCE TO FB_Focuscontrol;
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
 	ElevationControl	: REFERENCE TO FB_ElevationControl;
@@ -159,7 +160,7 @@ END_IF
 IF ElevationControl.error THEN
 	ElevationControl.enable := FALSE;
 	AzimuthControl.enable := FALSE;
-	HydraulicsControl.close_brake();
+	fbBrake.CloseBrake();
 END_IF
 
 eq2hor(
@@ -208,7 +209,7 @@ hor2eq(alt := elevation_current - PointingModelElevation(azimuth_calc, elevation
 		ra => rightascension_calc,
 		dec => declination_calc);		
 	
-poweronwarning(IN := power OR (NOT ElevationControl.enable AND HydraulicsControl.bBrakeOpen), PT := T#250MS);
+poweronwarning(IN := power OR (NOT ElevationControl.enable AND fbBrake.BrakeOpen), PT := T#250MS);
 
 power_timeout(IN := TCS_command = E_TCSCommand.no_command AND NOT isparked, PT := T#12H);
 command_timeout();
@@ -324,7 +325,7 @@ ready := homed AND
 	CoverControl.AreCoversOpen() AND 
 	ElevationControl.enable AND
 	AzimuthControl.enable AND
-	DerotatorControl.enable AND HydraulicsControl.bBrakeOpen AND 
+	DerotatorControl.enable AND fbBrake.BrakeOpen AND 
     NOT error;
 
 busy := ElevationControl.axis.Busy OR
@@ -479,7 +480,8 @@ VAR_INPUT
     bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
 	cover			: I_MirrorCovers;
-	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
+	brake 			: I_Brake;
+	hydraulics		: REFERENCE TO FB_HydraulicsControl;
 	focus			: REFERENCE TO FB_FocusControl;
 	elevation		: REFERENCE TO FB_ElevationControl;
 	azimuth			: REFERENCE TO FB_AzimuthControl;
@@ -487,13 +489,14 @@ VAR_INPUT
 	comm			: I_Comm;   
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[THIS^.CoverControl := cover;
-THIS^.HydraulicsControl REF= hydraulics;
-THIS^.FocusControl REF= focus;
-THIS^.ElevationControl REF= elevation;
-THIS^.AzimuthControl REF= azimuth;
-THIS^.DerotatorControl REF= derotator;
-THIS^.comm := comm;]]></ST>
+        <ST><![CDATA[CoverControl 		:= cover;
+fbBrake				:= brake;
+HydraulicsControl   REF= hydraulics;
+FocusControl 		REF= focus;
+ElevationControl 	REF= elevation;
+AzimuthControl 		REF= azimuth;
+DerotatorControl 	REF= derotator;
+THIS^.comm 			:= comm;]]></ST>
       </Implementation>
     </Method>
     <Method Name="GotoTelescope" Id="{43ebaf76-c0fc-41db-8c98-2f7671dc6b31}">
@@ -661,7 +664,7 @@ CASE Stage OF
 		slew := 	FALSE;
 		Focuscontrol.Position := telescopeConfig.focusPark;
 		IF Error THEN // emergency park
-			HydraulicsControl.close_brake();
+			fbBrake.CloseBrake();
 			ElevationControl.enable := FALSE;
 			AzimuthControl.Enable := FALSE;
 			DerotatorControl.enable := FALSE;	
@@ -715,7 +718,7 @@ CASE Stage OF
 		IF ElevationControl.enable OR AzimuthControl.Enable OR DerotatorControl.enable THEN
 			stage := 60;
 		END_IF
-		IF HydraulicsControl.bBrakeClosed THEN
+		IF NOT fbBrake.BrakeOpen THEN
 			CoverControl.CloseCovers();
 			HydraulicsControl.bEnable := FALSE;
 		END_IF
@@ -977,6 +980,7 @@ END_IF
     <LineIds Name="FB_TelescopeControl.FB_Init">
       <LineId Id="8" Count="0" />
       <LineId Id="1" Count="0" />
+      <LineId Id="9" Count="0" />
       <LineId Id="3" Count="4" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.GotoTelescope">

@@ -6,6 +6,7 @@ VAR_INPUT
 END_VAR
 VAR
 	CoverControl		: I_MirrorCovers;
+	fbBrake				: I_Brake;
 	HydraulicsControl	: REFERENCE TO FB_HydraulicsControl;
 	Focuscontrol 		: I_Focus;
 	ElevationControl	: REFERENCE TO FB_ElevationControl;
@@ -257,8 +258,8 @@ CASE Selection OF
 		lamp_right := key_switch;
 	
 	15:	// Hydraulics control
-		lamp_up := HydraulicsControl.bOilPressureOK AND Hydraulicscontrol.bBrakeClosed;
-		lamp_down := HydraulicsControl.bOilPressureOK AND Hydraulicscontrol.bBrakeOpen;
+		lamp_up := HydraulicsControl.bOilPressureOK AND NOT fbBrake.BrakeOpen;
+		lamp_down := HydraulicsControl.bOilPressureOK AND fbBrake.BrakeOpen;
 		lamp_left := HydraulicsControl.bPumpRunning;
 		lamp_right := HydraulicsControl.bSuctionRunning;
 		IF key_switch THEN
@@ -268,10 +269,10 @@ CASE Selection OF
 			Hydraulicscontrol.bReset := reset_switch;
 			
 			IF direction_up THEN
-				Hydraulicscontrol.open_brake();
+				fbBrake.OpenBrake();
 			END_IF
 			IF direction_down THEN
-				Hydraulicscontrol.close_brake();
+				fbBrake.CloseBrake();
 			END_IF
 			HydraulicsControl.bManualSuction := direction_right;
 			HydraulicsControl.bManualPumpStop := direction_left;
@@ -290,6 +291,7 @@ VAR_INPUT
     bInitRetains: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
 	cover			: I_MirrorCovers;
+	brake			: I_Brake;
 	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
 	focus			: I_Focus;
 	elevation		: REFERENCE TO FB_ElevationControl;
@@ -299,13 +301,14 @@ VAR_INPUT
 	comm			: I_Comm;   
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[THIS^.HydraulicsControl REF= hydraulics;
-THIS^.CoverControl := cover;
-THIS^.FocusControl := focus;
-THIS^.ElevationControl REF= elevation;
-THIS^.AzimuthControl REF= azimuth;
-THIS^.DerotatorControl REF= derotator;
-THIS^.TelescopeControl REF= telescope;
+        <ST><![CDATA[fbBrake := brake;
+HydraulicsControl REF= hydraulics;
+CoverControl := cover;
+FocusControl := focus;
+ElevationControl REF= elevation;
+AzimuthControl REF= azimuth;
+DerotatorControl REF= derotator;
+TelescopeControl REF= telescope;
 THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
@@ -331,6 +334,7 @@ THIS^.comm := comm;]]></ST>
       <LineId Id="105" Count="130" />
     </LineIds>
     <LineIds Name="FB_PendantControl.FB_Init">
+      <LineId Id="9" Count="0" />
       <LineId Id="1" Count="5" />
       <LineId Id="8" Count="0" />
       <LineId Id="7" Count="0" />

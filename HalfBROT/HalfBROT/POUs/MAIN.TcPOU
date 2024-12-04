@@ -8,10 +8,10 @@ VAR
 	HydraulicsControl	: FB_HydraulicsControl(comm := comm);
 	FocusControl		: FB_FocusControl(comm := comm);
 	DerotatorControl	: FB_DerotatorControl(comm := comm);
-	ElevationControl	: FB_ElevationControl(comm := comm, cover := CoverControl, hydraulics := HydraulicsControl);
+	ElevationControl	: FB_ElevationControl(comm := comm, cover := CoverControl, brake := HydraulicsControl);
 	AzimuthControl		: FB_AzimuthControl(comm := comm);
-	TelescopeControl	: FB_TelescopeControl(comm := comm,  cover := CoverControl, hydraulics := HydraulicsControl, focus := FocusControl, elevation := ElevationControl, azimuth := AzimuthControl, derotator := DerotatorControl);
-	PendantControl		: FB_PendantControl(comm := comm, cover := CoverControl, hydraulics := HydraulicsControl, focus := FocusControl, elevation := ElevationControl, azimuth := AzimuthControl, derotator := DerotatorControl, telescope := TelescopeControl);
+	TelescopeControl	: FB_TelescopeControl(comm := comm,  cover := CoverControl, brake := HydraulicsControl, hydraulics := HydraulicsControl, focus := FocusControl, elevation := ElevationControl, azimuth := AzimuthControl, derotator := DerotatorControl);
+	PendantControl		: FB_PendantControl(comm := comm, cover := CoverControl, brake := HydraulicsControl, hydraulics := HydraulicsControl, focus := FocusControl, elevation := ElevationControl, azimuth := AzimuthControl, derotator := DerotatorControl, telescope := TelescopeControl);
 	
 	// Safety Error Condition
 	Error		AT%I*:	BOOL;
