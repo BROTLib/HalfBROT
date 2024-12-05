@@ -370,6 +370,36 @@ bCloseBrake := TRUE;
 RETURN(bBrakeClosed);]]></ST>
       </Implementation>
     </Method>
+    <Property Name="Enable" Id="{6f8094ff-bdd2-4ec1-b190-ebe995e9a056}">
+      <Declaration><![CDATA[PROPERTY Enable : BOOL]]></Declaration>
+      <Get Name="Get" Id="{b47027cd-d41c-405b-adc5-86975fca390a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Enable := bEnable;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{fbc723b8-9f5d-4f58-9780-05955fa1a05b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bEnable := Enable;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="Error" Id="{77b72575-77f2-4427-8d51-882df09b8445}">
+      <Declaration><![CDATA[PROPERTY Error : BOOL]]></Declaration>
+      <Get Name="Get" Id="{333e5ec7-6c70-42c0-8b16-b55c5e1c5bfc}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Error := bError;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="FB_Init" Id="{f8304cff-71fd-40f3-8c17-0d2ac2c6aa2c}">
       <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
 //The return value is not evaluated. For a specific influence, you can also declare the
@@ -385,6 +415,55 @@ END_VAR]]></Declaration>
         <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
       </Implementation>
     </Method>
+    <Property Name="ManualStartSuction" Id="{06a625ea-0a04-4f85-a476-f15eb08387f8}">
+      <Declaration><![CDATA[PROPERTY ManualStartSuction : BOOL]]></Declaration>
+      <Get Name="Get" Id="{a9de2335-7475-4b84-8e53-4bdb3b981395}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ManualStartSuction := bManualSuction;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{4f17f813-d888-46c4-af30-0dcac1095151}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bManualSuction := ManualStartSuction;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="ManualStopPump" Id="{10a1d211-cab6-4f42-b00a-35a8974dd383}">
+      <Declaration><![CDATA[PROPERTY ManualStopPump : BOOL]]></Declaration>
+      <Get Name="Get" Id="{0d01be47-ad5f-4b91-8b84-574602be3ab1}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[ManualStopPump := bManualPumpStop;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{0aa00127-4cdd-4a61-9cc6-15494ed70ce0}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bManualPumpStop := ManualStopPump;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="OilPressureOK" Id="{27c6af6a-8ace-4e66-bbd3-bfda5c88d5ce}">
+      <Declaration><![CDATA[PROPERTY OilPressureOK : BOOL]]></Declaration>
+      <Get Name="Get" Id="{2a8c375b-196b-4127-a95e-b001b9d1186a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[OilPressureOK := bOilPressureOK;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="OpenBrake" Id="{803f79af-0083-4059-9845-1aae86bb3efd}">
       <Declaration><![CDATA[METHOD OpenBrake : BOOL
 VAR_INPUT
@@ -400,6 +479,35 @@ END_IF;
 RETURN(bBrakeOpen);]]></ST>
       </Implementation>
     </Method>
+    <Property Name="PumpRunning" Id="{4eace808-c8ba-4076-9aa9-0ca7df3e16d9}">
+      <Declaration><![CDATA[PROPERTY PumpRunning : BOOL]]></Declaration>
+      <Get Name="Get" Id="{34e9dc24-5ef4-46b0-8597-f34d6448be4d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[PumpRunning := bPumpRunning;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{3a9cad4d-e4b1-4c6a-9888-ba386971252e}">
+      <Declaration><![CDATA[METHOD Reset : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bReset := TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="SuctionRunning" Id="{a70d9f32-cdff-4800-9b17-8cee7b20801f}">
+      <Declaration><![CDATA[PROPERTY SuctionRunning : BOOL]]></Declaration>
+      <Get Name="Get" Id="{bfd2a891-c7bb-4a51-9ca4-02c2c8d3aefc}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[SuctionRunning := bSuctionRunning;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <LineIds Name="FB_HydraulicsControl">
       <LineId Id="13858" Count="254" />
       <LineId Id="234" Count="0" />
@@ -410,11 +518,44 @@ RETURN(bBrakeOpen);]]></ST>
     <LineIds Name="FB_HydraulicsControl.CloseBrake">
       <LineId Id="1" Count="3" />
     </LineIds>
+    <LineIds Name="FB_HydraulicsControl.Enable.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.Enable.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.Error.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
     <LineIds Name="FB_HydraulicsControl.FB_Init">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.ManualStartSuction.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.ManualStartSuction.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.ManualStopPump.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.ManualStopPump.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.OilPressureOK.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_HydraulicsControl.OpenBrake">
       <LineId Id="1" Count="6" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.PumpRunning.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.Reset">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.SuctionRunning.Get">
+      <LineId Id="1" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

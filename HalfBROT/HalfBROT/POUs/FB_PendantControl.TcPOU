@@ -7,7 +7,7 @@ END_VAR
 VAR
 	CoverControl		: I_MirrorCovers;
 	fbBrake				: I_Brake;
-	HydraulicsControl	: REFERENCE TO FB_HydraulicsControl;
+	fbHydraulics		: I_Hydraulics;
 	Focuscontrol 		: I_Focus;
 	ElevationControl	: REFERENCE TO FB_ElevationControl;
 	AzimuthControl 		: REFERENCE TO FB_AzimuthControl;
@@ -20,12 +20,11 @@ VAR
 	// error on the pendant control
 	Error:		BOOL;
 	horn:			BOOL;
-	FocusEnable: 		R_TRIG;
+	fbStartTrigger			: R_TRIG;
 	DerotatorEnable:	FB_ButtonEnable;
 	ElevationEnable: 	FB_ButtonEnable;
 	AzimuthEnable: 		FB_ButtonEnable;
 	TelescopeControlEnable: 	FB_ButtonEnable;
-	HydraulicsEnable: 	FB_ButtonEnable;
 	TrackingEnable:			FB_ButtonEnable;
 	ResetDelay:	TON;
 	TwinCATRestart: TC_Restart;
@@ -111,8 +110,9 @@ ELSE
 	telescope_mode := E_TelescopeMode.automatic;
 END_IF
 
-// reset pushed?
+// reset or start pushed?
 reset_trigger(CLK := reset_switch);
+fbStartTrigger(CLK := start_switch);
 
 // enable only the selected item and connect lamps and buttons accordingly
 CASE Selection OF
@@ -140,8 +140,7 @@ CASE Selection OF
 		lamp_up := FocusControl.Ready AND NOT FocusControl.InFarLimit;
 		lamp_down := FocusControl.Ready AND NOT FocusControl.InNearLimit;
 		IF key_switch THEN
-			FocusEnable(CLK := start_switch);
-			IF FocusEnable.Q THEN
+			IF fbStartTrigger.Q THEN
 				FocusControl.Enable := NOT FocusControl.Enable;
 			END_IF
 			FocusControl.MoveOut(direction_up);
@@ -249,7 +248,7 @@ CASE Selection OF
 		END_IF
 		ResetDelay(IN := reset_switch, PT := T#3S);
 		// wait for suction pump to stop
-		TwinCATRestart(NETID := '', RESTART := ResetDelay.Q AND NOT HydraulicsControl.bSuctionRunning, TMOUT := T#60S);
+		TwinCATRestart(NETID := '', RESTART := ResetDelay.Q AND NOT fbHydraulics.SuctionRunning, TMOUT := T#60S);
 	
 	14: horn := key_switch;
 		lamp_up := key_switch;
@@ -258,15 +257,17 @@ CASE Selection OF
 		lamp_right := key_switch;
 	
 	15:	// Hydraulics control
-		lamp_up := HydraulicsControl.bOilPressureOK AND NOT fbBrake.BrakeOpen;
-		lamp_down := HydraulicsControl.bOilPressureOK AND fbBrake.BrakeOpen;
-		lamp_left := HydraulicsControl.bPumpRunning;
-		lamp_right := HydraulicsControl.bSuctionRunning;
+		lamp_up := fbHydraulics.OilPressureOK AND NOT fbBrake.BrakeOpen;
+		lamp_down := fbHydraulics.OilPressureOK AND fbBrake.BrakeOpen;
+		lamp_left := fbHydraulics.PumpRunning;
+		lamp_right := fbHydraulics.SuctionRunning;
 		IF key_switch THEN
-			HydraulicsEnable(
-				SET := start_switch, 
-				Q := Hydraulicscontrol.bEnable);
-			Hydraulicscontrol.bReset := reset_switch;
+			IF fbStartTrigger.Q THEN
+				fbHydraulics.Enable := NOT fbHydraulics.Enable;
+			END_IF
+			IF reset_trigger.Q THEN
+				fbHydraulics.Reset();
+			END_IF
 			
 			IF direction_up THEN
 				fbBrake.OpenBrake();
@@ -274,9 +275,9 @@ CASE Selection OF
 			IF direction_down THEN
 				fbBrake.CloseBrake();
 			END_IF
-			HydraulicsControl.bManualSuction := direction_right;
-			HydraulicsControl.bManualPumpStop := direction_left;
-			lamp_error := HydraulicsControl.bError;
+			fbHydraulics.ManualStartSuction := direction_right;
+			fbHydraulics.ManualStopPump := direction_left;
+			lamp_error := fbHydraulics.Error;
 		END_IF
 END_CASE
 ]]></ST>
@@ -292,7 +293,7 @@ VAR_INPUT
     bInCopyCode: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
 	cover			: I_MirrorCovers;
 	brake			: I_Brake;
-	hydraulics 		: REFERENCE TO FB_HydraulicsControl;
+	hydraulics 		: I_Hydraulics;
 	focus			: I_Focus;
 	elevation		: REFERENCE TO FB_ElevationControl;
 	azimuth			: REFERENCE TO FB_AzimuthControl;
@@ -301,37 +302,22 @@ VAR_INPUT
 	comm			: I_Comm;   
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[fbBrake := brake;
-HydraulicsControl REF= hydraulics;
-CoverControl := cover;
-FocusControl := focus;
-ElevationControl REF= elevation;
-AzimuthControl REF= azimuth;
-DerotatorControl REF= derotator;
-TelescopeControl REF= telescope;
-THIS^.comm := comm;]]></ST>
+        <ST><![CDATA[fbBrake   			:= brake;
+fbHydraulics 		:= hydraulics;
+CoverControl 		:= cover;
+FocusControl 		:= focus;
+ElevationControl 	REF= elevation;
+AzimuthControl 		REF= azimuth;
+DerotatorControl 	REF= derotator;
+TelescopeControl 	REF= telescope;
+THIS^.comm 			:= comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_PendantControl">
-      <LineId Id="1" Count="34" />
-      <LineId Id="241" Count="0" />
-      <LineId Id="240" Count="0" />
-      <LineId Id="242" Count="0" />
-      <LineId Id="36" Count="6" />
-      <LineId Id="237" Count="0" />
-      <LineId Id="46" Count="0" />
-      <LineId Id="238" Count="0" />
-      <LineId Id="47" Count="0" />
-      <LineId Id="239" Count="0" />
-      <LineId Id="48" Count="3" />
-      <LineId Id="53" Count="3" />
-      <LineId Id="94" Count="7" />
-      <LineId Id="248" Count="2" />
-      <LineId Id="102" Count="1" />
-      <LineId Id="243" Count="0" />
-      <LineId Id="104" Count="0" />
-      <LineId Id="244" Count="0" />
-      <LineId Id="105" Count="130" />
+      <LineId Id="255" Count="187" />
+      <LineId Id="462" Count="2" />
+      <LineId Id="446" Count="14" />
+      <LineId Id="235" Count="0" />
     </LineIds>
     <LineIds Name="FB_PendantControl.FB_Init">
       <LineId Id="9" Count="0" />

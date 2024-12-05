@@ -2975,7 +2975,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{363DA9F7-A2C1-43F1-A4FF-717FB38D77B2}" Name="HalfBROT" PrjFilePath="HalfBROT\HalfBROT.plcproj" TmcFilePath="HalfBROT\HalfBROT.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{65C5E8A7-1A9D-AF29-19BE-69A2CC879D9D}" TmcPath="HalfBROT\HalfBROT.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{DDF7AEFB-B868-A3C7-B767-7395561A5BC4}" TmcPath="HalfBROT\HalfBROT.tmc">
 					<Name>HalfBROT Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
@@ -3218,16 +3218,6 @@ DOUT9 1.0]]></Comment>
 							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM2</Name>
-							<Comment><![CDATA[ BT9 mirror]]></Comment>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM1</Name>
-							<Comment><![CDATA[ // BT10]]></Comment>
-							<Type>INT</Type>
-						</Var>
-						<Var>
 							<Name>MAIN.Error</Name>
 							<Comment><![CDATA[ Safety Error Condition]]></Comment>
 							<Type>BOOL</Type>
@@ -3317,6 +3307,16 @@ DOUT9 1.0]]></Comment>
 						<Var>
 							<Name>MAIN.ElevationControl.axisRef.NcToPlc</Name>
 							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM2</Name>
+							<Comment><![CDATA[ BT9 mirror]]></Comment>
+							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM1</Name>
+							<Comment><![CDATA[ // BT10]]></Comment>
+							<Type>INT</Type>
 						</Var>
 					</Vars>
 					<Contexts>
