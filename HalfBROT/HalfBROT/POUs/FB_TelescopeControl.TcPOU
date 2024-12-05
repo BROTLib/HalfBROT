@@ -37,7 +37,7 @@ VAR
 	comm 				: I_Comm;
 	CoverControl		: I_MirrorCovers;
 	fbBrake				: I_Brake;	
-	HydraulicsControl   : REFERENCE TO FB_HydraulicsControl;
+	fbHydraulics   		: I_Hydraulics;
 	Focuscontrol 		: REFERENCE TO FB_Focuscontrol;
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
 	ElevationControl	: REFERENCE TO FB_ElevationControl;
@@ -491,7 +491,7 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[CoverControl 		:= cover;
 fbBrake				:= brake;
-HydraulicsControl   REF= hydraulics;
+fbHydraulics   		:= hydraulics;
 FocusControl 		REF= focus;
 ElevationControl 	REF= elevation;
 AzimuthControl 		REF= azimuth;
@@ -720,7 +720,7 @@ CASE Stage OF
 		END_IF
 		IF NOT fbBrake.BrakeOpen THEN
 			CoverControl.CloseCovers();
-			HydraulicsControl.bEnable := FALSE;
+			fbHydraulics.Enable := FALSE;
 		END_IF
 		IF CoverControl.AreCoversClosed() THEN
 			Stage := 100;
