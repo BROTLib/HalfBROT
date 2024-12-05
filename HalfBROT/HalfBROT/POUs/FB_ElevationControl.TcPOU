@@ -3,48 +3,48 @@
   <POU Name="FB_ElevationControl" Id="{163e8baa-c820-4d82-9b8f-2bab0c8d4398}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ElevationControl
 VAR_INPUT
-	enable			: BOOL;		// enable the axis
-	reset			: BOOL;		// reset an error
-	up				: BOOL;		// increase the eleveation
-	down			: BOOL;		// decrease the elevation
-	position		: LREAL;	// set position of the axis in degrees
-	velocity		: LREAL;	// set the Velocity of the axis
-	moveAxis		: BOOL;		// move axis command
-	homeAxis		: BOOL;		// calibrate the axis
-	tracking		: BOOL;		// enable tracking
-	stopAxis		: BOOL;		// stop the Axis
+	bEnable			: BOOL;		// enable the axis
+	bReset			: BOOL;		// reset an error
+	bUp				: BOOL;		// increase the eleveation
+	bDown			: BOOL;		// decrease the elevation
+	fPosition		: LREAL;	// set position of the axis in degrees
+	fVelocity		: LREAL;	// set the Velocity of the axis
+	bMoveAxis		: BOOL;		// move axis command
+	bHomeAxis		: BOOL;		// calibrate the axis
+	bTracking		: BOOL;		// enable tracking
+	bStopAxis		: BOOL;		// stop the Axis
 	bSoEReset		: BOOL;		// reset diagnostic errors
-	calibPosition	: LREAL := 45.0; // // current position of the calibration cam. Apply an offset here if necessary
+	fCalibPosition	: LREAL := 45.0; // // current position of the calibration cam. Apply an offset here if necessary
 END_VAR
 VAR_OUTPUT
-	ready			: BOOL;		// axis is ready to operate
-	error			: BOOL;		// drive error condition
-	warning			: BOOL;		// warning condition
-	actualPosition	: LREAL;	// actual position of the elevation axis
-	errorID			: UDINT;	// error ID of the elevation axis
-	calibrated		: BOOL;		// axis is calibrated
-	slewTime		: LREAL;	// time to reach target position
+	bReady			: BOOL;		// axis is ready to operate
+	bError			: BOOL;		// drive error condition
+	bWarning			: BOOL;		// warning condition
+	fActualPosition	: LREAL;	// actual position of the elevation axis
+	nErrorID			: UDINT;	// error ID of the elevation axis
+	bCalibrated		: BOOL;		// axis is calibrated
+	fSlewTime		: LREAL;	// time to reach target position
 END_VAR
 VAR
-	CoverControl	: I_MirrorCovers;
+	fbCover			: I_MirrorCovers;
 	fbBrake 		: I_Brake;
 	comm			: I_Comm;
 	
-	inDigitalInputs	AT%I*	: WORD;		// digitale inputs der Endlagen
-	inDiagnostic	AT%I*	: UDINT;	// diagnostic number
-	inTorque		AT%I*	: INT;		// derotator torque feedback
-	inSTO			AT%I*	: BOOL;		// STO
+	InDigitalInputs	AT%I*	: WORD;		// digitale inputs der Endlagen
+	InDiagnostic	AT%I*	: UDINT;	// diagnostic number
+	InTorque		AT%I*	: INT;		// derotator torque feedback
+	IbSTO			AT%I*	: BOOL;		// STO
 	axisRef					: AXIS_REF;	
 	
-	axis					: FB_Axis2;
-	axisCalibration			: MC_SetPosition;
+	fbAxis					: FB_Axis2;
+	fbAxisCalibration			: MC_SetPosition;
 	fbSoEReset				: FB_SoEReset;
 	// delay until commutator angle is measured
-	readyDelay				: TON;
+	tonReadyDelay				: TON;
 	// disable trigger for hydraulics
 	enableTrigger			: F_TRIG;
 	// store last position
-	getLastPosition			: BOOL := TRUE;
+	bGetLastPosition			: BOOL := TRUE;
 	axisEvent				: FB_Eventlog;
 	diagnosticEvent			: FB_Eventlog;
 	brakeEvent				: FB_Eventlog;
@@ -53,24 +53,24 @@ VAR
 	torqueWarning			: FB_EventLog;
 	calibrationEvent		: FB_Eventlog;
 	
-	torque					: REAL; 	// elevation torque in percent
-	torqueTimer				: TON;		// timer to trigger a warning if torque is high
-	readParameter			: MC_ReadParameter;
-	diagnosticError			: BOOL;
+	fTorque					: REAL; 	// elevation torque in percent
+	tonTorqueTimer				: TON;		// timer to trigger a warning if torque is high
+	dbReadParameter			: MC_ReadParameter;
+	bDiagnosticError			: BOOL;
 END_VAR
 VAR PERSISTENT
-	lastPosition			:	LREAL := -1.0;
+	fLastPosition			:	LREAL := -1.0;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[// limit the position input to a sane value
-position := LIMIT(0.0, position, 90.0);
+fPosition := LIMIT(0.0, fPosition, 90.0);
 
 //if we enable the axis, we have to open the brake first
-IF enable THEN
-	IF NOT calibrated THEN
-		CoverControl.OpenCovers();
-		IF CoverControl.AreCoversOpen() THEN
+IF bEnable THEN
+	IF NOT bCalibrated THEN
+		fbCover.OpenCovers();
+		IF fbCover.AreCoversOpen() THEN
 			fbBrake.OpenBrake();
 		END_IF
 	ELSE
@@ -79,92 +79,92 @@ IF enable THEN
 	
 END_IF
 
-enableTrigger(CLK := enable);
+enableTrigger(CLK := bEnable);
 // close the brake on the falling edge of the enable signal
 IF enableTrigger.Q THEN
 	fbBrake.CloseBrake();
 END_IF
 
-IF axis.Calibrated OR error THEN
-	homeAxis := FALSE;
+IF fbAxis.Calibrated OR bError THEN
+	bHomeAxis := FALSE;
 END_IF
 
-calibrated := axis.Calibrated;
+bCalibrated := fbAxis.Calibrated;
 
-IF homeAxis THEN
-	position := calibPosition;
-	moveAxis := FALSE;
-	tracking := FALSE;
+IF bHomeAxis THEN
+	fPosition := fCalibPosition;
+	bMoveAxis := FALSE;
+	bTracking := FALSE;
 END_IF
 
-IF moveAxis THEN
-	tracking := FALSE;
+IF bMoveAxis THEN
+	bTracking := FALSE;
 END_IF
 
 // if NOT Enabled and ActVelo>1 then issue a warning
-warning := NOT enable AND axisRef.NcToPlc.ActVelo>2.0;
+bWarning := NOT bEnable AND axisRef.NcToPlc.ActVelo>2.0;
 
 // deactivate limit switches on homing
 MC_SetAcceptBlockedDriveSignal(
 	Axis := axisRef, 
-	Enable := HomeAxis);
+	Enable := bHomeAxis);
 	
-axis(
-	Enable 			:= enable AND fbBrake.BrakeOpen,
-	Reset 			:= reset,
-	MoveAxis 		:= moveAxis,
-	HomeAxis 		:= homeAxis,
-	StopAxis 		:= stopAxis,
-	Tracking 		:= tracking,
-	Position 		:= position, 
-	Velocity 		:= velocity,
-	Enable_Positive := inDigitalInputs.0 OR homeAxis,
+fbAxis(
+	Enable 			:= bEnable AND fbBrake.BrakeOpen,
+	Reset 			:= bReset,
+	MoveAxis 		:= bMoveAxis,
+	HomeAxis 		:= bHomeAxis,
+	StopAxis 		:= bStopAxis,
+	Tracking 		:= bTracking,
+	Position 		:= fPosition, 
+	Velocity 		:= fVelocity,
+	Enable_Positive := inDigitalInputs.0 OR bHomeAxis,
 	Enable_Negative := inDigitalInputs.1,
-	Jog_Forward 	:= up,
-	Jog_Backwards 	:= down,
+	Jog_Forward 	:= bUp,
+	Jog_Backwards 	:= bDown,
 	bCalibrationCam := NOT inDigitalInputs.0,
-	ActualPosition 	=> actualPosition,
-	Error 			=> error,
-	ErrorID 		=> errorID,
+	ActualPosition 	=> fActualPosition,
+	Error 			=> bError,
+	ErrorID 		=> nErrorID,
 	AxisRef 		:= axisRef);
 
-IF axis.MoveDone THEN
-	moveAxis := FALSE;
+IF fbAxis.MoveDone THEN
+	bMoveAxis := FALSE;
 END_IF
 
-IF axis.HomeDone THEN
-	homeAxis := FALSE;
+IF fbAxis.HomeDone THEN
+	bHomeAxis := FALSE;
 END_IF
 	
-IF axis.ResetDone THEN
-	reset := FALSE;
+IF fbAxis.ResetDone THEN
+	bReset := FALSE;
 END_IF
 
-IF axis.StopDone THEN
-	stopAxis := FALSE;
+IF fbAxis.StopDone THEN
+	bStopAxis := FALSE;
 END_IF
 
-diagnosticError := FALSE;
+bDiagnosticError := FALSE;
 IF inDiagnostic < 16#D012 AND inDiagnostic > 16#D014 THEN
-	diagnosticError :=TRUE;
-	errorID := inDiagnostic;
+	bDiagnosticError :=TRUE;
+	nErrorID := inDiagnostic;
 END_IF
 
-axisCalibration(
+fbAxisCalibration(
 	Axis 		:= axisRef,
-	Execute 	:= getLastPosition AND lastPosition>=0.0 AND NOT calibrated,
-	Position 	:= lastPosition);
+	Execute 	:= bGetLastPosition AND fLastPosition>=0.0 AND NOT bCalibrated,
+	Position 	:= fLastPosition);
 
-IF axisCalibration.Done THEN
-	getLastPosition := FALSE;
+IF fbAxisCalibration.Done THEN
+	bGetLastPosition := FALSE;
 END_IF
 
-IF calibrated THEN
-	lastPosition := actualPosition;
+IF bCalibrated THEN
+	fLastPosition := fActualPosition;
 END_IF
 
 IF bSoEReset THEN
-	lastPosition := -1.0;
+	fLastPosition := -1.0;
 	fbSoEReset(
 		Axis := axisRef,
 		Execute := TRUE,
@@ -172,69 +172,69 @@ IF bSoEReset THEN
  	IF NOT fbSoEReset.Busy THEN
 		fbSoEReset(Axis := axisRef, Execute := FALSE);
 		bSoEReset := FALSE;
-		reset := TRUE;
+		bReset := TRUE;
 	END_IF
 END_IF 
 
-readyDelay(IN :=  fbBrake.BrakeOpen, PT := T#6000MS, Q=> ready);
+tonReadyDelay(IN :=  fbBrake.BrakeOpen, PT := T#6000MS, Q=> bReady);
 
-readParameter(	
+dbReadParameter(	
 	Axis 			:= axisRef, 
-	Enable 			:= axis.InMotion, 
+	Enable 			:= fbAxis.InMotion, 
 	ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
 	ReadMode 		:= E_ReadMode.READMODE_CYCLIC);
 				
-IF readParameter.Valid THEN
-	slewTime := readParameter.Value;
+IF dbReadParameter.Valid THEN
+	fSlewTime := dbReadParameter.Value;
 END_IF
 
-torque := inTorque / 10.0;
-torqueTimer(IN := ABS(torque) > 50.0, PT := T#1000MS);
+fTorque := inTorque / 10.0;
+tonTorqueTimer(IN := ABS(fTorque) > 50.0, PT := T#1000MS);
 		
 axisEvent(	
-	Trigger 		:= error, 
+	Trigger 		:= bError, 
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'Elevation Axis Error: %s',
-	OnMessage 		:= NCError_TO_STRING(ErrorID), 
+	OnMessage 		:= NCError_TO_STRING(nErrorID), 
 	comm 			:= comm);
 
 diagnosticEvent(	
-	Trigger 		:= DiagnosticError,
+	Trigger 		:= bDiagnosticError,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'Elevation Axis Diagnostic Error: %s',
 	OnMessage 		:= NCError_TO_STRING(inDiagnostic), 
 	comm 			:= comm);
 
 highElevationEvent(	
-	Trigger 		:= Calibrated AND actualPosition > 85.0, 
+	Trigger 		:= bCalibrated AND fActualPosition > 85.0, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= 'High Elevation: %s',
-	OnMessage 		:= LREAL_TO_FMTSTR(actualPosition, 2, TRUE), 
+	OnMessage 		:= LREAL_TO_FMTSTR(fActualPosition, 2, TRUE), 
 	comm 			:= comm);
 
 lowElevationEvent(	
-	Trigger 		:= Calibrated AND actualPosition < 5.0, 
+	Trigger 		:= bCalibrated AND fActualPosition < 5.0, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= 'Low Elevation: %s',
-	OnMessage 		:= LREAL_TO_FMTSTR(actualPosition, 2, TRUE), 
+	OnMessage 		:= LREAL_TO_FMTSTR(fActualPosition, 2, TRUE), 
 	comm 			:= comm);
 				
 brakeEvent( 
-	Trigger 		:= NOT enable AND fbBrake.BrakeOpen, 
+	Trigger 		:= NOT bEnable AND fbBrake.BrakeOpen, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Brake was opened without elevation axis enabled!', 
 	comm 			:= comm); 
 
 torqueWarning(	
-	Trigger 		:= torqueTimer.Q, 
+	Trigger 		:= tonTorqueTimer.Q, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Elevation torque is high.', 
 	comm 			:= comm);
 	
 calibrationEvent(
-	Trigger 		:= Calibrated,
+	Trigger 		:= bCalibrated,
 	Level 			:= ADSLOG_MSGTYPE_HINT,
 	OnMessage 		:= 'Elevation is calibrated.', 
 	comm 			:= comm);]]></ST>
@@ -254,12 +254,12 @@ VAR_INPUT
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[THIS^.fbBrake := brake;
-THIS^.CoverControl := cover;
+THIS^.fbCover := cover;
 THIS^.comm := comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_ElevationControl">
-      <LineId Id="3435" Count="173" />
+      <LineId Id="7785" Count="173" />
       <LineId Id="170" Count="0" />
     </LineIds>
     <LineIds Name="FB_ElevationControl.FB_Init">

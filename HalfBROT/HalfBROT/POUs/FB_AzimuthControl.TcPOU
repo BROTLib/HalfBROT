@@ -3,59 +3,59 @@
   <POU Name="FB_AzimuthControl" Id="{fd112fcf-fe5a-48e7-aea8-3fe8a57db212}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_AzimuthControl
 VAR_INPUT
-	enable					: BOOL;		// enable the axis and its position control loop
-	reset					: BOOL;		// reset the axis
-	left					: BOOL;		// decrease azimuth
-	right					: BOOL;		// increase azimuth
-	moveAxis				: BOOL;		// Move azimuth to given position
-	homeAxis				: BOOL;		// Home the axis
-	tracking				: BOOL;		// enable tracking
-	position				: LREAL;	// position to move the axis to
-	velocity				: LREAL;	// set the Velocity of the axis
-	stopAxis				: BOOL;		// stop the Axis
+	bEnable					: BOOL;		// enable the axis and its position control loop
+	bReset					: BOOL;		// reset the axis
+	bLeft					: BOOL;		// decrease azimuth
+	bRight					: BOOL;		// increase azimuth
+	bMoveAxis				: BOOL;		// Move azimuth to given position
+	bHomeAxis				: BOOL;		// Home the axis
+	bTracking				: BOOL;		// enable tracking
+	fPosition				: LREAL;	// position to move the axis to
+	fVelocity				: LREAL;	// set the Velocity of the axis
+	bStopAxis				: BOOL;		// stop the Axis
 	bSoEReset				: BOOL;		// diagnostic reset
-	brakeOpen				: BOOL;		// azimuth break is open
-	minPosition				: REAL := 0;
-	maxPosition				: REAL := 450.0;
-	calibPosition			: LREAL := 45.0; // // current position of the calibration cam
+	bBrakeOpen				: BOOL;		// azimuth break is open
+	fMinPosition			: REAL := 0;
+	fMaxPosition			: REAL := 450.0;
+	fCalibPosition			: LREAL := 45.0; // // current position of the calibration cam
 END_VAR
 VAR_OUTPUT
-	error					: BOOL;		// error state of the axis
-	errorID					: UDINT;	// error ID of the axis
-	actualPosition			: LREAL;	// actual_position of the axis
-	calibrated				: BOOL;		// is the axis calibrated
-	ready					: BOOL;		// drive is ready
-	slewTime				: LREAL;	// time to reach target position
+	bError					: BOOL;		// error state of the axis
+	nErrorID				: UDINT;	// error ID of the axis
+	fActualPosition			: LREAL;	// actual_position of the axis
+	bCalibrated				: BOOL;		// is the axis calibrated
+	bReady					: BOOL;		// drive is ready
+	fSlewTime				: LREAL;	// time to reach target position
 END_VAR
 VAR
-	comm					: I_Comm;	
+	fbComm					: I_Comm;	
 	
-	inDigitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
-	inDiagnostic	  AT%I*	: UDINT;	// diagnostic number
-	inTorque	 	  AT%I*	: INT;		// derotator torque feedback
-	inSTO		  	  AT%I*	: BOOL;		// STO
+	InDigitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
+	InDiagnostic	  AT%I*	: UDINT;	// diagnostic number
+	InTorque	 	  AT%I*	: INT;		// derotator torque feedback
+	IbSTO		  	  AT%I*	: BOOL;		// STO
 	axisRef					: AXIS_REF;	
 	
-	axis				: FB_Axis2;
-	axisCalibration		: MC_SetPosition;
+	fbAxis				: FB_Axis2;
+	fbAxisCalibration		: MC_SetPosition;
 	//fbSoEReset			  :	FB_SoEReset;
 	axisEvent			: FB_EventLog;
 	diagnosticEvent		: FB_EventLog;
-	readyDelay			: TON;		// delay until commutator angle is measured
+	tonReadyDelay		: TON;		// delay until commutator angle is measured
 	homeDelay			: FB_TONTP;
-	torqueError			: TON := (PT := T#3S);
-	torque				: REAL;
+	tonTorqueError		: TON := (PT := T#3S);
+	fTorque				: REAL;
 	torqueWarning		: FB_EventLog;
 	calibrationEvent	: FB_Eventlog;
-	readParameter		: MC_ReadParameter;
-	getLastPosition		: BOOL := TRUE;
-	restTimer			: TON;
-	atRest				: BOOL;
+	fbReadParameter		: MC_ReadParameter;
+	bGetLastPosition		: BOOL := TRUE;
+	tonRestTimer			: TON;
+	bAtRest				: BOOL;
 	fbSoEReset			: FB_SoEReset;
-	diagnosticError		: BOOL;
+	bDiagnosticError		: BOOL;
 END_VAR
 VAR PERSISTENT
-	lastPosition			: LREAL := -1.0;
+	fLastPosition			: LREAL := -1.0;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[(* Azimuth Axis control section
@@ -63,77 +63,77 @@ Power must be on and brake must be open for the axis to operate
 *)
 
 // generate the ready signal after enabling the drive
-readyDelay(IN :=  axis.Enable, PT := T#3000MS, Q=> ready);
+tonReadyDelay(IN :=  fbAxis.Enable, PT := T#3000MS, Q=> bReady);
 
 // limit the input position angle
-position := LIMIT(minPosition, position, maxPosition);
+fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
 
 // conduct the calibrated signal
-calibrated := axis.Calibrated;
+bCalibrated := fbAxis.Calibrated;
 
-IF calibrated OR error THEN
-	homeAxis := FALSE;
-	getlastposition := FALSE;
+IF bCalibrated OR bError THEN
+	bHomeAxis := FALSE;
+	bGetLastPosition := FALSE;
 END_IF
 	
-IF homeAxis THEN
-	position := calibPosition;
+IF bHomeAxis THEN
+	fPosition := fCalibPosition;
 END_IF
 
 IF homeDelay.Q THEN
-	position := calibPosition;
-	moveAxis := TRUE;
+	fPosition := fCalibPosition;
+	bMoveAxis := TRUE;
 END_IF
 
 // perform a recalibration on the last known position
-axisCalibration(
+fbAxisCalibration(
 	Axis 		:= axisRef,
-	Execute 	:= getlastposition AND lastPosition>=0.0 AND NOT calibrated,
-	Position 	:= lastPosition);
+	Execute 	:= bGetLastPosition AND fLastPosition>=0.0 AND NOT bCalibrated,
+	Position 	:= fLastPosition);
 
-IF axisCalibration.Done THEN
-	getLastPosition := FALSE;
+IF fbAxisCalibration.Done THEN
+	bGetLastPosition := FALSE;
 END_IF
 
-IF calibrated THEN
-	lastPosition := actualPosition;
+IF bCalibrated THEN
+	fLastPosition := fActualPosition;
 END_IF
 
 // enable the azimuth if not moved by the power chain. Sorry for the hack
-restTimer(IN := brakeOpen AND (ABS(axisRef.NcToPlc.ActVelo) < 0.01), PT := T#2S);
+tonRestTimer(IN := bBrakeOpen AND (ABS(axisRef.NcToPlc.ActVelo) < 0.01), PT := T#2S);
 // if azimuth at rest or calibrated, allow enabling the azimuth
-IF restTimer.Q or calibrated THEN
-	atRest := TRUE;
-ELSIF NOT brakeOpen THEN
-	atRest := FALSE;
+IF tonRestTimer.Q or bCalibrated THEN
+	bAtRest := TRUE;
+ELSIF NOT bBrakeOpen THEN
+	bAtRest := FALSE;
 END_IF
 	
 // deactivate limit switches on homing
 MC_SetAcceptBlockedDriveSignal(
 	Axis 	:= axisRef, 
-	Enable 	:= HomeAxis);
+	Enable 	:= bHomeAxis);
 
-axis(	
-	Enable 			:= enable AND atRest,
-	Reset 			:= reset,
-	MoveAxis 		:= moveAxis,
-	HomeAxis 		:= homeAxis,
-	StopAxis 		:= stopAxis,
-	Tracking 		:= tracking,
-	Position 		:= position, 
-	Velocity 		:= velocity,
-	Enable_Positive := inDigitalInputs.1 OR HomeAxis,
+fbAxis(	
+	Enable 			:= bEnable AND bAtRest,
+	Reset 			:= bReset,
+	MoveAxis 		:= bMoveAxis,
+	HomeAxis 		:= bHomeAxis,
+	StopAxis 		:= bStopAxis,
+	Tracking 		:= bTracking,
+	Position 		:= fPosition, 
+	Velocity 		:= fVelocity,
+	Enable_Positive := inDigitalInputs.1 OR bHomeAxis,
 	Enable_Negative := inDigitalInputs.0,
-	Jog_Forward 	:= right,
-	Jog_Backwards 	:= left,
+	Jog_Forward 	:= bRight,
+	Jog_Backwards 	:= bLeft,
 	bCalibrationCam := NOT inDigitalInputs.1,
-	ActualPosition 	=> actualPosition,
-	Error 			=> error,
-	ErrorID 		=> errorID,
+	ActualPosition 	=> fActualPosition,
+	Error 			=> bError,
+	ErrorID 		=> nErrorID,
 	AxisRef 		:= axisRef);
 
 IF bSoEReset THEN
-	lastPosition := -1.0;
+	fLastPosition := -1.0;
 	fbSoEReset(
 		Axis 	:= axisRef,
 		Execute := TRUE,
@@ -142,70 +142,70 @@ IF bSoEReset THEN
 		fbSoEReset(Axis := axisRef, Execute := FALSE);
 	ELSE
 		bSoEReset := FALSE;
-		Reset := TRUE;
+		bReset := TRUE;
 	END_IF
 END_IF 
 
-IF axis.MoveDone THEN
-	moveAxis := FALSE;
+IF fbAxis.MoveDone THEN
+	bMoveAxis := FALSE;
 END_IF
 
-IF axis.HomeDone THEN
-	homeAxis := FALSE;
+IF fbAxis.HomeDone THEN
+	bHomeAxis := FALSE;
 END_IF
 	
-IF axis.ResetDone THEN
-	reset := FALSE;
+IF fbAxis.ResetDone THEN
+	bReset := FALSE;
 END_IF
 
-IF axis.StopDone THEN
-	stopAxis := FALSE;
+IF fbAxis.StopDone THEN
+	bStopAxis := FALSE;
 END_IF
-diagnosticError := FALSE;
+bDiagnosticError := FALSE;
 IF inDiagnostic < 16#D012 AND inDiagnostic > 16#D014 THEN
-	diagnosticError :=TRUE;
-	errorID := inDiagnostic;
+	bDiagnosticError :=TRUE;
+	nErrorID := inDiagnostic;
 END_IF
 
-readParameter(	
+fbReadParameter(	
 	Axis 			:= axisRef, 
-	Enable 			:= axis.InMotion, 
+	Enable 			:= fbAxis.InMotion, 
 	ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
 	ReadMode 		:= E_ReadMode.READMODE_CYCLIC);
-IF readParameter.Valid THEN
-	slewTime := readParameter.Value;
+IF fbReadParameter.Valid THEN
+	fSlewTime := fbReadParameter.Value;
 END_IF
 
-torque := inTorque / 10.0;
-torqueError(IN := ABS(torque) > 50.0);
+fTorque := inTorque / 10.0;
+tonTorqueError(IN := ABS(fTorque) > 50.0);
 
 axisEvent(	
-	Trigger 		:= error, 
+	Trigger 		:= bError, 
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'Azimuth Axis Error: %s',
-	OnMessage 		:= NCError_TO_STRING(ErrorID),
-	Comm 			:= comm);
+	OnMessage 		:= NCError_TO_STRING(nErrorID),
+	Comm 			:= fbComm);
 	
 diagnosticEvent(	
-	Trigger 		:= diagnosticError,
+	Trigger 		:= bDiagnosticError,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'Azimuth Axis Diagnostic Error: %s',
 	OnMessage 		:= NCError_TO_STRING(inDiagnostic),
-	Comm 			:= comm);
+	Comm 			:= fbComm);
 	
 TorqueWarning(	
-	Trigger 		:= torqueError.Q, 
+	Trigger 		:= tonTorqueError.Q, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Azimuth torque is high.',
-	Comm 			:= comm);
+	Comm 			:= fbComm);
 	
 CalibrationEvent(
-	Trigger 		:= calibrated, 
+	Trigger 		:= bCalibrated, 
 	Level 			:= ADSLOG_MSGTYPE_HINT,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Azimuth axis is calibrated.',
-	Comm 			:= comm);
+	Comm 			:= fbComm);
 				]]></ST>
     </Implementation>
     <Method Name="FB_Init" Id="{da5bbb3a-7afb-4e44-92f3-c2b7880a01c6}">
@@ -220,11 +220,11 @@ VAR_INPUT
 	comm			: I_Comm;	   
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[THIS^.comm := comm;]]></ST>
+        <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_AzimuthControl">
-      <LineId Id="2374" Count="147" />
+      <LineId Id="6962" Count="147" />
       <LineId Id="149" Count="0" />
     </LineIds>
     <LineIds Name="FB_AzimuthControl.FB_Init">

@@ -48,7 +48,7 @@ FocusControl(
 DerotatorControl();
 ElevationControl();
 AzimuthControl(
-	brakeOpen			:= HydraulicsControl.bBrakeOpen
+	bBrakeOpen			:= HydraulicsControl.bBrakeOpen
 );
 TelescopeControl();
 PendantControl();

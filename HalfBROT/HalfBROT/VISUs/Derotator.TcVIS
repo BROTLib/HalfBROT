@@ -5,7 +5,7 @@
       <Data>
         <o xml:space="preserve" t="VisualObject">
           <n n="LastVisuLanguageModelEntry" />
-          <v n="UniqueIdGenerator">"60"</v>
+          <v n="UniqueIdGenerator">"144"</v>
           <o n="VisualElemList" t="VisualElemList">
             <l n="VisualElementList" t="VisualElemCollection" cet="GenericVisualElem">
               <o>
@@ -91,7 +91,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.DerotatorControl.enable"</v>
+                          <v n="Value">"MAIN.DerotatorControl.bEnable"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -197,7 +197,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.DerotatorControl.reset"</v>
+                          <v n="Value">"MAIN.DerotatorControl.bReset"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -561,7 +561,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.DerotatorControl.Error"</v>
+                          <v n="Value">"MAIN.DerotatorControl.bError"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -792,7 +792,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.DerotatorControl.Ready"</v>
+                          <v n="Value">"MAIN.DerotatorControl.bReady"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -890,7 +890,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.DerotatorControl.Calibrated"</v>
+                          <v n="Value">"MAIN.DerotatorControl.bCalibrated"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -1915,7 +1915,7 @@
                         </o>
                         <o>
                           <v n="Id">2477733581L</v>
-                          <v n="Value">"MAIN.DerotatorControl.actualPosition"</v>
+                          <v n="Value">"MAIN.DerotatorControl.fActualPosition"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2223,7 +2223,7 @@
                         </o>
                         <o>
                           <v n="Id">2477733581L</v>
-                          <v n="Value">"MAIN.DerotatorControl.position"</v>
+                          <v n="Value">"MAIN.DerotatorControl.fPosition"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2247,8 +2247,8 @@
                         <o>
                           <v n="InputBoxVariable">""</v>
                           <v n="InputType">"InputWithLimits"</v>
-                          <v n="InputBoxMin">"MAIN.DerotatorControl.minPosition"</v>
-                          <v n="InputBoxMax">"MAIN.DerotatorControl.maxPosition"</v>
+                          <v n="InputBoxMin">"MAIN.DerotatorControl.fMinPosition"</v>
+                          <v n="InputBoxMax">"MAIN.DerotatorControl.fMaxPosition"</v>
                           <v n="InputBoxDialogTitle">""</v>
                           <v n="Password">false</v>
                           <v n="UseTextOutputVariable">true</v>
@@ -2352,7 +2352,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.DerotatorControl.left"</v>
+                          <v n="Value">"MAIN.DerotatorControl.bLeft"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2591,7 +2591,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.DerotatorControl.right"</v>
+                          <v n="Value">"MAIN.DerotatorControl.bRight"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -2697,7 +2697,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.DerotatorControl.MoveAxis"</v>
+                          <v n="Value">"MAIN.DerotatorControl.bMoveAxis"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3187,7 +3187,7 @@
                     </o>
                     <o>
                       <v n="Id">2477733581L</v>
-                      <v n="Value">"MAIN.DerotatorControl.Velocity"</v>
+                      <v n="Value">"MAIN.DerotatorControl.fVelocity"</v>
                     </o>
                     <o>
                       <v n="Id">2597686782L</v>
@@ -3211,8 +3211,8 @@
                     <o>
                       <v n="InputBoxVariable">""</v>
                       <v n="InputType">"InputWithLimits"</v>
-                      <v n="InputBoxMin">"MAIN.DerotatorControl.minPosition"</v>
-                      <v n="InputBoxMax">"MAIN.DerotatorControl.maxPosition"</v>
+                      <v n="InputBoxMin">"MAIN.DerotatorControl.fMinPosition"</v>
+                      <v n="InputBoxMax">"MAIN.DerotatorControl.fMaxPosition"</v>
                       <v n="InputBoxDialogTitle">""</v>
                       <v n="Password">false</v>
                       <v n="UseTextOutputVariable">true</v>
@@ -3311,7 +3311,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.DerotatorControl.homeAxis"</v>
+                          <v n="Value">"MAIN.DerotatorControl.bHomeAxis"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
@@ -3683,7 +3683,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.DerotatorControl.homeAxis"</v>
+                          <v n="Value">"MAIN.DerotatorControl.bHomeAxis"</v>
                         </o>
                         <o>
                           <v n="Id">2597686782L</v>
