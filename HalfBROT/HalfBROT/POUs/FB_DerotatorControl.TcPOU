@@ -1,49 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_DerotatorControl" Id="{acfc3cc1-a4bd-4873-ba58-50b0c54d8bf5}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_DerotatorControl
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_DerotatorControl EXTENDS FB_AxisControl
 VAR_INPUT
-	bEnable			: BOOL;		// enable the derotator
-	bReset			: BOOL;		// reset an error
-	fPosition		: LREAL;	// set the absolute position
-	fVelocity		: LREAL := 10.0;	// derotator velocity
-	bMoveAxis		: BOOL;		// move to given position
-	bHomeAxis		: BOOL;		// calibrate the axis
-	bTracking		: BOOL;		// tracking flag
-	bStopAxis		: BOOL;		// stop the Axis
-	bSoEReset		: BOOL;		// diagnostic error code reset
-	fCalibPosition	: LREAL := 438.4623; // calibration in positive direction (was 460.0)
-	fMinPosition		: LREAL;
-	fMaxPosition		: LREAL;
 END_VAR
 VAR_OUTPUT
-	bError			: BOOL;		// error flag
-	nErrorID			: UDINT;	// nc error id
-	fActualPosition	: LREAL;	// actual position of the derotator
-	bCalibrated		: BOOL;		// calibrated flag
-	bReady			: BOOL;		// axis ready flag
-	fSlewTime		: LREAL;	// position to move the axis to
 END_VAR
 VAR
-	fbComm			: I_Comm;	
 	tonTorqueError		: TON := (PT := T#3S);	// trigger for the torque error
-	fbAxis			: FB_Axis2;	// axis function block
-	axisEvent		: FB_EventLog;
 	torqueWarning	: FB_EventLog;	// torque warning event
 	calibrationEvent: FB_EventLog;	// torque calibration event
-	diagnosticEvent	: FB_EventLog;	// diagnostic low-level event
 	fTorque			: REAL;	// percentage of the derotator torque
-	fbReadParameter	: MC_ReadParameter;	// read slewtime
-	fbSoEReset		: FB_SoEReset;
-	bDiagnosticError	: BOOL;
 	bLeft			: BOOL;		// decrease derotator angle
 	bRight			: BOOL;		// increase derotator angle
-	
-	InDigitalInputs	AT%I*	: WORD;		// digitale inputs der Endlagen
-	InDiagnostic	AT%I*	: UDINT;	// diagnostic number
-	InTorque		AT%I*	: INT;		// derotator torque feedback
-	ibSTO			AT%I*	: BOOL;		// STO
-	axisRef			: AXIS_REF;	
 END_VAR
 ]]></Declaration>
     <Implementation>

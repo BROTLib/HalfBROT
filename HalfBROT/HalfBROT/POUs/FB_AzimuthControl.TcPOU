@@ -1,62 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_AzimuthControl" Id="{fd112fcf-fe5a-48e7-aea8-3fe8a57db212}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_AzimuthControl
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_AzimuthControl EXTENDS FB_AxisControl
 VAR_INPUT
-	bEnable					: BOOL;		// enable the axis and its position control loop
-	bReset					: BOOL;		// reset the axis
 	bLeft					: BOOL;		// decrease azimuth
 	bRight					: BOOL;		// increase azimuth
-	bMoveAxis				: BOOL;		// Move azimuth to given position
-	bHomeAxis				: BOOL;		// Home the axis
-	bTracking				: BOOL;		// enable tracking
-	fPosition				: LREAL;	// position to move the axis to
-	fVelocity				: LREAL;	// set the Velocity of the axis
-	bStopAxis				: BOOL;		// stop the Axis
-	bSoEReset				: BOOL;		// diagnostic reset
 	bBrakeOpen				: BOOL;		// azimuth break is open
-	fMinPosition			: REAL := 0;
-	fMaxPosition			: REAL := 450.0;
-	fCalibPosition			: LREAL := 45.0; // // current position of the calibration cam
 END_VAR
 VAR_OUTPUT
-	bError					: BOOL;		// error state of the axis
-	nErrorID				: UDINT;	// error ID of the axis
-	fActualPosition			: LREAL;	// actual_position of the axis
-	bCalibrated				: BOOL;		// is the axis calibrated
-	bReady					: BOOL;		// drive is ready
-	fSlewTime				: LREAL;	// time to reach target position
 END_VAR
 VAR
-	fbComm					: I_Comm;	
-	
-	InDigitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
-	InDiagnostic	  AT%I*	: UDINT;	// diagnostic number
-	InTorque	 	  AT%I*	: INT;		// derotator torque feedback
-	IbSTO		  	  AT%I*	: BOOL;		// STO
-	axisRef					: AXIS_REF;	
-	
-	fbAxis				: FB_Axis2;
-	fbAxisCalibration		: MC_SetPosition;
-	//fbSoEReset			  :	FB_SoEReset;
-	axisEvent			: FB_EventLog;
-	diagnosticEvent		: FB_EventLog;
 	tonReadyDelay		: TON;		// delay until commutator angle is measured
 	homeDelay			: FB_TONTP;
 	tonTorqueError		: TON := (PT := T#3S);
 	fTorque				: REAL;
 	torqueWarning		: FB_EventLog;
 	calibrationEvent	: FB_Eventlog;
-	fbReadParameter		: MC_ReadParameter;
-	bGetLastPosition		: BOOL := TRUE;
 	tonRestTimer			: TON;
 	bAtRest				: BOOL;
-	fbSoEReset			: FB_SoEReset;
-	bDiagnosticError		: BOOL;
+	
 END_VAR
-VAR PERSISTENT
-	fLastPosition			: LREAL := -1.0;
-END_VAR]]></Declaration>
+]]></Declaration>
     <Implementation>
       <ST><![CDATA[(* Azimuth Axis control section
 Power must be on and brake must be open for the axis to operate
@@ -224,7 +188,7 @@ END_VAR]]></Declaration>
       </Implementation>
     </Method>
     <LineIds Name="FB_AzimuthControl">
-      <LineId Id="6962" Count="147" />
+      <LineId Id="7110" Count="147" />
       <LineId Id="149" Count="0" />
     </LineIds>
     <LineIds Name="FB_AzimuthControl.FB_Init">

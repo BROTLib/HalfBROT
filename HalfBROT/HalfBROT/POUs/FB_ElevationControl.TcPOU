@@ -1,52 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_ElevationControl" Id="{163e8baa-c820-4d82-9b8f-2bab0c8d4398}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_ElevationControl
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ElevationControl EXTENDS FB_AxisControl
 VAR_INPUT
-	bEnable			: BOOL;		// enable the axis
-	bReset			: BOOL;		// reset an error
 	bUp				: BOOL;		// increase the eleveation
 	bDown			: BOOL;		// decrease the elevation
-	fPosition		: LREAL;	// set position of the axis in degrees
-	fVelocity		: LREAL;	// set the Velocity of the axis
-	bMoveAxis		: BOOL;		// move axis command
-	bHomeAxis		: BOOL;		// calibrate the axis
-	bTracking		: BOOL;		// enable tracking
-	bStopAxis		: BOOL;		// stop the Axis
-	bSoEReset		: BOOL;		// reset diagnostic errors
-	fCalibPosition	: LREAL := 45.0; // // current position of the calibration cam. Apply an offset here if necessary
 END_VAR
 VAR_OUTPUT
-	bReady			: BOOL;		// axis is ready to operate
-	bError			: BOOL;		// drive error condition
 	bWarning			: BOOL;		// warning condition
-	fActualPosition	: LREAL;	// actual position of the elevation axis
-	nErrorID			: UDINT;	// error ID of the elevation axis
-	bCalibrated		: BOOL;		// axis is calibrated
-	fSlewTime		: LREAL;	// time to reach target position
 END_VAR
 VAR
 	fbCover			: I_MirrorCovers;
 	fbBrake 		: I_Brake;
-	comm			: I_Comm;
-	
-	InDigitalInputs	AT%I*	: WORD;		// digitale inputs der Endlagen
-	InDiagnostic	AT%I*	: UDINT;	// diagnostic number
-	InTorque		AT%I*	: INT;		// derotator torque feedback
-	IbSTO			AT%I*	: BOOL;		// STO
-	axisRef					: AXIS_REF;	
-	
-	fbAxis					: FB_Axis2;
-	fbAxisCalibration			: MC_SetPosition;
-	fbSoEReset				: FB_SoEReset;
+
 	// delay until commutator angle is measured
 	tonReadyDelay				: TON;
 	// disable trigger for hydraulics
 	enableTrigger			: F_TRIG;
 	// store last position
-	bGetLastPosition			: BOOL := TRUE;
-	axisEvent				: FB_Eventlog;
-	diagnosticEvent			: FB_Eventlog;
 	brakeEvent				: FB_Eventlog;
 	highElevationEvent		: FB_Eventlog;
 	lowElevationEvent		: FB_Eventlog;
@@ -55,11 +26,6 @@ VAR
 	
 	fTorque					: REAL; 	// elevation torque in percent
 	tonTorqueTimer				: TON;		// timer to trigger a warning if torque is high
-	dbReadParameter			: MC_ReadParameter;
-	bDiagnosticError			: BOOL;
-END_VAR
-VAR PERSISTENT
-	fLastPosition			:	LREAL := -1.0;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -178,14 +144,14 @@ END_IF
 
 tonReadyDelay(IN :=  fbBrake.BrakeOpen, PT := T#6000MS, Q=> bReady);
 
-dbReadParameter(	
+fbReadParameter(	
 	Axis 			:= axisRef, 
 	Enable 			:= fbAxis.InMotion, 
 	ParameterNumber := MC_AxisParameter.AxisRemainingTimeToGo, 
 	ReadMode 		:= E_ReadMode.READMODE_CYCLIC);
 				
-IF dbReadParameter.Valid THEN
-	fSlewTime := dbReadParameter.Value;
+IF fbReadParameter.Valid THEN
+	fSlewTime := fbReadParameter.Value;
 END_IF
 
 fTorque := inTorque / 10.0;
@@ -196,48 +162,48 @@ axisEvent(
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'Elevation Axis Error: %s',
 	OnMessage 		:= NCError_TO_STRING(nErrorID), 
-	comm 			:= comm);
+	comm 			:= fbComm);
 
 diagnosticEvent(	
 	Trigger 		:= bDiagnosticError,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'Elevation Axis Diagnostic Error: %s',
 	OnMessage 		:= NCError_TO_STRING(inDiagnostic), 
-	comm 			:= comm);
+	comm 			:= fbComm);
 
 highElevationEvent(	
 	Trigger 		:= bCalibrated AND fActualPosition > 85.0, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= 'High Elevation: %s',
 	OnMessage 		:= LREAL_TO_FMTSTR(fActualPosition, 2, TRUE), 
-	comm 			:= comm);
+	comm 			:= fbComm);
 
 lowElevationEvent(	
 	Trigger 		:= bCalibrated AND fActualPosition < 5.0, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= 'Low Elevation: %s',
 	OnMessage 		:= LREAL_TO_FMTSTR(fActualPosition, 2, TRUE), 
-	comm 			:= comm);
+	comm 			:= fbComm);
 				
 brakeEvent( 
 	Trigger 		:= NOT bEnable AND fbBrake.BrakeOpen, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Brake was opened without elevation axis enabled!', 
-	comm 			:= comm); 
+	comm 			:= fbComm); 
 
 torqueWarning(	
 	Trigger 		:= tonTorqueTimer.Q, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Elevation torque is high.', 
-	comm 			:= comm);
+	comm 			:= fbComm);
 	
 calibrationEvent(
 	Trigger 		:= bCalibrated,
 	Level 			:= ADSLOG_MSGTYPE_HINT,
 	OnMessage 		:= 'Elevation is calibrated.', 
-	comm 			:= comm);]]></ST>
+	comm 			:= fbComm);]]></ST>
     </Implementation>
     <Method Name="FB_Init" Id="{413b7b7f-fbba-45b5-beca-2a08218d35d1}">
       <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
@@ -255,7 +221,7 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[THIS^.fbBrake := brake;
 THIS^.fbCover := cover;
-THIS^.comm := comm;]]></ST>
+THIS^.fbComm := comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_ElevationControl">

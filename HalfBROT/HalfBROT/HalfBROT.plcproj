@@ -35,6 +35,9 @@
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\FB_AxisControl.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\FB_AzimuthControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
