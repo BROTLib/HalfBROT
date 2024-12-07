@@ -13,18 +13,12 @@ VAR
 	fbCover			: I_MirrorCovers;
 	fbBrake 		: I_Brake;
 
-	// delay until commutator angle is measured
-	tonReadyDelay				: TON;
-	// disable trigger for hydraulics
-	enableTrigger			: F_TRIG;
-	// store last position
+	
+	tonReadyDelay				: TON;	// delay until commutator angle is measured
+	enableTrigger			: F_TRIG;	// disable trigger for hydraulics
 	brakeEvent				: FB_Eventlog;
 	highElevationEvent		: FB_Eventlog;
 	lowElevationEvent		: FB_Eventlog;
-	torqueWarning			: FB_EventLog;
-	calibrationEvent		: FB_Eventlog;
-	
-	fTorque					: REAL; 	// elevation torque in percent
 	tonTorqueTimer				: TON;		// timer to trigger a warning if torque is high
 END_VAR
 ]]></Declaration>

@@ -3,7 +3,7 @@
   <POU Name="FB_AzimuthControl" Id="{fd112fcf-fe5a-48e7-aea8-3fe8a57db212}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_AzimuthControl EXTENDS FB_AxisControl
 VAR_INPUT
-	bLeft					: BOOL;		// decrease azimuth
+	bLeft				: BOOL;		// decrease azimuth
 	bRight					: BOOL;		// increase azimuth
 	bBrakeOpen				: BOOL;		// azimuth break is open
 END_VAR
@@ -13,12 +13,8 @@ VAR
 	tonReadyDelay		: TON;		// delay until commutator angle is measured
 	homeDelay			: FB_TONTP;
 	tonTorqueError		: TON := (PT := T#3S);
-	fTorque				: REAL;
-	torqueWarning		: FB_EventLog;
-	calibrationEvent	: FB_Eventlog;
 	tonRestTimer			: TON;
 	bAtRest				: BOOL;
-	
 END_VAR
 ]]></Declaration>
     <Implementation>

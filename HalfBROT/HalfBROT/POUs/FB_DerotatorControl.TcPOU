@@ -8,9 +8,6 @@ VAR_OUTPUT
 END_VAR
 VAR
 	tonTorqueError		: TON := (PT := T#3S);	// trigger for the torque error
-	torqueWarning	: FB_EventLog;	// torque warning event
-	calibrationEvent: FB_EventLog;	// torque calibration event
-	fTorque			: REAL;	// percentage of the derotator torque
 	bLeft			: BOOL;		// decrease derotator angle
 	bRight			: BOOL;		// increase derotator angle
 END_VAR

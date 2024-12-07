@@ -47,6 +47,9 @@ VAR
 	fbReadParameter		: MC_ReadParameter;
 	bGetLastPosition		: BOOL := TRUE;
 	
+	calibrationEvent		: FB_Eventlog;
+	fTorque			: REAL;	// percentage of the derotator torque
+	torqueWarning			: FB_EventLog;	
 END_VAR
 VAR PERSISTENT
 	fLastPosition			: LREAL := -1.0;
