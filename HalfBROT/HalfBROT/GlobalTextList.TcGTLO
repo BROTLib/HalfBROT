@@ -61,6 +61,16 @@
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
+              <v n="TextID">"248"</v>
+              <v n="TextDefault">"Axis +"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"375"</v>
+              <v n="TextDefault">"Axis -"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
               <v n="TextID">"785"</v>
               <v n="TextDefault">"Azimuth:"</v>
               <l n="LanguageTexts" t="ArrayList" />
@@ -258,6 +268,16 @@
             <o>
               <v n="TextID">"59"</v>
               <v n="TextDefault">"Near"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"648"</v>
+              <v n="TextDefault">"Offset +"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"779"</v>
+              <v n="TextDefault">"Offset -"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>

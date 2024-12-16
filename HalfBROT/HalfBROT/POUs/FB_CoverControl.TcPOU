@@ -214,6 +214,17 @@ END_VAR
 bClose := TRUE;]]></ST>
       </Implementation>
     </Method>
+    <Property Name="Error" Id="{f78eaf54-46fe-45ea-8346-6cce4988574f}">
+      <Declaration><![CDATA[PROPERTY Error : BOOL]]></Declaration>
+      <Get Name="Get" Id="{9055f5d5-0aee-4cfb-b036-00aa938d205d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Error := bError;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="FB_Init" Id="{f7653641-ffea-4063-9b54-57e57f75d284}">
       <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
 //The return value is not evaluated. For a specific influence, you can also declare the
@@ -303,6 +314,9 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_CoverControl.CloseCovers">
       <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.Error.Get">
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_CoverControl.FB_Init">
       <LineId Id="1" Count="0" />
