@@ -37,10 +37,10 @@ see https://gitlab.aip.de/bmk10k/telescope_firmware/snippets/5
 	fbAzimuth			: REFERENCE TO FB_AzimuthControl;
 	fbDerotator			: REFERENCE TO FB_DerotatorControl;
 
+	telescopeConfig		: ST_TelescopeConfig;
 END_VAR
 VAR
 	TelescopeAuxiliary	: FB_TelescopeAuxiliary;
-	telescopeConfig		: ST_TelescopeConfig;
 	
 	comm 				: I_Comm;
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
@@ -484,11 +484,10 @@ VAR_INPUT
     bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
 	comm			: I_Comm;
-	telescopeConfig	: ST_TelescopeConfig;   
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[THIS^.comm 				:= comm;
-THIS^.telescopeConfig 	:= telescopeConfig;]]></ST>
+]]></ST>
       </Implementation>
     </Method>
     <Method Name="GotoTelescope" Id="{43ebaf76-c0fc-41db-8c98-2f7671dc6b31}">

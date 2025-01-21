@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <Visu Name="Azimuth" Id="{5906ff92-7f05-4c20-8d2a-909ade2e1b14}">
     <XmlArchive>
       <Data>
