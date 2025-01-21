@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <POU Name="FB_TelescopeControl" Id="{10c2c294-efcf-424f-afd3-75ac57a5e8bc}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_TelescopeControl
 VAR_INPUT
@@ -38,7 +38,7 @@ VAR
 	CoverControl		: I_MirrorCovers;
 	fbBrake				: I_Brake;	
 	fbHydraulics   		: I_Hydraulics;
-	Focuscontrol 		: REFERENCE TO FB_Focuscontrol;
+	Focuscontrol 		: I_Focus;
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
 	ElevationControl	: REFERENCE TO FB_ElevationControl;
 	AzimuthControl		: REFERENCE TO FB_AzimuthControl;
@@ -131,7 +131,7 @@ IF ElevationControl.bError THEN
 ELSIF AzimuthControl.bError THEN
 	errorid := AzimuthControl.nErrorID;
 	AzimuthControl.bReset := reset;
-ELSIF Focuscontrol.bError THEN
+ELSIF Focuscontrol.Error THEN
 	errorid := Focuscontrol.ErrorID;
 	IF reset_trigger.Q THEN
 		FocusControl.Reset();
@@ -143,7 +143,7 @@ END_IF
 
 error := ElevationControl.bError OR 
 		 AzimuthControl.bError OR
-		 Focuscontrol.bError OR
+		 Focuscontrol.Error OR
 		 DerotatorControl.bError;
 
 slewtime := MAX(MAX(ElevationControl.fSlewTime, AzimuthControl.fSlewTime), DerotatorControl.fSlewTime);
@@ -318,7 +318,7 @@ stopped :=  (NOT ElevationControl.bEnable OR ElevationControl.fbAxis.StandStill)
 			
 homed := ElevationControl.bCalibrated AND
 			AzimuthControl.bCalibrated AND
-			FocusControl.bCalibrated AND
+			FocusControl.Calibrated AND
 			DerotatorControl.bCalibrated;
 			
 ready := homed AND 
@@ -331,7 +331,7 @@ ready := homed AND
 busy := ElevationControl.fbAxis.Busy OR
 		AzimuthControl.fbAxis.Busy OR
 		DerotatorControl.fbAxis.Busy OR
-		FocusControl.fbAxis.Busy;
+		FocusControl.Busy;
 
 // unset the STOP command if telescope is already stopped
 IF stopped THEN
@@ -481,8 +481,8 @@ VAR_INPUT
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
 	cover			: I_MirrorCovers;
 	brake 			: I_Brake;
-	hydraulics		: REFERENCE TO FB_HydraulicsControl;
-	focus			: REFERENCE TO FB_FocusControl;
+	hydraulics		: I_Hydraulics;
+	focus			: I_Focus;
 	elevation		: REFERENCE TO FB_ElevationControl;
 	azimuth			: REFERENCE TO FB_AzimuthControl;
 	derotator		: REFERENCE TO FB_DerotatorControl;
@@ -492,7 +492,7 @@ END_VAR]]></Declaration>
         <ST><![CDATA[CoverControl 		:= cover;
 fbBrake				:= brake;
 fbHydraulics   		:= hydraulics;
-FocusControl 		REF= focus;
+FocusControl 		:= focus;
 ElevationControl 	REF= elevation;
 AzimuthControl 		REF= azimuth;
 DerotatorControl 	REF= derotator;
@@ -778,7 +778,7 @@ END_IF
 
 // start calibration of focus after elevation has been calibrated
 // this avoids imbalance by the M2 mirror on the elvation during its calibration
-IF ElevationControl.bCalibrated AND NOT FocusControl.bCalibrated THEN
+IF ElevationControl.bCalibrated AND NOT FocusControl.Calibrated THEN
 	FocusControl.Enable := TRUE;
 	FocusControl.HomeAxis := TRUE;
 END_IF

@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
+  <POU Name="FB_HalfBROTAxis" Id="{bae85b54-65c9-4d1f-98f7-530b10d558b7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_HalfBROTAxis IMPLEMENTS I_Axis, I_Axis
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	bCalibrated			: BOOL;		// true if absolute calibration
+	bError				: BOOL;		// true if error	
+END_VAR
+VAR
+	fbAxis				: FB_Axis2;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Property Name="Busy" Id="{567e8af7-1006-4a9e-a236-efe3efee35b4}">
+      <Declaration><![CDATA[PROPERTY Busy : BOOL]]></Declaration>
+      <Get Name="Get" Id="{bc8cb34d-293c-40ce-ac83-5fd7efe63294}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Busy := fbAxis.Busy;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Calibrated" Id="{b034059e-7dc3-4131-8628-44f1ad17bd06}">
+      <Declaration><![CDATA[{warning 'Add property implementation'}
+PROPERTY Calibrated : BOOL
+]]></Declaration>
+      <Get Name="Get" Id="{fe3ff6d9-4050-4415-b9d6-711bddc50fae}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Calibrated := bCalibrated;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="Error" Id="{e8700151-a6f7-4979-9adf-7a637755cd40}">
+      <Declaration><![CDATA[PROPERTY Error : BOOL]]></Declaration>
+      <Get Name="Get" Id="{918a6a55-fc48-4705-8e89-8dd3c47b45de}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Error := bError;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <LineIds Name="FB_HalfBROTAxis">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HalfBROTAxis.Busy.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HalfBROTAxis.Calibrated.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_HalfBROTAxis.Error.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <POU Name="FB_FocusControl" Id="{27922653-650e-4327-85ba-374d2f945b2c}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl IMPLEMENTS I_Focus
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl EXTENDS FB_HalfBROTAxis IMPLEMENTS I_Focus
 VAR_INPUT
 	fMinPosition		: LREAL := 0;	// minimum position
 	fMaxPosition		: LREAL := 100;	// maximum position
@@ -10,8 +10,6 @@ VAR_INPUT
 	fTolerance			: LREAL := 0.005;
 END_VAR
 VAR_OUTPUT
-	bCalibrated			: BOOL;		// true if absolute calibration
-	bError				: BOOL;		// true if error
 	nErrorID			: UDINT;	// ID of NC axis error
 	bReady				: BOOL;		// ready signal = drive ready + standstill
 	bFocusUnlocked		: BOOL;
@@ -28,7 +26,6 @@ VAR
 	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
 	tonFocusDelay		: TON;
 	tonBrakeDelay		: TON;
-	fbAxis				: FB_Axis2;
 	fActualPosition		: LREAL;
 	bManualUnlock		: BOOL;		// manual override to unlock the focus
 	tonMqttTimer 		: TON := (PT:=T#5S);
