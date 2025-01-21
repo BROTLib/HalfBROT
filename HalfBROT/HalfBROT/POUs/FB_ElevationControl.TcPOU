@@ -1,20 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <POU Name="FB_ElevationControl" Id="{163e8baa-c820-4d82-9b8f-2bab0c8d4398}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ElevationControl EXTENDS FB_AxisControl
 VAR_INPUT
 	bUp				: BOOL;		// increase the eleveation
 	bDown			: BOOL;		// decrease the elevation
+	
+	fbCovers		: I_MirrorCovers;
+	fbBrake			: I_Brake;
 END_VAR
 VAR_OUTPUT
 	bWarning			: BOOL;		// warning condition
 END_VAR
 VAR
-	fbCover			: I_MirrorCovers;
-	fbBrake 		: I_Brake;
-
-	
-	tonReadyDelay				: TON;	// delay until commutator angle is measured
+	tonReadyDelay			: TON;	// delay until commutator angle is measured
 	enableTrigger			: F_TRIG;	// disable trigger for hydraulics
 	brakeEvent				: FB_Eventlog;
 	highElevationEvent		: FB_Eventlog;
@@ -29,8 +28,8 @@ fPosition := LIMIT(0.0, fPosition, 90.0);
 //if we enable the axis, we have to open the brake first
 IF bEnable THEN
 	IF NOT bCalibrated THEN
-		fbCover.OpenCovers();
-		IF fbCover.AreCoversOpen() THEN
+		fbCovers.OpenCovers();
+		IF fbCovers.AreCoversOpen() THEN
 			fbBrake.OpenBrake();
 		END_IF
 	ELSE
@@ -208,14 +207,10 @@ METHOD FB_Init: BOOL
 VAR_INPUT
     bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	cover			: I_MirrorCovers;
-	brake			: I_Brake;
 	comm			: I_Comm;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[THIS^.fbBrake := brake;
-THIS^.fbCover := cover;
-THIS^.fbComm := comm;]]></ST>
+        <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_ElevationControl">
@@ -223,7 +218,7 @@ THIS^.fbComm := comm;]]></ST>
       <LineId Id="170" Count="0" />
     </LineIds>
     <LineIds Name="FB_ElevationControl.FB_Init">
-      <LineId Id="1" Count="2" />
+      <LineId Id="3" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

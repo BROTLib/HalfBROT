@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <POU Name="FB_HydraulicsControl" Id="{0d9c5732-af19-4096-a83e-065687a13da0}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_HydraulicsControl IMPLEMENTS I_Hydraulics, I_Brake
 VAR_INPUT
@@ -13,7 +13,6 @@ VAR_INPUT
 	nMaxPanLevel		: INT := 16383;		// maximum oil level from sensor
 	fMinPanPercent		: REAL := 0;		// oil level percentage to be seen as empty
 	fMaxPanPercent		: REAL := 90;		// oil level percentage to be seen as full
-	
 END_VAR
 VAR_OUTPUT
 	bBrakeOpen			: BOOL;				// status of the brake: is the brake open?
@@ -35,7 +34,8 @@ VAR_OUTPUT
 	bError				: BOOL;				// error condition
 END_VAR
 VAR
-	fbComm				: I_Comm; 
+	fbComm				: I_Comm;
+ 
 	IbOilLow			AT%I* : BOOL;	// 2.1
 	IbOilHigh			AT%I* : BOOL;	// ?
 	IbOilPressureOK		AT%I* : BOOL;	// 2.3
@@ -409,10 +409,11 @@ METHOD FB_Init: BOOL
 VAR_INPUT
     bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	comm			: I_Comm;   
+	comm			: I_Comm;
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
+        <ST><![CDATA[THIS^.fbComm := comm;
+]]></ST>
       </Implementation>
     </Method>
     <Property Name="ManualStartSuction" Id="{06a625ea-0a04-4f85-a476-f15eb08387f8}">
@@ -528,7 +529,7 @@ END_VAR
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_HydraulicsControl.FB_Init">
-      <LineId Id="1" Count="0" />
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_HydraulicsControl.ManualStartSuction.Get">
       <LineId Id="1" Count="0" />

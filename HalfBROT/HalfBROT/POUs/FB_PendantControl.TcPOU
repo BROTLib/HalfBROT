@@ -3,16 +3,16 @@
   <POU Name="FB_PendantControl" Id="{e2b10f6c-d16d-4403-9ebe-8d8a369c8dbd}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_PendantControl
 VAR_INPUT
-END_VAR
-VAR
-	CoverControl		: I_MirrorCovers;
+	fbCovers			: I_MirrorCovers;
 	fbBrake				: I_Brake;
 	fbHydraulics		: I_Hydraulics;
-	Focuscontrol 		: I_Focus;
-	ElevationControl	: REFERENCE TO FB_ElevationControl;
-	AzimuthControl 		: REFERENCE TO FB_AzimuthControl;
-	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
-	TelescopeControl	: REFERENCE TO FB_TelescopeControl;
+	fbFocus		 		: I_Focus;
+	fbElevation			: REFERENCE TO FB_ElevationControl;
+	fbAzimuth	 		: REFERENCE TO FB_AzimuthControl;
+	fbDerotator			: REFERENCE TO FB_DerotatorControl;
+	fbTelescope			: REFERENCE TO FB_TelescopeControl;	
+END_VAR
+VAR
 	comm				: I_Comm;
 
 	// program selection of the pendant control
@@ -117,133 +117,133 @@ fbStartTrigger(CLK := start_switch);
 // enable only the selected item and connect lamps and buttons accordingly
 CASE Selection OF
 	1, 2, 3:	// reserved for Cover 1-3 control
-		lamp_up := CoverControl.IsCoverOpen(Selection);
-		lamp_down := CoverControl.IsCoverClosed(Selection);
+		lamp_up := fbCovers.IsCoverOpen(Selection);
+		lamp_down := fbCovers.IsCoverClosed(Selection);
 		IF key_switch THEN
-			IF direction_up AND CoverControl.IsCoverOpen(Selection) THEN
-				CoverControl.OpenCover(Selection);
-			ELSIF direction_down AND CoverControl.IsCoverClosed(Selection) THEN
-				CoverControl.CloseCover(Selection);
+			IF direction_up AND fbCovers.IsCoverOpen(Selection) THEN
+				fbCovers.OpenCover(Selection);
+			ELSIF direction_down AND fbCovers.IsCoverClosed(Selection) THEN
+				fbCovers.CloseCover(Selection);
 			END_IF
-			lamp_error := CoverControl.HasError(Selection);	
+			lamp_error := fbCovers.HasError(Selection);	
 		ELSE
 			IF direction_down THEN 
-				CoverControl.CloseCovers();
+				fbCovers.CloseCovers();
 			ELSIF direction_up THEN
-				CoverControl.OpenCovers();
+				fbCovers.OpenCovers();
 			END_IF		
 		END_IF
 		
 	4:	// Nasmyth / mirror M3 control
 		
 	5:	// Focus Control
-		lamp_up := FocusControl.Ready AND NOT FocusControl.InFarLimit;
-		lamp_down := FocusControl.Ready AND NOT FocusControl.InNearLimit;
+		lamp_up := fbFocus.Ready AND NOT fbFocus.InFarLimit;
+		lamp_down := fbFocus.Ready AND NOT fbFocus.InNearLimit;
 		IF key_switch THEN
 			IF fbStartTrigger.Q THEN
-				FocusControl.Enable := NOT FocusControl.Enable;
+				fbFocus.Enable := NOT fbFocus.Enable;
 			END_IF
-			FocusControl.MoveOut(direction_up);
-			FocusControl.MoveIn(direction_down);
+			fbFocus.MoveOut(direction_up);
+			fbFocus.MoveIn(direction_down);
 			IF reset_trigger.Q THEN
-				Focuscontrol.Reset();
+				fbFocus.Reset();
 			END_IF
-			lamp_error := FocusControl.Error;
+			lamp_error := fbFocus.Error;
 		END_IF
 							
 	6:	// Derotator control
-		lamp_left  := DerotatorControl.IsReady() AND NOT DerotatorControl.IsInMinLimit();
-		lamp_right := DerotatorControl.IsReady() AND NOT DerotatorControl.IsInMaxLimit();
+		lamp_left  := fbDerotator.IsReady() AND NOT fbDerotator.IsInMinLimit();
+		lamp_right := fbDerotator.IsReady() AND NOT fbDerotator.IsInMaxLimit();
 		IF key_switch THEN
-			DerotatorEnable(SET := start_switch, Q := DerotatorControl.bEnable);
-			DerotatorControl.MoveLeft(direction_left AND NOT DerotatorControl.inDigitalInputs.1);
-			DerotatorControl.MoveRight(direction_right AND NOT DerotatorControl.inDigitalInputs.0);
-			DerotatorControl.bReset := reset_switch;
-			lamp_error := DerotatorControl.bError;
+			DerotatorEnable(SET := start_switch, Q := fbDerotator.bEnable);
+			fbDerotator.MoveLeft(direction_left AND NOT fbDerotator.inDigitalInputs.1);
+			fbDerotator.MoveRight(direction_right AND NOT fbDerotator.inDigitalInputs.0);
+			fbDerotator.bReset := reset_switch;
+			lamp_error := fbDerotator.bError;
 		END_IF
 							
 	7:	// Elevation Control
 		
-		ElevationControl.bUp := direction_up AND ElevationControl.inDigitalInputs.0;
-		ElevationControl.bDown := direction_down AND ElevationControl.inDigitalInputs.1;
+		fbElevation.bUp := direction_up AND fbElevation.inDigitalInputs.0;
+		fbElevation.bDown := direction_down AND fbElevation.inDigitalInputs.1;
 		IF key_switch THEN
 			ElevationEnable(
 				SET := start_switch, 
-				Q := ElevationControl.bEnable);	
+				Q := fbElevation.bEnable);	
 		END_IF
-		ElevationControl.bReset := reset_switch;
-		lamp_up := ElevationControl.inDigitalInputs.0;
-		lamp_down := ElevationControl.inDigitalInputs.1;
-		lamp_error := ElevationControl.bError;
+		fbElevation.bReset := reset_switch;
+		lamp_up := fbElevation.inDigitalInputs.0;
+		lamp_down := fbElevation.inDigitalInputs.1;
+		lamp_error := fbElevation.bError;
 		
 	8:	// Azimuth Control
-		lamp_left := AzimuthControl.inDigitalInputs.0; // NOT GVL_Telescope.azimut_limit_switch;
-		lamp_right := AzimuthControl.inDigitalInputs.1; // NOT GVL_Telescope.azimut_limit_switch;
-		AzimuthControl.bLeft := direction_left AND AzimuthControl.inDigitalInputs.0;
-		AzimuthControl.bRight := direction_right AND AzimuthControl.inDigitalInputs.1;
-		AzimuthControl.bReset := reset_switch;
+		lamp_left := fbAzimuth.inDigitalInputs.0; // NOT GVL_Telescope.azimut_limit_switch;
+		lamp_right := fbAzimuth.inDigitalInputs.1; // NOT GVL_Telescope.azimut_limit_switch;
+		fbAzimuth.bLeft := direction_left AND fbAzimuth.inDigitalInputs.0;
+		fbAzimuth.bRight := direction_right AND fbAzimuth.inDigitalInputs.1;
+		fbAzimuth.bReset := reset_switch;
 		IF key_switch THEN
 			AzimuthEnable(
 				SET := start_switch, 
-				Q := AzimuthControl.bEnable);
-			lamp_error := AzimuthControl.bError;
+				Q := fbAzimuth.bEnable);
+			lamp_error := fbAzimuth.bError;
 		END_IF
 		
 	9: 	// Dome control
 		
 	10:	// FilterWheel control
 		
-	11: lamp_up := ElevationControl.fTorque > 0.0;
-		lamp_down := ElevationControl.fTorque < 0.0;
+	11: lamp_up := fbElevation.fTorque > 0.0;
+		lamp_down := fbElevation.fTorque < 0.0;
 		
 	12:	// manual Telescope Control
 		IF key_switch THEN
-			lamp_up := TelescopeControl.power;
-			lamp_down := TelescopeControl.power;
-			lamp_left := TelescopeControl.power;
-			lamp_right := TelescopeControl.power;
+			lamp_up := fbTelescope.power;
+			lamp_down := fbTelescope.power;
+			lamp_left := fbTelescope.power;
+			lamp_right := fbTelescope.power;
 	
-			TelescopeControl.gohome := direction_down;
-			TelescopeControl.park := direction_up;
-			TelescopeControl.goto := direction_right;
+			fbTelescope.gohome := direction_down;
+			fbTelescope.park := direction_up;
+			fbTelescope.goto := direction_right;
 			TrackingEnable(SET := start_switch, 
 							RESET := reset_switch, 
-							Q := TelescopeControl.track);
-			TelescopeControl.reset := reset_switch;
-			Telescopecontrol.stop := direction_left;	
-			lamp_error := Telescopecontrol.error;
+							Q := fbTelescope.track);
+			fbTelescope.reset := reset_switch;
+			fbTelescope.stop := direction_left;	
+			lamp_error := fbTelescope.error;
 		END_IF
 		
 	13: // Telescope Control
 		TelescopeControlEnable(
 			SET := start_switch, 
-			Q := TelescopeControl.power);
-		TelescopeControl.reset := reset_switch;
+			Q := fbTelescope.power);
+		fbTelescope.reset := reset_switch;
 		IF key_switch THEN
-			lamp_up := ElevationControl.inDigitalInputs.0;
-			lamp_down := ElevationControl.inDigitalInputs.1;
-			lamp_left := AzimuthControl.inDigitalInputs.0;
-			lamp_right := AzimuthControl.inDigitalInputs.1;
-			ElevationControl.bUp := direction_up AND ElevationControl.inDigitalInputs.0;
-			ElevationControl.bDown := direction_down AND ElevationControl.inDigitalInputs.1;
-			AzimuthControl.bLeft := direction_left AND AzimuthControl.inDigitalInputs.0;
-			AzimuthControl.bRight := direction_right AND AzimuthControl.inDigitalInputs.1;
-			TelescopeControl.rightascension := TelescopeControl.rightascension_calc;
-			TelescopeControl.declination := TelescopeControl.declination_calc;
+			lamp_up := fbElevation.inDigitalInputs.0;
+			lamp_down := fbElevation.inDigitalInputs.1;
+			lamp_left := fbAzimuth.inDigitalInputs.0;
+			lamp_right := fbAzimuth.inDigitalInputs.1;
+			fbElevation.bUp := direction_up AND fbElevation.inDigitalInputs.0;
+			fbElevation.bDown := direction_down AND fbElevation.inDigitalInputs.1;
+			fbAzimuth.bLeft := direction_left AND fbAzimuth.inDigitalInputs.0;
+			fbAzimuth.bRight := direction_right AND fbAzimuth.inDigitalInputs.1;
+			fbTelescope.rightascension := fbTelescope.rightascension_calc;
+			fbTelescope.declination := fbTelescope.declination_calc;
 		ELSE
-			lamp_up := ElevationControl.bEnable;
-			lamp_down := ElevationControl.bEnable;
-			lamp_left := AzimuthControl.bEnable;
-			lamp_right := AzimuthControl.bEnable;
+			lamp_up := fbElevation.bEnable;
+			lamp_down := fbElevation.bEnable;
+			lamp_left := fbAzimuth.bEnable;
+			lamp_right := fbAzimuth.bEnable;
 			IF direction_up THEN 
-				Telescopecontrol.elevation_offset := Telescopecontrol.elevation_offset + 10.0/3600.0; 
+				fbTelescope.elevation_offset := fbTelescope.elevation_offset + 10.0/3600.0; 
 			ELSIF direction_down THEN 
-				Telescopecontrol.elevation_offset := Telescopecontrol.elevation_offset - 10.0/3600.0; 
+				fbTelescope.elevation_offset := fbTelescope.elevation_offset - 10.0/3600.0; 
 			END_IF;
 			IF direction_left THEN 
-				Telescopecontrol.azimuth_offset := Telescopecontrol.azimuth_offset - 10.0/3600.0; 
+				fbTelescope.azimuth_offset := fbTelescope.azimuth_offset - 10.0/3600.0; 
 			ELSIF direction_right THEN 
-				Telescopecontrol.azimuth_offset := Telescopecontrol.azimuth_offset + 10.0/3600.0; 
+				fbTelescope.azimuth_offset := fbTelescope.azimuth_offset + 10.0/3600.0; 
 			END_IF;
 		END_IF
 		ResetDelay(IN := reset_switch, PT := T#3S);
@@ -291,26 +291,10 @@ METHOD FB_Init: BOOL
 VAR_INPUT
     bInitRetains: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	cover			: I_MirrorCovers;
-	brake			: I_Brake;
-	hydraulics 		: I_Hydraulics;
-	focus			: I_Focus;
-	elevation		: REFERENCE TO FB_ElevationControl;
-	azimuth			: REFERENCE TO FB_AzimuthControl;
-	derotator		: REFERENCE TO FB_DerotatorControl;
-	telescope		: REFERENCE TO FB_TelescopeControl;
 	comm			: I_Comm;   
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[fbBrake   			:= brake;
-fbHydraulics 		:= hydraulics;
-CoverControl 		:= cover;
-FocusControl 		:= focus;
-ElevationControl 	REF= elevation;
-AzimuthControl 		REF= azimuth;
-DerotatorControl 	REF= derotator;
-TelescopeControl 	REF= telescope;
-THIS^.comm 			:= comm;]]></ST>
+        <ST><![CDATA[THIS^.comm 	:= comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_PendantControl">
@@ -320,9 +304,6 @@ THIS^.comm 			:= comm;]]></ST>
       <LineId Id="235" Count="0" />
     </LineIds>
     <LineIds Name="FB_PendantControl.FB_Init">
-      <LineId Id="9" Count="0" />
-      <LineId Id="1" Count="5" />
-      <LineId Id="8" Count="0" />
       <LineId Id="7" Count="0" />
     </LineIds>
   </POU>

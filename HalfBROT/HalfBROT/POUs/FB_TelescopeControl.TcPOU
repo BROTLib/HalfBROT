@@ -29,16 +29,20 @@ see https://gitlab.aip.de/bmk10k/telescope_firmware/snippets/5
 	brakeClearing		: BOOL	:= TRUE;
 	mainReady			: BOOL	:= TRUE;
 	
-	telescopeConfig		: ST_TelescopeConfig;
+	fbFocus				: I_Focus;
+	fbCovers			: I_MirrorCovers;
+	fbBrake				: I_Brake;	
+	fbHydraulics   		: I_Hydraulics;
+	fbElevation			: REFERENCE TO FB_ElevationControl;
+	fbAzimuth			: REFERENCE TO FB_AzimuthControl;
+	fbDerotator			: REFERENCE TO FB_DerotatorControl;
+
 END_VAR
 VAR
 	TelescopeAuxiliary	: FB_TelescopeAuxiliary;
+	telescopeConfig		: ST_TelescopeConfig;
 	
 	comm 				: I_Comm;
-	CoverControl		: I_MirrorCovers;
-	fbBrake				: I_Brake;	
-	fbHydraulics   		: I_Hydraulics;
-	Focuscontrol 		: I_Focus;
 	DerotatorControl	: REFERENCE TO FB_DerotatorControl;
 	ElevationControl	: REFERENCE TO FB_ElevationControl;
 	AzimuthControl		: REFERENCE TO FB_AzimuthControl;
@@ -131,10 +135,10 @@ IF ElevationControl.bError THEN
 ELSIF AzimuthControl.bError THEN
 	errorid := AzimuthControl.nErrorID;
 	AzimuthControl.bReset := reset;
-ELSIF Focuscontrol.Error THEN
-	errorid := Focuscontrol.ErrorID;
+ELSIF fbFocus.Error THEN
+	errorid := fbFocus.ErrorID;
 	IF reset_trigger.Q THEN
-		FocusControl.Reset();
+		fbFocus.Reset();
 	END_IF
 ELSIF DerotatorControl.bError THEN
 	errorid := DerotatorControl.nErrorID;
@@ -143,7 +147,7 @@ END_IF
 
 error := ElevationControl.bError OR 
 		 AzimuthControl.bError OR
-		 Focuscontrol.Error OR
+		 fbFocus.Error OR
 		 DerotatorControl.bError;
 
 slewtime := MAX(MAX(ElevationControl.fSlewTime, AzimuthControl.fSlewTime), DerotatorControl.fSlewTime);
@@ -318,11 +322,11 @@ stopped :=  (NOT ElevationControl.bEnable OR ElevationControl.fbAxis.StandStill)
 			
 homed := ElevationControl.bCalibrated AND
 			AzimuthControl.bCalibrated AND
-			FocusControl.Calibrated AND
+			fbFocus.Calibrated AND
 			DerotatorControl.bCalibrated;
 			
 ready := homed AND 
-	CoverControl.AreCoversOpen() AND 
+	fbCovers.AreCoversOpen() AND 
 	ElevationControl.bEnable AND
 	AzimuthControl.bEnable AND
 	DerotatorControl.bEnable AND fbBrake.BrakeOpen AND 
@@ -331,7 +335,7 @@ ready := homed AND
 busy := ElevationControl.fbAxis.Busy OR
 		AzimuthControl.fbAxis.Busy OR
 		DerotatorControl.fbAxis.Busy OR
-		FocusControl.Busy;
+		fbFocus.Busy;
 
 // unset the STOP command if telescope is already stopped
 IF stopped THEN
@@ -479,24 +483,12 @@ METHOD FB_Init: BOOL
 VAR_INPUT
     bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
     bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	cover			: I_MirrorCovers;
-	brake 			: I_Brake;
-	hydraulics		: I_Hydraulics;
-	focus			: I_Focus;
-	elevation		: REFERENCE TO FB_ElevationControl;
-	azimuth			: REFERENCE TO FB_AzimuthControl;
-	derotator		: REFERENCE TO FB_DerotatorControl;
-	comm			: I_Comm;   
+	comm			: I_Comm;
+	telescopeConfig	: ST_TelescopeConfig;   
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[CoverControl 		:= cover;
-fbBrake				:= brake;
-fbHydraulics   		:= hydraulics;
-FocusControl 		:= focus;
-ElevationControl 	REF= elevation;
-AzimuthControl 		REF= azimuth;
-DerotatorControl 	REF= derotator;
-THIS^.comm 			:= comm;]]></ST>
+        <ST><![CDATA[THIS^.comm 				:= comm;
+THIS^.telescopeConfig 	:= telescopeConfig;]]></ST>
       </Implementation>
     </Method>
     <Method Name="GotoTelescope" Id="{43ebaf76-c0fc-41db-8c98-2f7671dc6b31}">
@@ -662,13 +654,13 @@ CASE Stage OF
 		track := 	FALSE;
 		goto := 	FALSE;
 		slew := 	FALSE;
-		Focuscontrol.Position := telescopeConfig.focusPark;
+		fbFocus.Position := telescopeConfig.focusPark;
 		IF Error THEN // emergency park
 			fbBrake.CloseBrake();
 			ElevationControl.bEnable := FALSE;
 			AzimuthControl.bEnable := FALSE;
 			DerotatorControl.bEnable := FALSE;	
-			CoverControl.CloseCovers();	
+			fbCovers.CloseCovers();	
 			Stage := 80;
 		END_IF
 		Stage := 20;
@@ -719,10 +711,10 @@ CASE Stage OF
 			stage := 60;
 		END_IF
 		IF NOT fbBrake.BrakeOpen THEN
-			CoverControl.CloseCovers();
+			fbCovers.CloseCovers();
 			fbHydraulics.Enable := FALSE;
 		END_IF
-		IF CoverControl.AreCoversClosed() THEN
+		IF fbCovers.AreCoversClosed() THEN
 			Stage := 100;
 		END_IF
 	100:
@@ -754,10 +746,10 @@ ELSE
 	powerfailure := FALSE;		
 END_IF
 // COVER MUST BE OPENED FOR A SUCCESSFUL WAKE & SHAKE COMMAND!
-Covercontrol.OpenCovers();
+fbCovers.OpenCovers();
 
 // enable elevation, enable azimuth
-IF mainReady AND CoverControl.AreCoversOpen() THEN
+IF mainReady AND fbCovers.AreCoversOpen() THEN
 	ElevationControl.bEnable := TRUE;
 	AzimuthControl.bEnable := TRUE;
 	DerotatorControl.bEnable := TRUE;
@@ -778,12 +770,12 @@ END_IF
 
 // start calibration of focus after elevation has been calibrated
 // this avoids imbalance by the M2 mirror on the elvation during its calibration
-IF ElevationControl.bCalibrated AND NOT FocusControl.Calibrated THEN
-	FocusControl.Enable := TRUE;
-	FocusControl.HomeAxis := TRUE;
+IF ElevationControl.bCalibrated AND NOT fbFocus.Calibrated THEN
+	fbFocus.Enable := TRUE;
+	fbFocus.HomeAxis := TRUE;
 END_IF
 
-IF CoverControl.AreCoversOpen() AND 
+IF fbCovers.AreCoversOpen() AND 
 	ElevationControl.bCalibrated AND
 	AzimuthControl.bCalibrated AND
 	DerotatorControl.bCalibrated THEN
@@ -978,10 +970,7 @@ END_IF
       <LineId Id="22" Count="332" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.FB_Init">
-      <LineId Id="8" Count="0" />
-      <LineId Id="1" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="3" Count="4" />
+      <LineId Id="7" Count="1" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.GotoTelescope">
       <LineId Id="1" Count="76" />
