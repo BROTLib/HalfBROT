@@ -137,18 +137,20 @@ CASE Selection OF
 	4:	// Nasmyth / mirror M3 control
 		
 	5:	// Focus Control
-		lamp_up := fbFocus.Ready AND NOT fbFocus.InFarLimit;
-		lamp_down := fbFocus.Ready AND NOT fbFocus.InNearLimit;
-		IF key_switch THEN
-			IF fbStartTrigger.Q THEN
-				fbFocus.Enable := NOT fbFocus.Enable;
+		IF fbFocus <> 0 THEN
+			lamp_up := fbFocus.Ready AND NOT fbFocus.InFarLimit;
+			lamp_down := fbFocus.Ready AND NOT fbFocus.InNearLimit;
+			IF key_switch THEN
+				IF fbStartTrigger.Q THEN
+					fbFocus.Enable := NOT fbFocus.Enable;
+				END_IF
+				fbFocus.MoveOut(direction_up);
+				fbFocus.MoveIn(direction_down);
+				IF reset_trigger.Q THEN
+					fbFocus.Reset();
+				END_IF
+				lamp_error := fbFocus.Error;
 			END_IF
-			fbFocus.MoveOut(direction_up);
-			fbFocus.MoveIn(direction_down);
-			IF reset_trigger.Q THEN
-				fbFocus.Reset();
-			END_IF
-			lamp_error := fbFocus.Error;
 		END_IF
 							
 	6:	// Derotator control
@@ -298,7 +300,11 @@ END_VAR]]></Declaration>
       </Implementation>
     </Method>
     <LineIds Name="FB_PendantControl">
-      <LineId Id="255" Count="187" />
+      <LineId Id="255" Count="62" />
+      <LineId Id="465" Count="0" />
+      <LineId Id="318" Count="12" />
+      <LineId Id="466" Count="0" />
+      <LineId Id="331" Count="111" />
       <LineId Id="462" Count="2" />
       <LineId Id="446" Count="14" />
       <LineId Id="235" Count="0" />

@@ -135,7 +135,7 @@ IF ElevationControl.bError THEN
 ELSIF AzimuthControl.bError THEN
 	errorid := AzimuthControl.nErrorID;
 	AzimuthControl.bReset := reset;
-ELSIF fbFocus.Error THEN
+ELSIF fbFocus <> 0 AND fbFocus.Error THEN
 	errorid := fbFocus.ErrorID;
 	IF reset_trigger.Q THEN
 		fbFocus.Reset();
@@ -322,8 +322,10 @@ stopped :=  (NOT ElevationControl.bEnable OR ElevationControl.fbAxis.StandStill)
 			
 homed := ElevationControl.bCalibrated AND
 			AzimuthControl.bCalibrated AND
-			fbFocus.Calibrated AND
 			DerotatorControl.bCalibrated;
+IF fbFocus <> 0 THEN
+	homed := homed AND fbFocus.Calibrated;
+END_IF
 			
 ready := homed AND 
 	fbCovers.AreCoversOpen() AND 
@@ -653,7 +655,9 @@ CASE Stage OF
 		track := 	FALSE;
 		goto := 	FALSE;
 		slew := 	FALSE;
-		fbFocus.Position := telescopeConfig.focusPark;
+		IF fbFocus <> 0 THEN
+			fbFocus.Position := telescopeConfig.focusPark;
+		END_IF
 		IF Error THEN // emergency park
 			fbBrake.CloseBrake();
 			ElevationControl.bEnable := FALSE;
@@ -769,7 +773,7 @@ END_IF
 
 // start calibration of focus after elevation has been calibrated
 // this avoids imbalance by the M2 mirror on the elvation during its calibration
-IF ElevationControl.bCalibrated AND NOT fbFocus.Calibrated THEN
+IF ElevationControl.bCalibrated AND fbFocus <> 0 AND NOT fbFocus.Calibrated THEN
 	fbFocus.Enable := TRUE;
 	fbFocus.HomeAxis := TRUE;
 END_IF
@@ -966,7 +970,10 @@ END_IF
       <LineId Id="357" Count="0" />
       <LineId Id="21" Count="0" />
       <LineId Id="358" Count="0" />
-      <LineId Id="22" Count="332" />
+      <LineId Id="22" Count="181" />
+      <LineId Id="205" Count="0" />
+      <LineId Id="359" Count="2" />
+      <LineId Id="206" Count="148" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.FB_Init">
       <LineId Id="7" Count="1" />
@@ -978,7 +985,11 @@ END_IF
       <LineId Id="1" Count="34" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.ParkTelescope">
-      <LineId Id="1" Count="84" />
+      <LineId Id="1" Count="12" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="15" Count="70" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.PowerOn">
       <LineId Id="1" Count="54" />
