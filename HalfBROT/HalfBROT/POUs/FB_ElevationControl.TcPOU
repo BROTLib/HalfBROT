@@ -28,8 +28,8 @@ fPosition := LIMIT(0.0, fPosition, 90.0);
 //if we enable the axis, we have to open the brake first
 IF bEnable THEN
 	IF NOT bCalibrated THEN
-		fbCovers.OpenCovers();
-		IF fbCovers.AreCoversOpen() THEN
+		fbCovers.Open();
+		IF fbCovers.Opened THEN
 			fbBrake.OpenBrake();
 		END_IF
 	ELSE

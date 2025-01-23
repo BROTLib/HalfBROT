@@ -3,6 +3,9 @@
   <POU Name="FB_CoverControl" Id="{febe04fb-b0fe-4b52-a725-1c7655537933}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_CoverControl IMPLEMENTS I_MirrorCovers
 VAR_INPUT
+	// output signals for opening/closing covers	
+	OabOpenCover  AT%Q* : ARRAY[1..3] OF BOOL;	// open cover1-3 command
+	OabCloseCover AT%Q* : ARRAY[1..3] OF BOOL;   // close cover1-3 command
 END_VAR
 VAR_OUTPUT
 	bAllOpen			: BOOL;		// all covers are open
@@ -17,10 +20,6 @@ VAR
 	bOpen				: BOOL;		// open the cover in proper order
 	bClose				: BOOL;		// close the cover in proper order
 
-	// output signals for opening/closing covers	
-	OabOpenCover  AT%Q* : ARRAY[1..3] OF BOOL;	// open cover1-3 command
-	OabCloseCover AT%Q* : ARRAY[1..3] OF BOOL;   // close cover1-3 command
-	
 	// limit switches
 	IabCoverOpen	AT%I* : ARRAY[1..3] OF BOOL;	// limit coper 1 open switch
 	IabCoverClosed	AT%I* : ARRAY[1..3] OF BOOL;	// limit coper 1 closed switch
@@ -178,34 +177,8 @@ fbCoversClosedEvent(
 	comm 		:= fbComm);
 ]]></ST>
     </Implementation>
-    <Method Name="AreCoversClosed" Id="{0bd88b3d-0ccd-44d3-9ff3-3eb831f31b63}">
-      <Declaration><![CDATA[METHOD AreCoversClosed : BOOL
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[AreCoversClosed := bAllClosed;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="AreCoversOpen" Id="{c4b9cdc7-29a2-4bcd-8657-0ea5ad75864e}">
-      <Declaration><![CDATA[METHOD AreCoversOpen : BOOL
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[AreCoversOpen := bAllOpen;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="CloseCover" Id="{7787d870-e582-4e1a-8ee1-611b396b8c73}">
-      <Declaration><![CDATA[METHOD CloseCover : BOOL
-VAR_INPUT
-	cover	: UINT;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[OabCloseCover[cover] := TRUE;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="CloseCovers" Id="{da11c9a0-3757-4491-b03d-01cf2bd99294}">
-      <Declaration><![CDATA[METHOD CloseCovers : BOOL
+    <Method Name="Close" Id="{da11c9a0-3757-4491-b03d-01cf2bd99294}">
+      <Declaration><![CDATA[METHOD Close : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -214,6 +187,17 @@ END_VAR
 bClose := TRUE;]]></ST>
       </Implementation>
     </Method>
+    <Property Name="Closed" Id="{10ce6f91-e971-45b8-b232-11c8b97ec461}">
+      <Declaration><![CDATA[PROPERTY Closed : BOOL]]></Declaration>
+      <Get Name="Get" Id="{4c7deb5c-7d43-4aaa-b6d9-bac5da90c9cb}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Closed := bAllClosed;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Property Name="Error" Id="{f78eaf54-46fe-45ea-8346-6cce4988574f}">
       <Declaration><![CDATA[PROPERTY Error : BOOL]]></Declaration>
       <Get Name="Get" Id="{9055f5d5-0aee-4cfb-b036-00aa938d205d}">
@@ -240,48 +224,8 @@ END_VAR]]></Declaration>
         <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="HasError" Id="{4bfbf39c-510e-4101-bd9e-a7d7463cfc01}">
-      <Declaration><![CDATA[METHOD HasError : BOOL
-VAR_INPUT
-	cover	: UINT;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[HasError := abCoverError[cover];]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="IsCoverClosed" Id="{e3fc3af5-8269-4cc1-9f6b-866416b724d6}">
-      <Declaration><![CDATA[METHOD IsCoverClosed : BOOL
-VAR_INPUT
-	cover	: UINT;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IsCoverClosed := abCoverClosed[cover];]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="IsCoverOpen" Id="{a56a8256-3336-4119-bafb-439174bac704}">
-      <Declaration><![CDATA[METHOD IsCoverOpen : BOOL
-VAR_INPUT
-	cover	: UINT;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IsCoverOpen := abCoverOpen[cover];]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="OpenCover" Id="{b58c0a9e-f3af-470d-ac73-8e5bf7d24571}">
-      <Declaration><![CDATA[METHOD OpenCover : BOOL
-VAR_INPUT
-	cover	: UINT;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[OabOpenCover[cover] := TRUE;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="OpenCovers" Id="{bb6e1357-2f21-45f8-bb34-0ba057923977}">
-      <Declaration><![CDATA[METHOD OpenCovers : BOOL
+    <Method Name="Open" Id="{bb6e1357-2f21-45f8-bb34-0ba057923977}">
+      <Declaration><![CDATA[METHOD Open : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
@@ -290,30 +234,35 @@ END_VAR
 bClose := FALSE;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="ResetCovers" Id="{3fcca07c-1b9c-4f16-918b-5d284513a3d3}">
-      <Declaration><![CDATA[METHOD ResetCovers : BOOL
+    <Property Name="Opened" Id="{72e486af-133c-4ae8-9633-183e75150cd4}">
+      <Declaration><![CDATA[PROPERTY Opened : BOOL]]></Declaration>
+      <Get Name="Get" Id="{1b322688-0fb0-4fab-a9f2-be2c04b98dbe}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[Opened := bAllOpen;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{3fcca07c-1b9c-4f16-918b-5d284513a3d3}">
+      <Declaration><![CDATA[METHOD Reset : BOOL
 VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[ResetCovers := TRUE;]]></ST>
+        <ST><![CDATA[Reset := TRUE;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_CoverControl">
       <LineId Id="6494" Count="129" />
       <LineId Id="122" Count="0" />
     </LineIds>
-    <LineIds Name="FB_CoverControl.AreCoversClosed">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_CoverControl.AreCoversOpen">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_CoverControl.CloseCover">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_CoverControl.CloseCovers">
+    <LineIds Name="FB_CoverControl.Close">
       <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.Closed.Get">
+      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_CoverControl.Error.Get">
       <LineId Id="1" Count="0" />
@@ -321,22 +270,13 @@ END_VAR
     <LineIds Name="FB_CoverControl.FB_Init">
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_CoverControl.HasError">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_CoverControl.IsCoverClosed">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_CoverControl.IsCoverOpen">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_CoverControl.OpenCover">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_CoverControl.OpenCovers">
+    <LineIds Name="FB_CoverControl.Open">
       <LineId Id="1" Count="1" />
     </LineIds>
-    <LineIds Name="FB_CoverControl.ResetCovers">
+    <LineIds Name="FB_CoverControl.Opened.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl.Reset">
       <LineId Id="1" Count="0" />
     </LineIds>
   </POU>

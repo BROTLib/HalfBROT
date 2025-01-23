@@ -328,7 +328,7 @@ IF fbFocus <> 0 THEN
 END_IF
 			
 ready := homed AND 
-	fbCovers.AreCoversOpen() AND 
+	fbCovers.Opened AND 
 	ElevationControl.bEnable AND
 	AzimuthControl.bEnable AND
 	DerotatorControl.bEnable AND fbBrake.BrakeOpen AND 
@@ -663,7 +663,7 @@ CASE Stage OF
 			ElevationControl.bEnable := FALSE;
 			AzimuthControl.bEnable := FALSE;
 			DerotatorControl.bEnable := FALSE;	
-			fbCovers.CloseCovers();	
+			fbCovers.Close();	
 			Stage := 80;
 		END_IF
 		Stage := 20;
@@ -714,10 +714,10 @@ CASE Stage OF
 			stage := 60;
 		END_IF
 		IF NOT fbBrake.BrakeOpen THEN
-			fbCovers.CloseCovers();
+			fbCovers.Close();
 			fbHydraulics.Enable := FALSE;
 		END_IF
-		IF fbCovers.AreCoversClosed() THEN
+		IF fbCovers.Closed THEN
 			Stage := 100;
 		END_IF
 	100:
@@ -749,10 +749,10 @@ ELSE
 	powerfailure := FALSE;		
 END_IF
 // COVER MUST BE OPENED FOR A SUCCESSFUL WAKE & SHAKE COMMAND!
-fbCovers.OpenCovers();
+fbCovers.Open();
 
 // enable elevation, enable azimuth
-IF mainReady AND fbCovers.AreCoversOpen() THEN
+IF mainReady AND fbCovers.Opened THEN
 	ElevationControl.bEnable := TRUE;
 	AzimuthControl.bEnable := TRUE;
 	DerotatorControl.bEnable := TRUE;
@@ -778,7 +778,7 @@ IF ElevationControl.bCalibrated AND fbFocus <> 0 AND NOT fbFocus.Calibrated THEN
 	fbFocus.HomeAxis := TRUE;
 END_IF
 
-IF fbCovers.AreCoversOpen() AND 
+IF fbCovers.Opened AND 
 	ElevationControl.bCalibrated AND
 	AzimuthControl.bCalibrated AND
 	DerotatorControl.bCalibrated THEN

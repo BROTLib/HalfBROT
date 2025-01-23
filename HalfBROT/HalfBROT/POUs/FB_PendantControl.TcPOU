@@ -3,10 +3,10 @@
   <POU Name="FB_PendantControl" Id="{e2b10f6c-d16d-4403-9ebe-8d8a369c8dbd}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_PendantControl
 VAR_INPUT
-	fbCovers			: I_MirrorCovers;
-	fbBrake				: I_Brake;
-	fbHydraulics		: I_Hydraulics;
-	fbFocus		 		: I_Focus;
+	fbCovers			: REFERENCE TO FB_CoverControl;
+	fbBrake				: REFERENCE TO FB_HydraulicsControl;
+	fbHydraulics		: REFERENCE TO FB_HydraulicsControl;
+	fbFocus		 		: REFERENCE TO FB_FocusControl;
 	fbElevation			: REFERENCE TO FB_ElevationControl;
 	fbAzimuth	 		: REFERENCE TO FB_AzimuthControl;
 	fbDerotator			: REFERENCE TO FB_DerotatorControl;
@@ -70,6 +70,7 @@ VAR
 	lamp_left			AT%Q*: BOOL;
 	//DOUT13 1.4
 	lamp_error			AT%Q*: BOOL;	
+	GVL_Telescope: INT;
 END_VAR
 
 ]]></Declaration>
@@ -117,27 +118,24 @@ fbStartTrigger(CLK := start_switch);
 // enable only the selected item and connect lamps and buttons accordingly
 CASE Selection OF
 	1, 2, 3:	// reserved for Cover 1-3 control
-		lamp_up := fbCovers.IsCoverOpen(Selection);
-		lamp_down := fbCovers.IsCoverClosed(Selection);
+		lamp_up := fbCovers.IabCoverOpen[Selection];
+		lamp_down := fbCovers.IabCoverClosed[Selection];
 		IF key_switch THEN
-			IF direction_up AND fbCovers.IsCoverOpen(Selection) THEN
-				fbCovers.OpenCover(Selection);
-			ELSIF direction_down AND fbCovers.IsCoverClosed(Selection) THEN
-				fbCovers.CloseCover(Selection);
-			END_IF
-			lamp_error := fbCovers.HasError(Selection);	
+			fbCovers.OabOpenCover[Selection] := direction_up AND fbCovers.IabCoverOpen[Selection];
+			fbCovers.OabCloseCover[Selection] := direction_down AND fbCovers.IabCoverClosed[Selection];
+			lamp_error := fbCovers.abCoverError[Selection];	
 		ELSE
 			IF direction_down THEN 
-				fbCovers.CloseCovers();
+				fbCovers.Close();
 			ELSIF direction_up THEN
-				fbCovers.OpenCovers();
+				fbCovers.Open();
 			END_IF		
 		END_IF
 		
 	4:	// Nasmyth / mirror M3 control
 		
 	5:	// Focus Control
-		IF fbFocus <> 0 THEN
+		IF __ISVALIDREF(fbFocus) THEN
 			lamp_up := fbFocus.Ready AND NOT fbFocus.InFarLimit;
 			lamp_down := fbFocus.Ready AND NOT fbFocus.InNearLimit;
 			IF key_switch THEN
@@ -300,7 +298,10 @@ END_VAR]]></Declaration>
       </Implementation>
     </Method>
     <LineIds Name="FB_PendantControl">
-      <LineId Id="255" Count="62" />
+      <LineId Id="255" Count="45" />
+      <LineId Id="467" Count="0" />
+      <LineId Id="303" Count="0" />
+      <LineId Id="306" Count="11" />
       <LineId Id="465" Count="0" />
       <LineId Id="318" Count="12" />
       <LineId Id="466" Count="0" />
