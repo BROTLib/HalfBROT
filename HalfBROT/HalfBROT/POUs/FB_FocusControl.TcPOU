@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_FocusControl" Id="{27922653-650e-4327-85ba-374d2f945b2c}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl EXTENDS FB_HalfBROTAxis IMPLEMENTS I_Focus
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl EXTENDS FB_BaseAxis IMPLEMENTS I_Focus
 VAR_INPUT
 	fMinPosition		: LREAL := 0;	// minimum position
 	fMaxPosition		: LREAL := 100;	// maximum position

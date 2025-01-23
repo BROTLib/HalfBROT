@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
-  <POU Name="FB_HalfBROTAxis" Id="{bae85b54-65c9-4d1f-98f7-530b10d558b7}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_HalfBROTAxis IMPLEMENTS I_Axis, I_Axis
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+  <POU Name="FB_BaseAxis" Id="{bae85b54-65c9-4d1f-98f7-530b10d558b7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_BaseAxis IMPLEMENTS I_BaseAxis
 VAR_INPUT
 END_VAR
 VAR_OUTPUT
@@ -50,16 +50,16 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <LineIds Name="FB_HalfBROTAxis">
+    <LineIds Name="FB_BaseAxis">
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_HalfBROTAxis.Busy.Get">
+    <LineIds Name="FB_BaseAxis.Busy.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_HalfBROTAxis.Calibrated.Get">
+    <LineIds Name="FB_BaseAxis.Calibrated.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_HalfBROTAxis.Error.Get">
+    <LineIds Name="FB_BaseAxis.Error.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
   </POU>

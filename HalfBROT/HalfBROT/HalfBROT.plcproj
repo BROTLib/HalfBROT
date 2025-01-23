@@ -53,7 +53,7 @@
     <Compile Include="POUs\FB_FocusControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_HalfBROTAxis.TcPOU">
+    <Compile Include="POUs\FB_BaseAxis.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\FB_HydraulicsControl.TcPOU">
