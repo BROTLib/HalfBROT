@@ -1,15 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <POU Name="FB_AxisControl" Id="{6fdef2a3-176a-42ec-90be-24250bb425eb}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_AxisControl EXTENDS FB_BaseAxis IMPLEMENTS I_Axis
 VAR_INPUT
-	bEnable					: BOOL;		// enable the axis and its position control loop
-	bReset					: BOOL;		// reset the axis
 	bMoveAxis				: BOOL;		// Move azimuth to given position
 	bHomeAxis				: BOOL;		// Home the axis
 	bTracking				: BOOL;		// enable tracking
-	fPosition				: LREAL;	// position to move the axis to
-	fVelocity				: LREAL;	// set the Velocity of the axis
 	bStopAxis				: BOOL;		// stop the Axis
 	bSoEReset				: BOOL;		// diagnostic reset
 	fMinPosition			: REAL := 0;
@@ -20,9 +16,8 @@ END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
-	nErrorID				: UDINT;	// error ID of the axis
+	
 	fActualPosition			: LREAL;	// actual_position of the axis
-	bReady					: BOOL;		// drive is ready
 	fSlewTime				: LREAL;	// time to reach target position
 	
 	fbComm					: I_Comm;	
@@ -54,36 +49,6 @@ END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Property Name="Enable" Id="{9e77bb53-50cb-4ee3-889b-4a939224a95e}">
-      <Declaration><![CDATA[PROPERTY Enable : BOOL]]></Declaration>
-      <Get Name="Get" Id="{22e8b9c7-685d-4266-b650-26373bcdabb1}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[Enable := bEnable;]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{5f0ef5ff-7479-4aad-ac7e-70298b831f6f}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[bEnable := Enable;]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="ErrorID" Id="{a5048771-31fc-4374-9324-33f40b24b34e}">
-      <Declaration><![CDATA[PROPERTY ErrorID : UDINT]]></Declaration>
-      <Get Name="Get" Id="{6634ff68-5c6d-48b1-8253-67f018b99548}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[ErrorID := nErrorID;]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
     <Property Name="HomeAxis" Id="{d478184b-7b5d-4c62-b7cf-8d2b4f01dcdf}">
       <Declaration><![CDATA[PROPERTY HomeAxis : BOOL]]></Declaration>
       <Get Name="Get" Id="{ba27d5dc-e1e3-47a7-9418-47220a9e0fdf}">
@@ -144,43 +109,6 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Property Name="Position" Id="{5a18ed5b-37ae-4510-95dd-b35de6b1be4a}">
-      <Declaration><![CDATA[PROPERTY Position : LREAL]]></Declaration>
-      <Get Name="Get" Id="{ada6b8a7-fcd9-46dd-a83c-0848ac5c8487}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[Position := fPosition;]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{b6483ba5-2ead-4e18-a945-d6741047aa5c}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[fPosition := Position;]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="Ready" Id="{578ee6c1-3b8a-40ec-bd94-1f6e4dcf3ca3}">
-      <Declaration><![CDATA[PROPERTY Ready : BOOL]]></Declaration>
-      <Get Name="Get" Id="{4a6c02c4-b6c1-484b-9d28-b7f910e36cc3}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[Ready := bReady;]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
-    <Method Name="Reset" Id="{480a94e1-ff7c-412c-a535-d40e3f0b7b81}">
-      <Declaration><![CDATA[METHOD Reset : BOOL
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[bReset := TRUE;]]></ST>
-      </Implementation>
-    </Method>
     <Property Name="SlewTime" Id="{a36dc70d-226a-4ef7-9e23-e0fd5a5024cb}">
       <Declaration><![CDATA[PROPERTY SlewTime : LREAL]]></Declaration>
       <Get Name="Get" Id="{87871d10-1142-4737-afba-11d3d9c70605}">
@@ -230,35 +158,7 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="Velocity" Id="{1498ec9f-a70e-40b1-bf3c-fd598252e6f2}">
-      <Declaration><![CDATA[PROPERTY Velocity : LREAL]]></Declaration>
-      <Get Name="Get" Id="{566bd3aa-c6e3-4f41-889e-a7b3ad1eb487}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[Velocity := fVelocity;]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{a8110547-f17c-4e90-bdb3-17be6b37c36b}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[fVelocity := Velocity;]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
     <LineIds Name="FB_AxisControl">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.Enable.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.Enable.Set">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.ErrorID.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisControl.HomeAxis.Get">
@@ -279,18 +179,6 @@ END_VAR
     <LineIds Name="FB_AxisControl.MoveDone.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_AxisControl.Position.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.Position.Set">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.Ready.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.Reset">
-      <LineId Id="1" Count="0" />
-    </LineIds>
     <LineIds Name="FB_AxisControl.SlewTime.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
@@ -304,12 +192,6 @@ END_VAR
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisControl.Tracking.Set">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.Velocity.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.Velocity.Set">
       <LineId Id="1" Count="0" />
     </LineIds>
   </POU>

@@ -159,7 +159,7 @@ CASE Selection OF
 			fbDerotator.MoveLeft(direction_left AND NOT fbDerotator.inDigitalInputs.1);
 			fbDerotator.MoveRight(direction_right AND NOT fbDerotator.inDigitalInputs.0);
 			fbDerotator.bReset := reset_switch;
-			lamp_error := fbDerotator.bError;
+			lamp_error := fbDerotator.Error;
 		END_IF
 							
 	7:	// Elevation Control

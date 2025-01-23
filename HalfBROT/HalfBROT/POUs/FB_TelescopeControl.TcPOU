@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <POU Name="FB_TelescopeControl" Id="{10c2c294-efcf-424f-afd3-75ac57a5e8bc}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_TelescopeControl
 VAR_INPUT
@@ -159,8 +159,8 @@ ELSE
 END_IF
 
 IF fbElevation.bError THEN
-	fbElevation.bEnable := FALSE;
-	fbAzimuth.bEnable := FALSE;
+	fbElevation.Enable := FALSE;
+	fbAzimuth.Enable := FALSE;
 	fbBrake.CloseBrake();
 END_IF
 
@@ -346,9 +346,9 @@ IF NOT error THEN
 END_IF
 
 IF estopTriggered THEN
-	fbElevation.bEnable := FALSE;
-	fbAzimuth.bEnable := FALSE;
-	fbDerotator.bEnable := FALSE;
+	fbElevation.Enable := FALSE;
+	fbAzimuth.Enable := FALSE;
+	fbDerotator.Enable := FALSE;
 END_IF
 IF sliding OR track OR tracking THEN
 	MQTTTimer.PT := T#1000MS;
