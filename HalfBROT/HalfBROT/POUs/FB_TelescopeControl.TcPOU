@@ -383,6 +383,7 @@ IF MQTTTimer.Q THEN // publish new payload every second
 	comm.Publish('telescope', 'dome', 'tracking', 	BOOL_TO_STRING(tracking));
 	comm.Publish('telescope', 'dome', 'stopped',		BOOL_TO_STRING(stopped));
 	comm.Publish('telescope', 'dome', 'homed',		BOOL_TO_STRING(homed));
+	comm.Publish('telescope', 'dome', 'parked',		BOOL_TO_STRING(isparked));
 END_IF
 
 StatusWord.0 := error;
@@ -975,7 +976,9 @@ END_IF
       <LineId Id="206" Count="10" />
       <LineId Id="363" Count="1" />
       <LineId Id="362" Count="0" />
-      <LineId Id="218" Count="136" />
+      <LineId Id="218" Count="45" />
+      <LineId Id="370" Count="0" />
+      <LineId Id="264" Count="90" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.FB_Init">
       <LineId Id="7" Count="1" />
