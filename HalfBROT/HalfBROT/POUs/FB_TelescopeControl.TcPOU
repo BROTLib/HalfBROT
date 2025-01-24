@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_TelescopeControl" Id="{10c2c294-efcf-424f-afd3-75ac57a5e8bc}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_TelescopeControl
 VAR_INPUT
@@ -132,7 +132,7 @@ IF fbElevation.Error THEN
 ELSIF fbAzimuth.bError THEN
 	errorid := fbAzimuth.nErrorID;
 	fbAzimuth.bReset := reset;
-ELSIF fbFocus <> 0 AND fbFocus.Error THEN
+ELSIF fbFocus <> 0 AND_THEN fbFocus.Error THEN
 	errorid := fbFocus.ErrorID;
 	IF reset_trigger.Q THEN
 		fbFocus.Reset();
@@ -144,7 +144,7 @@ END_IF
 
 error := fbElevation.Error OR 
 		 fbAzimuth.bError OR
-		 fbFocus.Error OR
+		 (fbFocus <> 0 AND_THEN fbFocus.Error) OR
 		 fbDerotator.bError;
 
 slewtime := MAX(MAX(fbElevation.fSlewTime, fbAzimuth.fSlewTime), fbDerotator.fSlewTime);
@@ -333,8 +333,10 @@ ready := homed AND
 
 busy := fbElevation.fbAxis.Busy OR
 		fbAzimuth.fbAxis.Busy OR
-		fbDerotator.fbAxis.Busy OR
-		fbFocus.Busy;
+		fbDerotator.fbAxis.Busy;
+IF fbFocus <> 0 THEN
+	busy := busy AND fbFocus.Busy;
+END_IF		
 
 // unset the STOP command if telescope is already stopped
 IF stopped THEN
@@ -770,7 +772,7 @@ END_IF
 
 // start calibration of focus after elevation has been calibrated
 // this avoids imbalance by the M2 mirror on the elvation during its calibration
-IF fbElevation.Calibrated AND fbFocus <> 0 AND NOT fbFocus.Calibrated THEN
+IF fbElevation.Calibrated AND (fbFocus <> 0 AND_THEN NOT fbFocus.Calibrated) THEN
 	fbFocus.Enable := TRUE;
 	fbFocus.HomeAxis := TRUE;
 END_IF
@@ -966,11 +968,14 @@ END_IF
       <LineId Id="11" Count="9" />
       <LineId Id="357" Count="0" />
       <LineId Id="21" Count="0" />
-      <LineId Id="358" Count="0" />
+      <LineId Id="366" Count="0" />
       <LineId Id="22" Count="181" />
       <LineId Id="205" Count="0" />
       <LineId Id="359" Count="2" />
-      <LineId Id="206" Count="148" />
+      <LineId Id="206" Count="10" />
+      <LineId Id="363" Count="1" />
+      <LineId Id="362" Count="0" />
+      <LineId Id="218" Count="136" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.FB_Init">
       <LineId Id="7" Count="1" />
