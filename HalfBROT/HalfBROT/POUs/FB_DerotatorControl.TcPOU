@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <POU Name="FB_DerotatorControl" Id="{acfc3cc1-a4bd-4873-ba58-50b0c54d8bf5}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_DerotatorControl EXTENDS FB_AxisControl
 VAR_INPUT
@@ -142,21 +142,6 @@ CalibrationEvent(
 	Comm			:= fbComm);
 	]]></ST>
     </Implementation>
-    <Method Name="FB_Init" Id="{17d81d64-5647-49eb-8f39-4de9c4a6dd83}">
-      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
-//The return value is not evaluated. For a specific influence, you can also declare the
-//methods explicitly and provide additional code there with the standard initialization
-//code. You can evaluate the return value.
-METHOD FB_Init: BOOL
-VAR_INPUT
-    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
-    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	comm			: I_Comm;   
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="IsInMaxLimit" Id="{85224394-9a32-4685-b3cf-6a13bc098736}">
       <Declaration><![CDATA[METHOD PUBLIC IsInMaxLimit : BOOL
 VAR_INPUT
@@ -207,9 +192,6 @@ END_VAR
     <LineIds Name="FB_DerotatorControl">
       <LineId Id="4057" Count="126" />
       <LineId Id="127" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_DerotatorControl.FB_Init">
-      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_DerotatorControl.IsInMaxLimit">
       <LineId Id="1" Count="0" />

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <POU Name="FB_AzimuthControl" Id="{fd112fcf-fe5a-48e7-aea8-3fe8a57db212}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_AzimuthControl EXTENDS FB_AxisControl
 VAR_INPUT
@@ -168,27 +168,9 @@ CalibrationEvent(
 	Comm 			:= fbComm);
 				]]></ST>
     </Implementation>
-    <Method Name="FB_Init" Id="{da5bbb3a-7afb-4e44-92f3-c2b7880a01c6}">
-      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
-//The return value is not evaluated. For a specific influence, you can also declare the
-//methods explicitly and provide additional code there with the standard initialization
-//code. You can evaluate the return value.
-METHOD FB_Init: BOOL
-VAR_INPUT
-    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
-    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	comm			: I_Comm;	   
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="FB_AzimuthControl">
       <LineId Id="7110" Count="147" />
       <LineId Id="149" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AzimuthControl.FB_Init">
-      <LineId Id="2" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <POU Name="FB_FocusControl" Id="{27922653-650e-4327-85ba-374d2f945b2c}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl EXTENDS FB_BaseAxis IMPLEMENTS I_Focus
 VAR_INPUT
@@ -10,17 +10,10 @@ VAR_INPUT
 	fTolerance			: LREAL := 0.005;
 END_VAR
 VAR_OUTPUT
-	nErrorID			: UDINT;	// ID of NC axis error
-	bReady				: BOOL;		// ready signal = drive ready + standstill
 	bFocusUnlocked		: BOOL;
 END_VAR
 VAR
-	fbComm				: I_Comm;
-	bEnable				: BOOL;		// enable the axis
-	bReset				: BOOL;		// reset the axis(-error)
 	bMoveAxis			: BOOL;		// move the axis to new position
-	bHomeAxis			: BOOL;		// calibrate the focus axis
-	fPosition			: LREAL;	// focus position in millimeters	
 	bInward				: BOOL;		// Move M2 closer to M1
 	bOutward			: BOOL;		// Move M2 away from M1	
 	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
@@ -156,62 +149,6 @@ bReady := fbAxis.Ready AND fbAxis.StandStill OR NOT ObFocusUnlock;
 SendTelemetry();
 HandleEvents();]]></ST>
     </Implementation>
-    <Property Name="Enable" Id="{d85a2cd2-fc8a-4560-88ef-f424b966e06d}">
-      <Declaration><![CDATA[PROPERTY PUBLIC Enable : BOOL]]></Declaration>
-      <Get Name="Get" Id="{20f30f6f-4f10-4bde-b34e-0aa8098d493a}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[Enable := bEnable;]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{34860b6b-e7e9-4b02-921d-4215a7786776}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[bEnable := Enable;]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="Error" Id="{5a2c17b3-263f-4fe2-b10e-19fa2b22766e}">
-      <Declaration><![CDATA[PROPERTY Error : BOOL]]></Declaration>
-      <Get Name="Get" Id="{0cff5db8-b6a6-4843-911b-6b7ad0fc9685}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[Error := bError;]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
-    <Property Name="ErrorID" Id="{1a7e2b48-efd1-42d1-9e39-26171d2a17d9}">
-      <Declaration><![CDATA[PROPERTY PUBLIC ErrorID : UDINT]]></Declaration>
-      <Get Name="Get" Id="{7433ddc8-6866-48e3-8683-74a0f3f4d07f}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[ErrorID := nErrorID;]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
-    <Method Name="FB_Init" Id="{c74882ff-aa80-4625-bc9f-1892a4f93fe8}">
-      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
-//The return value is not evaluated. For a specific influence, you can also declare the
-//methods explicitly and provide additional code there with the standard initialization
-//code. You can evaluate the return value.
-METHOD FB_Init: BOOL
-VAR_INPUT
-    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
-    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	comm			: I_Comm;   
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="HandleEvents" Id="{375f50c9-e6ea-4fcd-9fab-a26147b70ce8}">
       <Declaration><![CDATA[METHOD PRIVATE HandleEvents : BOOL
 VAR_INPUT
@@ -235,25 +172,6 @@ fbCalibrationEvent(
 ]]></ST>
       </Implementation>
     </Method>
-    <Property Name="HomeAxis" Id="{e02e07a4-f2a8-44c7-8582-0e85797e0e6a}">
-      <Declaration><![CDATA[PROPERTY PUBLIC HomeAxis : BOOL]]></Declaration>
-      <Get Name="Get" Id="{17d5f339-ee5c-43c7-9050-5514f862f670}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[HomeAxis := bHomeAxis;]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{d14c72c8-5bbe-46e7-bde2-c0f8a0287adc}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[bHomeAxis := HomeAxis;]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
     <Property Name="InFarLimit" Id="{66e2cfb2-3f2c-47bf-8a02-ad3ba18a05bd}">
       <Declaration><![CDATA[PROPERTY PUBLIC InFarLimit : BOOL]]></Declaration>
       <Get Name="Get" Id="{d6be74e5-be21-4625-abd6-363742161882}">
@@ -296,45 +214,6 @@ END_VAR
         <ST><![CDATA[bOutward := bEnable;]]></ST>
       </Implementation>
     </Method>
-    <Property Name="Position" Id="{9245675b-7db6-4073-a061-c27547cd133b}">
-      <Declaration><![CDATA[PROPERTY PUBLIC Position : LREAL]]></Declaration>
-      <Get Name="Get" Id="{c9bc8b82-c894-45e7-a011-22d23e510c42}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[Position := fActualPosition;]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{605fb951-7442-405e-ba00-2c40c30c6dc6}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[fPosition := Position;]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
-    <Property Name="Ready" Id="{5e5f5652-436f-4f92-addf-c957df0cf4ed}">
-      <Declaration><![CDATA[PROPERTY PUBLIC Ready : BOOL]]></Declaration>
-      <Get Name="Get" Id="{df33b0c4-4a10-4db2-8775-1f51c56a773c}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[Ready := bReady;]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
-    <Method Name="Reset" Id="{ba1340c0-e48c-49fd-b076-64f2c1dce9cd}">
-      <Declaration><![CDATA[METHOD Reset : BOOL
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[bReset := TRUE;]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="SendTelemetry" Id="{9492de4d-6d2e-401c-bc97-10786d283636}">
       <Declaration><![CDATA[METHOD PRIVATE SendTelemetry : BOOL
 VAR_INPUT
@@ -355,29 +234,8 @@ END_IF
       <LineId Id="5725" Count="109" />
       <LineId Id="136" Count="0" />
     </LineIds>
-    <LineIds Name="FB_FocusControl.Enable.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.Enable.Set">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.Error.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.ErrorID.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.FB_Init">
-      <LineId Id="1" Count="0" />
-    </LineIds>
     <LineIds Name="FB_FocusControl.HandleEvents">
       <LineId Id="1" Count="14" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.HomeAxis.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.HomeAxis.Set">
-      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.InFarLimit.Get">
       <LineId Id="1" Count="0" />
@@ -389,18 +247,6 @@ END_IF
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.MoveOut">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.Position.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.Position.Set">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.Ready.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.Reset">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.SendTelemetry">

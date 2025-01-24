@@ -4,7 +4,6 @@
     <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_AxisControl EXTENDS FB_BaseAxis IMPLEMENTS I_Axis
 VAR_INPUT
 	bMoveAxis				: BOOL;		// Move azimuth to given position
-	bHomeAxis				: BOOL;		// Home the axis
 	bTracking				: BOOL;		// enable tracking
 	bStopAxis				: BOOL;		// stop the Axis
 	bSoEReset				: BOOL;		// diagnostic reset
@@ -16,12 +15,9 @@ END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
-	
 	fActualPosition			: LREAL;	// actual_position of the axis
 	fSlewTime				: LREAL;	// time to reach target position
 	
-	fbComm					: I_Comm;	
-
 	InDigitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
 	InDiagnostic	  AT%I*	: UDINT;	// diagnostic number
 	InTorque	 	  AT%I*	: INT;		// derotator torque feedback
@@ -49,25 +45,6 @@ END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Property Name="HomeAxis" Id="{d478184b-7b5d-4c62-b7cf-8d2b4f01dcdf}">
-      <Declaration><![CDATA[PROPERTY HomeAxis : BOOL]]></Declaration>
-      <Get Name="Get" Id="{ba27d5dc-e1e3-47a7-9418-47220a9e0fdf}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[HomeAxis := bHomeAxis;]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{2f942b98-7629-4da4-99dc-e4bb1a84e0da}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[bHomeAxis := HomeAxis;]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
     <Property Name="isTracking" Id="{d14d4ed7-aa44-40b8-a06b-dbd9bb4bc398}">
       <Declaration><![CDATA[PROPERTY isTracking : BOOL]]></Declaration>
       <Get Name="Get" Id="{d8cce5f4-c21e-4d9a-87e8-69b1f87cb648}">
@@ -159,12 +136,6 @@ END_VAR
       </Set>
     </Property>
     <LineIds Name="FB_AxisControl">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.HomeAxis.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_AxisControl.HomeAxis.Set">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_AxisControl.isTracking.Get">

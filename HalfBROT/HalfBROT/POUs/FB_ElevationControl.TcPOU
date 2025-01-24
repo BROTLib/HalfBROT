@@ -198,27 +198,9 @@ calibrationEvent(
 	OnMessage 		:= 'Elevation is calibrated.', 
 	comm 			:= fbComm);]]></ST>
     </Implementation>
-    <Method Name="FB_Init" Id="{413b7b7f-fbba-45b5-beca-2a08218d35d1}">
-      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
-//The return value is not evaluated. For a specific influence, you can also declare the
-//methods explicitly and provide additional code there with the standard initialization
-//code. You can evaluate the return value.
-METHOD FB_Init: BOOL
-VAR_INPUT
-    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
-    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
-	comm			: I_Comm;
-END_VAR]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="FB_ElevationControl">
       <LineId Id="7785" Count="173" />
       <LineId Id="170" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_ElevationControl.FB_Init">
-      <LineId Id="3" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

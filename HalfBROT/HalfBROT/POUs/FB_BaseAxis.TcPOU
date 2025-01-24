@@ -3,22 +3,21 @@
   <POU Name="FB_BaseAxis" Id="{bae85b54-65c9-4d1f-98f7-530b10d558b7}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_BaseAxis IMPLEMENTS I_BaseAxis
 VAR_INPUT
+	bEnable				: BOOL;		// enable the axis and its position control loop
+	bReset				: BOOL;		// reset the axis
+	bHomeAxis			: BOOL;		// Home the axis
+	fPosition			: LREAL;	// position to move the axis to
+	fVelocity			: LREAL;	// set the Velocity of the axis
 END_VAR
 VAR_OUTPUT
 	bCalibrated			: BOOL;		// true if absolute calibration
 	bError				: BOOL;		// true if error	
+	nErrorID			: UDINT;	// error ID of the axis
+	bReady				: BOOL;		// drive is ready
 END_VAR
 VAR
+	fbComm				: I_Comm;	
 	fbAxis				: FB_Axis2;
-
-	bEnable					: BOOL;		// enable the axis and its position control loop
-	bReset					: BOOL;		// reset the axis
-	nErrorID				: UDINT;	// error ID of the axis
-	bReady					: BOOL;		// drive is ready
-
-	fPosition				: LREAL;	// position to move the axis to
-	fVelocity				: LREAL;	// set the Velocity of the axis
-	
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -36,9 +35,7 @@ END_VAR
       </Get>
     </Property>
     <Property Name="Calibrated" Id="{b034059e-7dc3-4131-8628-44f1ad17bd06}">
-      <Declaration><![CDATA[{warning 'Add property implementation'}
-PROPERTY Calibrated : BOOL
-]]></Declaration>
+      <Declaration><![CDATA[PROPERTY Calibrated : BOOL]]></Declaration>
       <Get Name="Get" Id="{fe3ff6d9-4050-4415-b9d6-711bddc50fae}">
         <Declaration><![CDATA[VAR
 END_VAR
@@ -88,6 +85,40 @@ END_VAR
           <ST><![CDATA[ErrorID := nErrorID;]]></ST>
         </Implementation>
       </Get>
+    </Property>
+    <Method Name="FB_Init" Id="{c74882ff-aa80-4625-bc9f-1892a4f93fe8}">
+      <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
+//The return value is not evaluated. For a specific influence, you can also declare the
+//methods explicitly and provide additional code there with the standard initialization
+//code. You can evaluate the return value.
+METHOD FB_Init: BOOL
+VAR_INPUT
+    bInitRetains	: BOOL; // TRUE: the retain variables are initialized (reset warm / reset cold)
+    bInCopyCode		: BOOL;  // TRUE: the instance will be copied to the copy code afterward (online change)
+	comm			: I_Comm;   
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[THIS^.fbComm := comm;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="HomeAxis" Id="{d478184b-7b5d-4c62-b7cf-8d2b4f01dcdf}">
+      <Declaration><![CDATA[PROPERTY HomeAxis : BOOL]]></Declaration>
+      <Get Name="Get" Id="{ba27d5dc-e1e3-47a7-9418-47220a9e0fdf}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[HomeAxis := bHomeAxis;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{2f942b98-7629-4da4-99dc-e4bb1a84e0da}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bHomeAxis := HomeAxis;]]></ST>
+        </Implementation>
+      </Set>
     </Property>
     <Property Name="Position" Id="{5a18ed5b-37ae-4510-95dd-b35de6b1be4a}">
       <Declaration><![CDATA[PROPERTY Position : LREAL]]></Declaration>
@@ -164,6 +195,15 @@ END_VAR
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_BaseAxis.ErrorID.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_BaseAxis.FB_Init">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_BaseAxis.HomeAxis.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_BaseAxis.HomeAxis.Set">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_BaseAxis.Position.Get">

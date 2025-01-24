@@ -2975,11 +2975,26 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{363DA9F7-A2C1-43F1-A4FF-717FB38D77B2}" Name="HalfBROT" PrjFilePath="HalfBROT\HalfBROT.plcproj" TmcFilePath="HalfBROT\HalfBROT.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{59D80E83-50E4-2E0D-C8F8-EA372156D143}" TmcPath="HalfBROT\HalfBROT.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{732158C8-DE49-3F18-09A2-B4F2F2E07B53}" TmcPath="HalfBROT\HalfBROT.tmc">
 					<Name>HalfBROT Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">
 						<Name>PlcTask Outputs</Name>
+						<Var>
+							<Name>MAIN.Run</Name>
+							<Comment><![CDATA[ Run/Stop Safety]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.Restart</Name>
+							<Comment><![CDATA[ Restart Safety]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.ErrAck</Name>
+							<Comment><![CDATA[ Error Acknowledgement ]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
 						<Var>
 							<Name>MAIN.CoverControl.OabOpenCover</Name>
 							<Comment><![CDATA[ open cover1-3 command]]></Comment>
@@ -3014,25 +3029,16 @@ External Setpoint Generation:
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.FocusControl.ObFocusUnlock</Name>
-							<Comment><![CDATA[ whether focus is unlocked]]></Comment>
+							<Name>MAIN.Reset_STO_Azimuth</Name>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.FocusControl.refAxis.PlcToNc</Name>
-							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
+							<Name>MAIN.Reset_STO_Elevation</Name>
+							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.DerotatorControl.axisRef.PlcToNc</Name>
-							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.ElevationControl.axisRef.PlcToNc</Name>
-							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.AzimuthControl.axisRef.PlcToNc</Name>
-							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
+							<Name>MAIN.Reset_STO_Derotator</Name>
+							<Type>BOOL</Type>
 						</Var>
 						<Var>
 							<Name>MAIN.PendantControl.lamp_up</Name>
@@ -3061,35 +3067,34 @@ DOUT9 1.0]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.Run</Name>
-							<Comment><![CDATA[ Run/Stop Safety]]></Comment>
+							<Name>MAIN.FocusControl.ObFocusUnlock</Name>
+							<Comment><![CDATA[ whether focus is unlocked]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.Restart</Name>
-							<Comment><![CDATA[ Restart Safety]]></Comment>
-							<Type>BOOL</Type>
+							<Name>MAIN.FocusControl.refAxis.PlcToNc</Name>
+							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.ErrAck</Name>
-							<Comment><![CDATA[ Error Acknowledgement ]]></Comment>
-							<Type>BOOL</Type>
+							<Name>MAIN.DerotatorControl.axisRef.PlcToNc</Name>
+							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.Reset_STO_Azimuth</Name>
-							<Type>BOOL</Type>
+							<Name>MAIN.ElevationControl.axisRef.PlcToNc</Name>
+							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
 						</Var>
 						<Var>
-							<Name>MAIN.Reset_STO_Elevation</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.Reset_STO_Derotator</Name>
-							<Type>BOOL</Type>
+							<Name>MAIN.AzimuthControl.axisRef.PlcToNc</Name>
+							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
 						</Var>
 					</Vars>
 					<Vars VarGrpType="1">
 						<Name>PlcTask Inputs</Name>
+						<Var>
+							<Name>MAIN.Error</Name>
+							<Comment><![CDATA[ Safety Error Condition]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
 						<Var>
 							<Name>MAIN.CoverControl.IabCoverOpen</Name>
 							<Comment><![CDATA[ limit coper 1 open switch]]></Comment>
@@ -3153,6 +3158,78 @@ DOUT9 1.0]]></Comment>
 						<Var>
 							<Name>MAIN.HydraulicsControl.IbOilReserve</Name>
 							<Comment><![CDATA[DIN40 4.7]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.State</Name>
+							<Comment><![CDATA[ Stop signal coming from Safety
+ Stop		AT%I*:	BOOL;
+ state variable]]></Comment>
+							<Type>USINT</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM2</Name>
+							<Comment><![CDATA[ BT9 mirror]]></Comment>
+							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM1</Name>
+							<Comment><![CDATA[ // BT10]]></Comment>
+							<Type>INT</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.BCD0</Name>
+							<Comment><![CDATA[DIN17 2.0]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.BCD2</Name>
+							<Comment><![CDATA[DIN18 2.1]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.BCD4</Name>
+							<Comment><![CDATA[DIN19 2.2]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.BCD8</Name>
+							<Comment><![CDATA[DIN20 2.3]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.reset_switch</Name>
+							<Comment><![CDATA[DIN21 2.4]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.direction_up</Name>
+							<Comment><![CDATA[DIN22 2.5]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.direction_down</Name>
+							<Comment><![CDATA[DIN23 2.6]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.key_switch</Name>
+							<Comment><![CDATA[DIN24 2.7]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.start_switch</Name>
+							<Comment><![CDATA[DIN25 3.0 (enable)]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.direction_left</Name>
+							<Comment><![CDATA[DIN26 3.1]]></Comment>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>MAIN.PendantControl.direction_right</Name>
+							<Comment><![CDATA[DIN27 3.2]]></Comment>
 							<Type>BOOL</Type>
 						</Var>
 						<Var>
@@ -3240,83 +3317,6 @@ DOUT9 1.0]]></Comment>
 						<Var>
 							<Name>MAIN.AzimuthControl.axisRef.NcToPlc</Name>
 							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM2</Name>
-							<Comment><![CDATA[ BT9 mirror]]></Comment>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM1</Name>
-							<Comment><![CDATA[ // BT10]]></Comment>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.BCD0</Name>
-							<Comment><![CDATA[DIN17 2.0]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.BCD2</Name>
-							<Comment><![CDATA[DIN18 2.1]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.BCD4</Name>
-							<Comment><![CDATA[DIN19 2.2]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.BCD8</Name>
-							<Comment><![CDATA[DIN20 2.3]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.reset_switch</Name>
-							<Comment><![CDATA[DIN21 2.4]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.direction_up</Name>
-							<Comment><![CDATA[DIN22 2.5]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.direction_down</Name>
-							<Comment><![CDATA[DIN23 2.6]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.key_switch</Name>
-							<Comment><![CDATA[DIN24 2.7]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.start_switch</Name>
-							<Comment><![CDATA[DIN25 3.0 (enable)]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.direction_left</Name>
-							<Comment><![CDATA[DIN26 3.1]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.direction_right</Name>
-							<Comment><![CDATA[DIN27 3.2]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.Error</Name>
-							<Comment><![CDATA[ Safety Error Condition]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.State</Name>
-							<Comment><![CDATA[ Stop signal coming from Safety
- Stop		AT%I*:	BOOL;
- state variable]]></Comment>
-							<Type>USINT</Type>
 						</Var>
 					</Vars>
 					<Contexts>
@@ -6872,10 +6872,12 @@ Bit1: Value smaller than Limit2]]></Comment>
 		</Io>
 	</Project>
 	<Mappings>
+		<MappingInfo Identifier="{00000000-2001-0850-0020-500861000403}" Id="#x02030060"/>
 		<MappingInfo Identifier="{00000000-0010-0304-5000-040310000403}" Id="#x02030010"/>
 		<MappingInfo Identifier="{00000000-0030-0304-5000-040330000403}" Id="#x02030020"/>
-		<MappingInfo Identifier="{00000000-0030-0304-6100-040330000403}" Id="#x02030040"/>
 		<MappingInfo Identifier="{00000000-0040-0304-5000-040341000403}" Id="#x02030030"/>
+		<MappingInfo Identifier="{05000010-2001-0850-5000-040300205008}" Id="#x02030070" Watchdog="14000000040000000400000004000000"/>
+		<MappingInfo Identifier="{03040060-0030-0304-6000-040330000403}" Id="#x02030040" Watchdog="04000000140000000400000004000000"/>
 		<MappingInfo Identifier="{03040060-0060-0304-6000-040360000403}" Id="#x02030050" Watchdog="04000000040000000400000004000000"/>
 		<OwnerA Name="TIID^Device 1 (EtherCAT)">
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 6 (EL1904)">
