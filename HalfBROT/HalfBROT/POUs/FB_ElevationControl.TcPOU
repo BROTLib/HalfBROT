@@ -3,9 +3,6 @@
   <POU Name="FB_ElevationControl" Id="{163e8baa-c820-4d82-9b8f-2bab0c8d4398}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_ElevationControl EXTENDS FB_AxisControl
 VAR_INPUT
-	bUp				: BOOL;		// increase the eleveation
-	bDown			: BOOL;		// decrease the elevation
-	
 	fbCovers		: I_MirrorCovers;
 	fbBrake			: I_Brake;
 END_VAR
@@ -79,8 +76,8 @@ fbAxis(
 	Velocity 		:= fVelocity,
 	Enable_Positive := inDigitalInputs.0 OR bHomeAxis,
 	Enable_Negative := inDigitalInputs.1,
-	Jog_Forward 	:= bUp,
-	Jog_Backwards 	:= bDown,
+	Jog_Forward 	:= bMovePos,
+	Jog_Backwards 	:= bMoveNeg,
 	bCalibrationCam := NOT inDigitalInputs.0,
 	ActualPosition 	=> fActualPosition,
 	Error 			=> bError,

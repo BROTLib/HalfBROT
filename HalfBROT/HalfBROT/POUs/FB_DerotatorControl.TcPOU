@@ -8,8 +8,6 @@ VAR_OUTPUT
 END_VAR
 VAR
 	tonTorqueError		: TON := (PT := T#3S);	// trigger for the torque error
-	bLeft			: BOOL;		// decrease derotator angle
-	bRight			: BOOL;		// increase derotator angle
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -51,8 +49,8 @@ fbAxis(
 	Velocity 		:= fVelocity,
 	Enable_Positive := NOT inDigitalInputs.0,
 	Enable_Negative := NOT inDigitalInputs.1,
-	Jog_Forward 	:= bRight,
-	Jog_Backwards 	:= bLeft,
+	Jog_Forward 	:= bMovePos,
+	Jog_Backwards 	:= bMoveNeg,
 	bCalibrationCam := inDigitalInputs.0,
 	isModuloAxis 	:= FALSE,
 	Tracking 		:= bTracking,
@@ -169,26 +167,6 @@ END_VAR
         <ST><![CDATA[IsReady := bReady;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="MoveLeft" Id="{f9da8fce-1e75-499f-9e0c-b87953d543dc}">
-      <Declaration><![CDATA[METHOD PUBLIC MoveLeft : BOOL
-VAR_INPUT
-	enable	: BOOL;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[bLeft := enable;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="MoveRight" Id="{36c00668-a0dc-4b1f-8735-c26e99bf4c2c}">
-      <Declaration><![CDATA[METHOD PUBLIC MoveRight : BOOL
-VAR_INPUT
-	enable	: BOOL;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[bRight := enable;]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="FB_DerotatorControl">
       <LineId Id="4057" Count="126" />
       <LineId Id="127" Count="0" />
@@ -200,12 +178,6 @@ END_VAR
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_DerotatorControl.IsReady">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_DerotatorControl.MoveLeft">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_DerotatorControl.MoveRight">
       <LineId Id="1" Count="0" />
     </LineIds>
   </POU>

@@ -3,8 +3,6 @@
   <POU Name="FB_AzimuthControl" Id="{fd112fcf-fe5a-48e7-aea8-3fe8a57db212}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_AzimuthControl EXTENDS FB_AxisControl
 VAR_INPUT
-	bLeft				: BOOL;		// decrease azimuth
-	bRight					: BOOL;		// increase azimuth
 	bBrakeOpen				: BOOL;		// azimuth break is open
 END_VAR
 VAR_OUTPUT
@@ -84,8 +82,8 @@ fbAxis(
 	Velocity 		:= fVelocity,
 	Enable_Positive := inDigitalInputs.1 OR bHomeAxis,
 	Enable_Negative := inDigitalInputs.0,
-	Jog_Forward 	:= bRight,
-	Jog_Backwards 	:= bLeft,
+	Jog_Forward 	:= bMovePos,
+	Jog_Backwards 	:= bMoveNeg,
 	bCalibrationCam := NOT inDigitalInputs.1,
 	ActualPosition 	=> fActualPosition,
 	Error 			=> bError,

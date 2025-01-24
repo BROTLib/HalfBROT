@@ -8,6 +8,9 @@ VAR_INPUT
 	bHomeAxis			: BOOL;		// Home the axis
 	fPosition			: LREAL;	// position to move the axis to
 	fVelocity			: LREAL;	// set the Velocity of the axis
+	bMoveNeg			: BOOL;		// decrease position
+	bMovePos			: BOOL;		// increase position
+	
 END_VAR
 VAR_OUTPUT
 	bCalibrated			: BOOL;		// true if absolute calibration
@@ -120,6 +123,66 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
+    <Property Name="InNegLimit" Id="{96f71fb1-d94e-427e-972b-7ae9bb3645e2}">
+      <Declaration><![CDATA[PROPERTY InNegLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{fcc47139-64d0-4008-a7d2-ffb003fe0945}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="InPosLimit" Id="{c3956c0d-a2ef-4b91-8af6-386b638ed5ad}">
+      <Declaration><![CDATA[PROPERTY InPosLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{30d9ab38-6a7d-4e79-acc9-2c369d617c2a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="MoveNeg" Id="{15f0bee2-b125-4049-9684-46d48bbd96a6}">
+      <Declaration><![CDATA[PROPERTY MoveNeg : BOOL]]></Declaration>
+      <Get Name="Get" Id="{cafbeb19-3d1c-402f-8d01-ac78da307a6d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MoveNeg := bMoveNeg;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{a02ef8e6-fabd-4493-83ba-b0642d198e82}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bMoveNeg := MoveNeg;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="MovePos" Id="{215e3cb6-21ef-44de-907f-71731a297ec3}">
+      <Declaration><![CDATA[PROPERTY MovePos : BOOL]]></Declaration>
+      <Get Name="Get" Id="{63d7329a-f799-4d08-ae6a-27b3a5f114b3}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MovePos := bMovePos;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{8584cc68-da28-4c0b-b3b0-bd5ca2215dae}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bMovePos := MovePos;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
     <Property Name="Position" Id="{5a18ed5b-37ae-4510-95dd-b35de6b1be4a}">
       <Declaration><![CDATA[PROPERTY Position : LREAL]]></Declaration>
       <Get Name="Get" Id="{ada6b8a7-fcd9-46dd-a83c-0848ac5c8487}">
@@ -204,6 +267,24 @@ END_VAR
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_BaseAxis.HomeAxis.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_BaseAxis.InNegLimit.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_BaseAxis.InPosLimit.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_BaseAxis.MoveNeg.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_BaseAxis.MoveNeg.Set">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_BaseAxis.MovePos.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_BaseAxis.MovePos.Set">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_BaseAxis.Position.Get">

@@ -142,8 +142,8 @@ CASE Selection OF
 				IF fbStartTrigger.Q THEN
 					fbFocus.Enable := NOT fbFocus.Enable;
 				END_IF
-				fbFocus.MoveOut(direction_up);
-				fbFocus.MoveIn(direction_down);
+				fbFocus.MovePos := direction_up;
+				fbFocus.MoveNeg := direction_down;
 				IF reset_trigger.Q THEN
 					fbFocus.Reset();
 				END_IF
@@ -156,16 +156,16 @@ CASE Selection OF
 		lamp_right := fbDerotator.IsReady() AND NOT fbDerotator.IsInMaxLimit();
 		IF key_switch THEN
 			DerotatorEnable(SET := start_switch, Q := fbDerotator.bEnable);
-			fbDerotator.MoveLeft(direction_left AND NOT fbDerotator.inDigitalInputs.1);
-			fbDerotator.MoveRight(direction_right AND NOT fbDerotator.inDigitalInputs.0);
+			fbDerotator.MoveNeg := direction_left AND NOT fbDerotator.inDigitalInputs.1;
+			fbDerotator.MovePos := direction_right AND NOT fbDerotator.inDigitalInputs.0;
 			fbDerotator.bReset := reset_switch;
 			lamp_error := fbDerotator.Error;
 		END_IF
 							
 	7:	// Elevation Control
 		
-		fbElevation.bUp := direction_up AND fbElevation.inDigitalInputs.0;
-		fbElevation.bDown := direction_down AND fbElevation.inDigitalInputs.1;
+		fbElevation.MovePos := direction_up AND fbElevation.inDigitalInputs.0;
+		fbElevation.MoveNeg := direction_down AND fbElevation.inDigitalInputs.1;
 		IF key_switch THEN
 			ElevationEnable(
 				SET := start_switch, 
@@ -179,14 +179,14 @@ CASE Selection OF
 	8:	// Azimuth Control
 		lamp_left := fbAzimuth.inDigitalInputs.0; // NOT GVL_Telescope.azimut_limit_switch;
 		lamp_right := fbAzimuth.inDigitalInputs.1; // NOT GVL_Telescope.azimut_limit_switch;
-		fbAzimuth.bLeft := direction_left AND fbAzimuth.inDigitalInputs.0;
-		fbAzimuth.bRight := direction_right AND fbAzimuth.inDigitalInputs.1;
+		fbAzimuth.MoveNeg := direction_left AND fbAzimuth.inDigitalInputs.0;
+		fbAzimuth.MovePos := direction_right AND fbAzimuth.inDigitalInputs.1;
 		fbAzimuth.bReset := reset_switch;
 		IF key_switch THEN
 			AzimuthEnable(
 				SET := start_switch, 
 				Q := fbAzimuth.bEnable);
-			lamp_error := fbAzimuth.bError;
+			lamp_error := fbAzimuth.Error;
 		END_IF
 		
 	9: 	// Dome control
@@ -224,10 +224,10 @@ CASE Selection OF
 			lamp_down := fbElevation.inDigitalInputs.1;
 			lamp_left := fbAzimuth.inDigitalInputs.0;
 			lamp_right := fbAzimuth.inDigitalInputs.1;
-			fbElevation.bUp := direction_up AND fbElevation.inDigitalInputs.0;
-			fbElevation.bDown := direction_down AND fbElevation.inDigitalInputs.1;
-			fbAzimuth.bLeft := direction_left AND fbAzimuth.inDigitalInputs.0;
-			fbAzimuth.bRight := direction_right AND fbAzimuth.inDigitalInputs.1;
+			fbElevation.MovePos := direction_up AND fbElevation.inDigitalInputs.0;
+			fbElevation.MoveNeg := direction_down AND fbElevation.inDigitalInputs.1;
+			fbAzimuth.MoveNeg := direction_left AND fbAzimuth.inDigitalInputs.0;
+			fbAzimuth.MovePos := direction_right AND fbAzimuth.inDigitalInputs.1;
 			fbTelescope.rightascension := fbTelescope.rightascension_calc;
 			fbTelescope.declination := fbTelescope.declination_calc;
 		ELSE

@@ -14,8 +14,6 @@ VAR_OUTPUT
 END_VAR
 VAR
 	bMoveAxis			: BOOL;		// move the axis to new position
-	bInward				: BOOL;		// Move M2 closer to M1
-	bOutward			: BOOL;		// Move M2 away from M1	
 	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
 	tonFocusDelay		: TON;
 	tonBrakeDelay		: TON;
@@ -111,8 +109,8 @@ fbAxis(
 	Velocity 		:= 0.04,
 	enable_Positive := NOT IbLimitFar OR bHomeAxis,
 	enable_Negative := NOT IbLimitNear,
-	Jog_Forward 	:= bOutward AND bFocusUnlocked,
-	Jog_Backwards 	:= bInward AND bFocusUnlocked,
+	Jog_Forward 	:= bMovePos AND bFocusUnlocked,
+	Jog_Backwards 	:= bMoveNeg AND bFocusUnlocked,
 	bCalibrationCam := IbLimitFar,
 	ActualPosition 	=> fActualPosition,
 	Error 			=> bError,
@@ -194,26 +192,6 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Method Name="MoveIn" Id="{457ec480-c410-4034-8eef-3a888cb86380}">
-      <Declaration><![CDATA[METHOD PUBLIC MoveIn : BOOL
-VAR_INPUT
-	bEnable	: BOOL;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[bInward := bEnable;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="MoveOut" Id="{dde23261-8560-4e1b-95b2-82960b603ca9}">
-      <Declaration><![CDATA[METHOD PUBLIC MoveOut : BOOL
-VAR_INPUT
-	bEnable	: BOOL;
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[bOutward := bEnable;]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="SendTelemetry" Id="{9492de4d-6d2e-401c-bc97-10786d283636}">
       <Declaration><![CDATA[METHOD PRIVATE SendTelemetry : BOOL
 VAR_INPUT
@@ -241,12 +219,6 @@ END_IF
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.InNearLimit.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.MoveIn">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.MoveOut">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.SendTelemetry">
