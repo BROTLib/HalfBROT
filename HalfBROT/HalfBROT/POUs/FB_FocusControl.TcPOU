@@ -170,25 +170,25 @@ fbCalibrationEvent(
 ]]></ST>
       </Implementation>
     </Method>
-    <Property Name="InFarLimit" Id="{66e2cfb2-3f2c-47bf-8a02-ad3ba18a05bd}">
-      <Declaration><![CDATA[PROPERTY PUBLIC InFarLimit : BOOL]]></Declaration>
-      <Get Name="Get" Id="{d6be74e5-be21-4625-abd6-363742161882}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[InFarLimit := IbLimitFar;]]></ST>
-        </Implementation>
-      </Get>
-    </Property>
-    <Property Name="InNearLimit" Id="{1d25a9c6-c26c-4c20-9f13-eca88477ee48}">
-      <Declaration><![CDATA[PROPERTY PUBLIC InNearLimit : BOOL]]></Declaration>
+    <Property Name="InNegLimit" Id="{1d25a9c6-c26c-4c20-9f13-eca88477ee48}">
+      <Declaration><![CDATA[PROPERTY PUBLIC InNegLimit : BOOL]]></Declaration>
       <Get Name="Get" Id="{88be5ca6-56e1-4d6b-8cc7-729df9681a1a}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[InNearLimit := IbLimitNear;]]></ST>
+          <ST><![CDATA[InNegLimit := IbLimitNear;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="InPosLimit" Id="{66e2cfb2-3f2c-47bf-8a02-ad3ba18a05bd}">
+      <Declaration><![CDATA[PROPERTY PUBLIC InPosLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{d6be74e5-be21-4625-abd6-363742161882}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[InPosLimit := IbLimitFar;]]></ST>
         </Implementation>
       </Get>
     </Property>
@@ -215,10 +215,10 @@ END_IF
     <LineIds Name="FB_FocusControl.HandleEvents">
       <LineId Id="1" Count="14" />
     </LineIds>
-    <LineIds Name="FB_FocusControl.InFarLimit.Get">
+    <LineIds Name="FB_FocusControl.InNegLimit.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_FocusControl.InNearLimit.Get">
+    <LineIds Name="FB_FocusControl.InPosLimit.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.SendTelemetry">

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
   <POU Name="FB_BaseAxis" Id="{bae85b54-65c9-4d1f-98f7-530b10d558b7}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC FB_BaseAxis IMPLEMENTS I_BaseAxis
+    <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_BaseAxis IMPLEMENTS I_BaseAxis
 VAR_INPUT
 	bEnable				: BOOL;		// enable the axis and its position control loop
 	bReset				: BOOL;		// reset the axis
@@ -10,7 +10,6 @@ VAR_INPUT
 	fVelocity			: LREAL;	// set the Velocity of the axis
 	bMoveNeg			: BOOL;		// decrease position
 	bMovePos			: BOOL;		// increase position
-	
 END_VAR
 VAR_OUTPUT
 	bCalibrated			: BOOL;		// true if absolute calibration
@@ -123,9 +122,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="InNegLimit" Id="{96f71fb1-d94e-427e-972b-7ae9bb3645e2}">
+    <Property Name="InNegLimit" Id="{94954a80-5c0d-479c-ace0-6ef4a1491519}">
       <Declaration><![CDATA[PROPERTY InNegLimit : BOOL]]></Declaration>
-      <Get Name="Get" Id="{fcc47139-64d0-4008-a7d2-ffb003fe0945}">
+      <Get Name="Get" Id="{1fe9e6f2-4c2a-46e3-a448-c4853855b1c9}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -134,9 +133,9 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Property Name="InPosLimit" Id="{c3956c0d-a2ef-4b91-8af6-386b638ed5ad}">
+    <Property Name="InPosLimit" Id="{1777e73c-72ff-438e-b976-30dcfd62b989}">
       <Declaration><![CDATA[PROPERTY InPosLimit : BOOL]]></Declaration>
-      <Get Name="Get" Id="{30d9ab38-6a7d-4e79-acc9-2c369d617c2a}">
+      <Get Name="Get" Id="{d601f82d-f558-4d9f-b984-17f1ca4a9ff5}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>

@@ -195,9 +195,37 @@ calibrationEvent(
 	OnMessage 		:= 'Elevation is calibrated.', 
 	comm 			:= fbComm);]]></ST>
     </Implementation>
+    <Property Name="InNegLimit" Id="{bca76ac6-a9e8-49f4-a2a1-8acedfe699e8}">
+      <Declaration><![CDATA[PROPERTY InNegLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{fab57b52-8373-41c8-911b-d290096e30c0}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[InNegLimit := NOT inDigitalInputs.1;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="InPosLimit" Id="{7df7cb29-e499-4d94-994c-b56d3fdd26e8}">
+      <Declaration><![CDATA[PROPERTY InPosLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{656b1f4a-d4af-4bfd-9455-fcca7f6f867f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[InPosLimit := NOT inDigitalInputs.0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <LineIds Name="FB_ElevationControl">
       <LineId Id="7785" Count="173" />
       <LineId Id="170" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ElevationControl.InNegLimit.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_ElevationControl.InPosLimit.Get">
+      <LineId Id="1" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

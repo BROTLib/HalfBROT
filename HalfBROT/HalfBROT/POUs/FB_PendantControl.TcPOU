@@ -136,8 +136,8 @@ CASE Selection OF
 		
 	5:	// Focus Control
 		IF __ISVALIDREF(fbFocus) THEN
-			lamp_up := fbFocus.Ready AND NOT fbFocus.InFarLimit;
-			lamp_down := fbFocus.Ready AND NOT fbFocus.InNearLimit;
+			lamp_up := fbFocus.Ready AND NOT fbFocus.InPosLimit;
+			lamp_down := fbFocus.Ready AND NOT fbFocus.InNegLimit;
 			IF key_switch THEN
 				IF fbStartTrigger.Q THEN
 					fbFocus.Enable := NOT fbFocus.Enable;
@@ -152,8 +152,8 @@ CASE Selection OF
 		END_IF
 							
 	6:	// Derotator control
-		lamp_left  := fbDerotator.IsReady() AND NOT fbDerotator.IsInMinLimit();
-		lamp_right := fbDerotator.IsReady() AND NOT fbDerotator.IsInMaxLimit();
+		lamp_left  := fbDerotator.Ready AND NOT fbDerotator.InNegLimit;
+		lamp_right := fbDerotator.Ready AND NOT fbDerotator.InPosLimit;
 		IF key_switch THEN
 			DerotatorEnable(SET := start_switch, Q := fbDerotator.bEnable);
 			fbDerotator.MoveNeg := direction_left AND NOT fbDerotator.inDigitalInputs.1;
@@ -298,16 +298,9 @@ END_VAR]]></Declaration>
       </Implementation>
     </Method>
     <LineIds Name="FB_PendantControl">
-      <LineId Id="255" Count="45" />
-      <LineId Id="467" Count="0" />
-      <LineId Id="303" Count="0" />
-      <LineId Id="306" Count="11" />
-      <LineId Id="465" Count="0" />
-      <LineId Id="318" Count="12" />
-      <LineId Id="466" Count="0" />
-      <LineId Id="331" Count="111" />
-      <LineId Id="462" Count="2" />
-      <LineId Id="446" Count="14" />
+      <LineId Id="468" Count="78" />
+      <LineId Id="673" Count="0" />
+      <LineId Id="548" Count="124" />
       <LineId Id="235" Count="0" />
     </LineIds>
     <LineIds Name="FB_PendantControl.FB_Init">

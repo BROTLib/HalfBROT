@@ -10,7 +10,6 @@ VAR_INPUT
 	fMinPosition			: REAL := 0;
 	fMaxPosition			: REAL := 450.0;
 	fCalibPosition			: LREAL := 45.0; // // current position of the calibration cam
-
 END_VAR
 VAR_OUTPUT
 END_VAR

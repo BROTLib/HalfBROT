@@ -166,9 +166,37 @@ CalibrationEvent(
 	Comm 			:= fbComm);
 				]]></ST>
     </Implementation>
+    <Property Name="InNegLimit" Id="{a36c055b-8818-45be-8689-ba922d90571f}">
+      <Declaration><![CDATA[PROPERTY InNegLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{39319e96-568d-47ed-ab28-d38623bfbe17}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[InNegLimit := NOT inDigitalInputs.0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="InPosLimit" Id="{d9bd1c8d-6942-4a64-b876-f18e5d0cc4ef}">
+      <Declaration><![CDATA[PROPERTY InPosLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{32263e4b-968c-4ac7-9daa-5086f5a40c25}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[InPosLimit := NOT inDigitalInputs.1;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <LineIds Name="FB_AzimuthControl">
       <LineId Id="7110" Count="147" />
       <LineId Id="149" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AzimuthControl.InNegLimit.Get">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_AzimuthControl.InPosLimit.Get">
+      <LineId Id="1" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

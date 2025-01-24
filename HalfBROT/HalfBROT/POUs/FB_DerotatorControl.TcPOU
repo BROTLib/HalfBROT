@@ -140,44 +140,36 @@ CalibrationEvent(
 	Comm			:= fbComm);
 	]]></ST>
     </Implementation>
-    <Method Name="IsInMaxLimit" Id="{85224394-9a32-4685-b3cf-6a13bc098736}">
-      <Declaration><![CDATA[METHOD PUBLIC IsInMaxLimit : BOOL
-VAR_INPUT
+    <Property Name="InNegLimit" Id="{5e7f9e66-b876-444b-bc02-75ea47096cf0}">
+      <Declaration><![CDATA[PROPERTY InNegLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{2b9866db-9dc6-47f0-beb6-6e3aa86d150c}">
+        <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IsInMaxLimit := inDigitalInputs.0;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="IsInMinLimit" Id="{62606f0a-fd18-40f4-8386-8e94886290d7}">
-      <Declaration><![CDATA[METHOD PUBLIC IsInMinLimit : BOOL
-VAR_INPUT
+        <Implementation>
+          <ST><![CDATA[InNegLimit := inDigitalInputs.1;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="InPosLimit" Id="{a6e23b26-e079-44fd-b036-d5b41f19b37a}">
+      <Declaration><![CDATA[PROPERTY InPosLimit : BOOL]]></Declaration>
+      <Get Name="Get" Id="{da8f7515-fc44-4a5a-a8b6-b5f4a39e4ba6}">
+        <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IsInMinLimit := inDigitalInputs.1;]]></ST>
-      </Implementation>
-    </Method>
-    <Method Name="IsReady" Id="{8cc15e49-347f-420a-b869-3556a24cdf75}">
-      <Declaration><![CDATA[METHOD PUBLIC IsReady : BOOL
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[IsReady := bReady;]]></ST>
-      </Implementation>
-    </Method>
+        <Implementation>
+          <ST><![CDATA[InPosLimit := inDigitalInputs.0;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <LineIds Name="FB_DerotatorControl">
       <LineId Id="4057" Count="126" />
       <LineId Id="127" Count="0" />
     </LineIds>
-    <LineIds Name="FB_DerotatorControl.IsInMaxLimit">
+    <LineIds Name="FB_DerotatorControl.InNegLimit.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
-    <LineIds Name="FB_DerotatorControl.IsInMinLimit">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_DerotatorControl.IsReady">
+    <LineIds Name="FB_DerotatorControl.InPosLimit.Get">
       <LineId Id="1" Count="0" />
     </LineIds>
   </POU>
