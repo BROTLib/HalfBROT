@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_PendantControl" Id="{e2b10f6c-d16d-4403-9ebe-8d8a369c8dbd}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_PendantControl
 VAR_INPUT
@@ -211,7 +211,7 @@ CASE Selection OF
 							Q := fbTelescope.bTrack);
 			fbTelescope.bReset := reset_switch;
 			fbTelescope.bStop := direction_left;	
-			lamp_error := fbTelescope.error;
+			lamp_error := fbTelescope.bError;
 		END_IF
 		
 	13: // Telescope Control
@@ -298,7 +298,7 @@ END_VAR]]></Declaration>
       </Implementation>
     </Method>
     <LineIds Name="FB_PendantControl">
-      <LineId Id="2724" Count="204" />
+      <LineId Id="2929" Count="204" />
       <LineId Id="235" Count="0" />
     </LineIds>
     <LineIds Name="FB_PendantControl.FB_Init">

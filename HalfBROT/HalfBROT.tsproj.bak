@@ -2975,7 +2975,7 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{363DA9F7-A2C1-43F1-A4FF-717FB38D77B2}" Name="HalfBROT" PrjFilePath="HalfBROT\HalfBROT.plcproj" TmcFilePath="HalfBROT\HalfBROT.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{857B6EAD-9393-0762-D0F0-FC350627300D}" TmcPath="HalfBROT\HalfBROT.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{29E6ABCF-1BB5-FFBD-2DD5-97338ADBB462}" TmcPath="HalfBROT\HalfBROT.tmc">
 					<Name>HalfBROT Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="2" AreaNo="1">

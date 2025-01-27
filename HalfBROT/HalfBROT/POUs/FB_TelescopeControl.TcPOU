@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_TelescopeControl" Id="{10c2c294-efcf-424f-afd3-75ac57a5e8bc}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_TelescopeControl IMPLEMENTS I_Telescope
 VAR_INPUT
@@ -83,18 +83,18 @@ VAR
 	StatusWord, LastStatus:	UDINT;
 END_VAR
 VAR_OUTPUT
-	ready				: BOOL;		//		TRUE, IF telescope can be operated 
-	error				: BOOL;		// indicates an error on one of the components	
+	bReady				: BOOL;		//		TRUE, IF telescope can be operated 
+	bError				: BOOL;		// indicates an error on one of the components	
 	errorid				: UDINT;	//error id of axis	
-	sliding				: BOOL;		//TRUE, IF telescope is in fast-MOVE phase (includes pole-swap)	
-	tracking			: BOOL;		//TRUE, IF telescope is on tracking position AND currently tracking.	
-	stopped				: BOOL;		//TRUE, IF telescope is AT rest.	
+	bSliding				: BOOL;		//TRUE, IF telescope is in fast-MOVE phase (includes pole-swap)	
+	bTracking			: BOOL;		//TRUE, IF telescope is on tracking position AND currently tracking.	
+	bStopped				: BOOL;		//TRUE, IF telescope is AT rest.	
 	elevation_current	: LREAL;	// true position of the elevation
 	azimuth_current		: LREAL;	// true position of the azimuth
 	derotator_current	: LREAL;	// true position of the de-rotator
 	slewtime			: LREAL;	//	(time in sec. to reach the goto/track position) 
-	homed				: BOOL;		// True: telescope is calibrated
-	busy				: BOOL;		// telescope does not accept further commands
+	bHomed				: BOOL;		// True: telescope is calibrated
+	bBusy				: BOOL;		// telescope does not accept further commands
 END_VAR
 VAR PERSISTENT
 	// azimuth axis offset/misalignment north-south
@@ -142,14 +142,14 @@ ELSIF fbDerotator.bError THEN
 	fbDerotator.bReset := bReset;
 END_IF
 
-error := fbElevation.Error OR 
+bError := fbElevation.Error OR 
 		 fbAzimuth.bError OR
 		 (fbFocus <> 0 AND_THEN fbFocus.Error) OR
 		 fbDerotator.bError;
 
 slewtime := MAX(MAX(fbElevation.fSlewTime, fbAzimuth.fSlewTime), fbDerotator.fSlewTime);
 			
-IF error THEN
+IF bError THEN
 	bGoHome := 	FALSE;
 	bTrack := 	FALSE;
 	bGoto := 	FALSE;
@@ -232,32 +232,32 @@ ELSIF bPark THEN
 	bGoto := FALSE;
 	bTrack := FALSE;
 	bSlew := FALSE;
-	IF ready AND stopped THEN
+	IF bReady AND bStopped THEN
 		TCS_command := E_TCSCommand.park;
 	END_IF
 ELSIF bGoHome THEN
 	bGoto := FALSE;
 	bTrack := FALSE;
 	bSlew := FALSE;
-	IF ready AND NOT busy AND stopped THEN
+	IF bReady AND NOT bBusy AND bStopped THEN
 		TCS_command := E_TCSCommand.gohome;
 	END_IF
 ELSIF bGoto THEN
 	bTrack := FALSE;
 	bSlew := FALSE;
-	IF ready AND NOT busy THEN
+	IF bReady AND NOT bBusy THEN
 		TCS_command := E_TCSCommand.goto;
 	END_IF
 ELSIF bSlew THEN
 	bGoto := FALSE;
 	bTrack := FALSE;
-	IF ready AND NOT busy THEN
+	IF bReady AND NOT bBusy THEN
 		TCS_command := E_TCSCommand.slew;
 	END_IF
 ELSIF bTrack THEN
 	bGoto := FALSE;
 	bSlew := FALSE;
-	IF ready AND NOT busy THEN
+	IF bReady AND NOT bBusy THEN
 		TCS_command := E_TCSCommand.track;
 	END_IF
 ELSE
@@ -304,46 +304,46 @@ ELSE
 	TCSCTOEvent.OnMessage := 'NOCOMMAND';
 END_IF
  
-sliding := NOT tracking AND (fbElevation.fbAxis.InMotion OR fbElevation.fbAxis.InRamp OR
+bSliding := NOT bTracking AND (fbElevation.fbAxis.InMotion OR fbElevation.fbAxis.InRamp OR
 			fbAzimuth.fbAxis.InMotion OR fbAzimuth.fbAxis.InRamp OR
 			fbDerotator.fbAxis.InMotion OR fbDerotator.fbAxis.InRamp);
 
 // signal must be stable for 5500MS
 tracking_delay(in := fbElevation.fbAxis.isTracking AND 
 			fbAzimuth.fbAxis.isTracking AND
-			fbDerotator.fbAxis.isTracking,PT :=T#5500MS, Q => tracking);
+			fbDerotator.fbAxis.isTracking,PT :=T#5500MS, Q => bTracking);
 			
-stopped :=  (NOT fbElevation.bEnable OR fbElevation.fbAxis.StandStill) AND 
+bStopped :=  (NOT fbElevation.bEnable OR fbElevation.fbAxis.StandStill) AND 
 			(NOT fbAzimuth.bEnable OR fbAzimuth.fbAxis.StandStill) AND
 			(NOT fbDerotator.bEnable OR fbDerotator.fbAxis.StandStill);
 			
-homed := fbElevation.bCalibrated AND
+bHomed := fbElevation.bCalibrated AND
 			fbAzimuth.bCalibrated AND
 			fbDerotator.bCalibrated;
 IF fbFocus <> 0 THEN
-	homed := homed AND fbFocus.Calibrated;
+	bHomed := bHomed AND fbFocus.Calibrated;
 END_IF
 			
-ready := homed AND 
+bReady := bHomed AND 
 	fbCovers.Opened AND 
 	fbElevation.bEnable AND
 	fbAzimuth.bEnable AND
 	fbDerotator.bEnable AND fbBrake.BrakeOpen AND 
-    NOT error;
+    NOT bError;
 
-busy := fbElevation.fbAxis.Busy OR
+bBusy := fbElevation.fbAxis.Busy OR
 		fbAzimuth.fbAxis.Busy OR
 		fbDerotator.fbAxis.Busy;
 IF fbFocus <> 0 THEN
-	busy := busy AND fbFocus.Busy;
+	bBusy := bBusy AND fbFocus.Busy;
 END_IF		
 
 // unset the STOP command if telescope is already stopped
-IF stopped THEN
+IF bStopped THEN
 	bStop := FALSE;
 END_IF
 	
-IF NOT error THEN
+IF NOT bError THEN
 	bReset := FALSE;
 END_IF
 
@@ -352,7 +352,7 @@ IF bEstopTriggered THEN
 	fbAzimuth.Enable := FALSE;
 	fbDerotator.Enable := FALSE;
 END_IF
-IF sliding OR bTrack OR tracking THEN
+IF bSliding OR bTrack OR bTracking THEN
 	MQTTTimer.PT := T#1000MS;
 ELSE
 	MQTTTimer.PT := T#5000MS;
@@ -376,22 +376,22 @@ IF MQTTTimer.Q THEN // publish new payload every second
 	comm.Publish('telescope', 'dome', 'azimuth_torque', LREAL_TO_STRING(fbAzimuth.fTorque));
 	
 	comm.Publish('telescope', 'dome', 'errorid',		UDINT_TO_STRING(errorid));
-	comm.Publish('telescope', 'dome', 'error',		BOOL_TO_STRING(error));
-	comm.Publish('telescope', 'dome', 'ready',		BOOL_TO_STRING(ready));
-	comm.Publish('telescope', 'dome', 'busy',		BOOL_TO_STRING(busy));
-	comm.Publish('telescope', 'dome', 'sliding',		BOOL_TO_STRING(sliding));
-	comm.Publish('telescope', 'dome', 'tracking', 	BOOL_TO_STRING(tracking));
-	comm.Publish('telescope', 'dome', 'stopped',		BOOL_TO_STRING(stopped));
-	comm.Publish('telescope', 'dome', 'homed',		BOOL_TO_STRING(homed));
+	comm.Publish('telescope', 'dome', 'error',		BOOL_TO_STRING(bError));
+	comm.Publish('telescope', 'dome', 'ready',		BOOL_TO_STRING(bReady));
+	comm.Publish('telescope', 'dome', 'busy',		BOOL_TO_STRING(bBusy));
+	comm.Publish('telescope', 'dome', 'sliding',		BOOL_TO_STRING(bSliding));
+	comm.Publish('telescope', 'dome', 'tracking', 	BOOL_TO_STRING(bTracking));
+	comm.Publish('telescope', 'dome', 'stopped',		BOOL_TO_STRING(bStopped));
+	comm.Publish('telescope', 'dome', 'homed',		BOOL_TO_STRING(bHomed));
 	comm.Publish('telescope', 'dome', 'parked',		BOOL_TO_STRING(isparked));
 END_IF
 
-StatusWord.0 := error;
-StatusWord.1 := ready;
-StatusWord.2 := sliding;
-StatusWord.3 := tracking;
-StatusWord.4 := stopped;
-StatusWord.5 := homed;
+StatusWord.0 := bError;
+StatusWord.1 := bReady;
+StatusWord.2 := bSliding;
+StatusWord.3 := bTracking;
+StatusWord.4 := bStopped;
+StatusWord.5 := bHomed;
 StatusWord.6 := bPower;
 StatusWord.7 := bPark;
 StatusWord.8 := bGoHome;
@@ -399,16 +399,16 @@ StatusWord.9 := bTrack;
 StatusWord.10 := bGoto;
 StatusWord.11 := bSlew;
 StatusWord.12 := bStop;
-StatusWord.13 := busy;
+StatusWord.13 := bBusy;
 
 IF StatusWord<>LastStatus THEN // publish new payload every second
 	LastStatus := StatusWord;
-	comm.Publish('telescope', 'dome', 'error',		BOOL_TO_STRING(error));
-	comm.Publish('telescope', 'dome', 'ready',		BOOL_TO_STRING(ready));
-	comm.Publish('telescope', 'dome', 'sliding',		BOOL_TO_STRING(sliding));
-	comm.Publish('telescope', 'dome', 'tracking', 	BOOL_TO_STRING(tracking));
-	comm.Publish('telescope', 'dome', 'stopped',		BOOL_TO_STRING(stopped));
-	comm.Publish('telescope', 'dome', 'homed',		BOOL_TO_STRING(homed));
+	comm.Publish('telescope', 'dome', 'error',		BOOL_TO_STRING(bError));
+	comm.Publish('telescope', 'dome', 'ready',		BOOL_TO_STRING(bReady));
+	comm.Publish('telescope', 'dome', 'sliding',		BOOL_TO_STRING(bSliding));
+	comm.Publish('telescope', 'dome', 'tracking', 	BOOL_TO_STRING(bTracking));
+	comm.Publish('telescope', 'dome', 'stopped',		BOOL_TO_STRING(bStopped));
+	comm.Publish('telescope', 'dome', 'homed',		BOOL_TO_STRING(bHomed));
 	comm.Publish('telescope', 'dome', 'power',		BOOL_TO_STRING(bPower));
 	comm.Publish('telescope', 'dome', 'park',		BOOL_TO_STRING(bPark));
 	comm.Publish('telescope', 'dome', 'gohome',		BOOL_TO_STRING(bGoHome));
@@ -416,7 +416,7 @@ IF StatusWord<>LastStatus THEN // publish new payload every second
 	comm.Publish('telescope', 'dome', 'goto',		BOOL_TO_STRING(bGoto));
 	comm.Publish('telescope', 'dome', 'slew',		BOOL_TO_STRING(bSlew));
 	comm.Publish('telescope', 'dome', 'stop',		BOOL_TO_STRING(bStop));
-	comm.Publish('telescope', 'dome', 'busy',		BOOL_TO_STRING(busy));
+	comm.Publish('telescope', 'dome', 'busy',		BOOL_TO_STRING(bBusy));
 END_IF
 
 
@@ -465,7 +465,7 @@ AltitudeEvent(	Trigger := bPower AND elevation_calc<0.0,
 				OnMessage := 'Target below horizon',
 				OffMEssage := '', 
 				Comm := comm);
-TCSreadyEvent(	Trigger := bPower AND ready, 
+TCSreadyEvent(	Trigger := bPower AND bReady, 
 				Level := ADSLOG_MSGTYPE_HINT,
 				FormatString := '%s',
 				OnMessage := 'STELLA1 startup finished', 
@@ -492,7 +492,7 @@ END_VAR]]></Declaration>
         <ST><![CDATA[_GotoTelescope := Stage;
 commandTimeout(IN := Stage < 100, PT := T#600S);
 IF commandTimeout.Q THEN
-	error := TRUE;
+	bError := TRUE;
 	errorid := 16#10;
 	bGoto := FALSE;
 	Stage := 0;
@@ -500,21 +500,21 @@ IF commandTimeout.Q THEN
 END_IF
 
 IF elevation_calc<2.0 THEN
-	error := TRUE;
+	bError := TRUE;
 	errorid := 16#15;
 	bGoto := FALSE;
 	Stage := 0;
 	RETURN;
 END_IF
 
-IF bReset OR error THEN
+IF bReset OR bError THEN
 	Stage := 0;
 	RETURN;
 END_IF
 
 CASE Stage OF
 	0:	
-		IF ready AND NOT busy THEN
+		IF bReady AND NOT bBusy THEN
 			Stage := 25;
 		END_IF
 	25:	
@@ -549,7 +549,7 @@ CASE Stage OF
 		   Stage := 75;
 		END_IF
 	75:
-		IF NOT sliding AND stopped THEN // all axis standstill
+		IF NOT bSliding AND bStopped THEN // all axis standstill
 			Stage := 100;
 		END_IF
 	100:
@@ -579,12 +579,12 @@ END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[commandTimeout(IN := NOT _HomeTelescope, PT := T#600S);
 IF commandTimeout.Q THEN
-	error := TRUE;
+	bError := TRUE;
 	errorid := 16#30;
 	_HomeTelescope :=TRUE;
 END_IF
 
-IF ready AND stopped AND NOT busy AND NOT tracking THEN
+IF bReady AND bStopped AND NOT bBusy AND NOT bTracking THEN
 	fbElevation.Velocity := 10.0;
 	fbElevation.Position := telescopeConfig.elevationHome;
 	fbElevation.MoveAxis := TRUE;
@@ -627,7 +627,7 @@ VAR_STAT
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[_ParkTelescope := Stage;
-IF bReset OR error THEN
+IF bReset OR bError THEN
 	Stage := 0;
 END_IF
 IF isparked THEN
@@ -642,7 +642,7 @@ CASE Stage OF
 		IF fbFocus <> 0 THEN
 			fbFocus.Position := telescopeConfig.focusPark;
 		END_IF
-		IF Error THEN // emergency park
+		IF bError THEN // emergency park
 			fbBrake.CloseBrake();
 			fbElevation.Enable := FALSE;
 			fbAzimuth.Enable := FALSE;
@@ -676,7 +676,7 @@ CASE Stage OF
 		IF fbDerotator.MoveDone THEN
 			fbDerotator.MoveAxis := FALSE;
 		END_IF
-		IF NOT sliding THEN // all axis standstill
+		IF NOT bSliding THEN // all axis standstill
 			Stage := 60;
 		END_IF
 	60:
@@ -684,7 +684,7 @@ CASE Stage OF
 			stage := 80;
 		END_IF
 
-		IF stopped THEN
+		IF bStopped THEN
 			fbElevation.Enable := FALSE;
 			fbAzimuth.Enable := FALSE;
 			fbDerotator.Enable := FALSE;
@@ -725,7 +725,7 @@ END_VAR
 	powerfailure := TRUE;
 	TCSpowerEvent.OnMessage := 'failure: brake clearing not set';
 	bPower := FALSE;
-ELSIF error THEN
+ELSIF bError THEN
 	powerfailure := TRUE;
 	TCSpowerEvent.OnMessage := 'Generic error during power on occured.';
 	bPower := FALSE;
@@ -794,17 +794,17 @@ END_VAR]]></Declaration>
         <ST><![CDATA[_SlewTelescope := Stage;
 command_timeout(IN := Stage < 100, PT := T#600S);
 IF command_timeout.Q THEN
-	error := TRUE;
+	bError := TRUE;
 	errorid := 16#40;
 	bSlew := FALSE;
 	Stage := 0;
 END_IF
-IF bReset OR error THEN
+IF bReset OR bError THEN
 	Stage := 0;
 END_IF
 CASE Stage OF
 	0:	
-		IF ready AND stopped AND NOT busy AND NOT tracking THEN
+		IF bReady AND bStopped AND NOT bBusy AND NOT bTracking THEN
 			Stage := 25;
 		END_IF
 	25:
@@ -834,7 +834,7 @@ CASE Stage OF
 		IF fbDerotator.MoveDone THEN
 			fbDerotator.MoveAxis := FALSE;
 		END_IF
-		IF NOT sliding AND stopped THEN // all axis standstill
+		IF NOT bSliding AND bStopped THEN // all axis standstill
 			Stage := 100;
 		END_IF
 	100:
@@ -860,7 +860,7 @@ END_VAR
         <ST><![CDATA[fbElevation.StopAxis := TRUE;
 fbAzimuth.StopAxis := TRUE;
 fbDerotator.StopAxis := TRUE;
-IF stopped THEN
+IF bStopped THEN
 	fbElevation.StopAxis := FALSE;
 	fbAzimuth.StopAxis := FALSE;
 	fbDerotator.StopAxis := FALSE;
@@ -1091,7 +1091,7 @@ bTrack			:= TRUE;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_TelescopeControl">
-      <LineId Id="3259" Count="360" />
+      <LineId Id="5425" Count="360" />
       <LineId Id="354" Count="0" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl._GotoTelescope">
