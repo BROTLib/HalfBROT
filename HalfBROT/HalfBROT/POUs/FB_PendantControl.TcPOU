@@ -198,27 +198,27 @@ CASE Selection OF
 		
 	12:	// manual Telescope Control
 		IF key_switch THEN
-			lamp_up := fbTelescope.power;
-			lamp_down := fbTelescope.power;
-			lamp_left := fbTelescope.power;
-			lamp_right := fbTelescope.power;
+			lamp_up := fbTelescope.bPower;
+			lamp_down := fbTelescope.bPower;
+			lamp_left := fbTelescope.bPower;
+			lamp_right := fbTelescope.bPower;
 	
-			fbTelescope.gohome := direction_down;
-			fbTelescope.park := direction_up;
-			fbTelescope.goto := direction_right;
+			fbTelescope.bGoHome := direction_down;
+			fbTelescope.bPark := direction_up;
+			fbTelescope.bGoto := direction_right;
 			TrackingEnable(SET := start_switch, 
 							RESET := reset_switch, 
-							Q := fbTelescope.track);
-			fbTelescope.reset := reset_switch;
-			fbTelescope.stop := direction_left;	
+							Q := fbTelescope.bTrack);
+			fbTelescope.bReset := reset_switch;
+			fbTelescope.bStop := direction_left;	
 			lamp_error := fbTelescope.error;
 		END_IF
 		
 	13: // Telescope Control
 		TelescopeControlEnable(
 			SET := start_switch, 
-			Q := fbTelescope.power);
-		fbTelescope.reset := reset_switch;
+			Q := fbTelescope.bPower);
+		fbTelescope.bReset := reset_switch;
 		IF key_switch THEN
 			lamp_up := fbElevation.inDigitalInputs.0;
 			lamp_down := fbElevation.inDigitalInputs.1;
@@ -228,22 +228,22 @@ CASE Selection OF
 			fbElevation.MoveNeg := direction_down AND fbElevation.inDigitalInputs.1;
 			fbAzimuth.MoveNeg := direction_left AND fbAzimuth.inDigitalInputs.0;
 			fbAzimuth.MovePos := direction_right AND fbAzimuth.inDigitalInputs.1;
-			fbTelescope.rightascension := fbTelescope.rightascension_calc;
-			fbTelescope.declination := fbTelescope.declination_calc;
+			fbTelescope.fRightAscension := fbTelescope.rightascension_calc;
+			fbTelescope.fDeclination := fbTelescope.declination_calc;
 		ELSE
 			lamp_up := fbElevation.bEnable;
 			lamp_down := fbElevation.bEnable;
 			lamp_left := fbAzimuth.bEnable;
 			lamp_right := fbAzimuth.bEnable;
 			IF direction_up THEN 
-				fbTelescope.elevation_offset := fbTelescope.elevation_offset + 10.0/3600.0; 
+				fbTelescope.fElevationOffset := fbTelescope.fElevationOffset + 10.0/3600.0; 
 			ELSIF direction_down THEN 
-				fbTelescope.elevation_offset := fbTelescope.elevation_offset - 10.0/3600.0; 
+				fbTelescope.fElevationOffset := fbTelescope.fElevationOffset - 10.0/3600.0; 
 			END_IF;
 			IF direction_left THEN 
-				fbTelescope.azimuth_offset := fbTelescope.azimuth_offset - 10.0/3600.0; 
+				fbTelescope.fAzimuthOffset := fbTelescope.fAzimuthOffset - 10.0/3600.0; 
 			ELSIF direction_right THEN 
-				fbTelescope.azimuth_offset := fbTelescope.azimuth_offset + 10.0/3600.0; 
+				fbTelescope.fAzimuthOffset := fbTelescope.fAzimuthOffset + 10.0/3600.0; 
 			END_IF;
 		END_IF
 		ResetDelay(IN := reset_switch, PT := T#3S);
@@ -298,9 +298,7 @@ END_VAR]]></Declaration>
       </Implementation>
     </Method>
     <LineIds Name="FB_PendantControl">
-      <LineId Id="468" Count="78" />
-      <LineId Id="673" Count="0" />
-      <LineId Id="548" Count="124" />
+      <LineId Id="2724" Count="204" />
       <LineId Id="235" Count="0" />
     </LineIds>
     <LineIds Name="FB_PendantControl.FB_Init">
