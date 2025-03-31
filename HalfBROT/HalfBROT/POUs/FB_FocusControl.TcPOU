@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
   <POU Name="FB_FocusControl" Id="{27922653-650e-4327-85ba-374d2f945b2c}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl EXTENDS FB_BaseAxis IMPLEMENTS I_Focus
 VAR_INPUT
@@ -8,6 +8,7 @@ VAR_INPUT
 	eTelescopeMode		: E_TelescopeMode;
 	fHomingPosition		: LREAL := 92.02; // 104.02 - 12.00 	// reference position for homing
 	fTolerance			: LREAL := 0.005;
+	fVelocity			: LREAL := 0.2;
 END_VAR
 VAR_OUTPUT
 	bFocusUnlocked		: BOOL;
@@ -106,7 +107,7 @@ fbAxis(
 	homeAxis 		:= bHomeAxis AND bFocusUnlocked,
 	homingMode 		:= eHomingMode,
 	Position 		:= fPosition,
-	Velocity 		:= 0.04,
+	Velocity 		:= fVelocity,
 	enable_Positive := NOT IbLimitFar OR bHomeAxis,
 	enable_Negative := NOT IbLimitNear,
 	Jog_Forward 	:= bMovePos AND bFocusUnlocked,
