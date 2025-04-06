@@ -48,8 +48,8 @@ Focus is locked by default
 // limit to sane positions
 fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
 
-// focus is unlocked if enabled or manually unlocked
-ObFocusUnlock := bManualUnlock OR bEnable;
+// focus is unlocked if enabled or manually unlocked and no eror
+ObFocusUnlock := (bManualUnlock OR bEnable) AND NOT bError;
 
 // wait until the focus is unlocked for n milliseconds
 tonFocusDelay(IN := ObFocusUnlock, PT := T#500MS, Q => bFocusUnlocked);
