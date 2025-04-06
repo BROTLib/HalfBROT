@@ -976,25 +976,6 @@ END_VAR]]></Declaration>
 ]]></ST>
       </Implementation>
     </Method>
-    <Property Name="Focus" Id="{2b5112a0-8b7c-4135-9974-5531cc38b960}">
-      <Declaration><![CDATA[PROPERTY Focus : LREAL]]></Declaration>
-      <Get Name="Get" Id="{0b298ab8-eb1e-4c84-8f2a-59dbf7b9f22d}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[Focus := fbFocus.Position;]]></ST>
-        </Implementation>
-      </Get>
-      <Set Name="Set" Id="{3901c6ed-fe59-4255-97f1-393e0c5feabe}">
-        <Declaration><![CDATA[VAR
-END_VAR
-]]></Declaration>
-        <Implementation>
-          <ST><![CDATA[fbFocus.Position := Focus;]]></ST>
-        </Implementation>
-      </Set>
-    </Property>
     <Method Name="Home" Id="{1ffeeb7f-e086-4ec6-b333-bf9ff24723c8}">
       <Declaration><![CDATA[METHOD Home : BOOL
 ]]></Declaration>
@@ -1143,12 +1124,6 @@ bTrack			:= TRUE;]]></ST>
     </LineIds>
     <LineIds Name="FB_TelescopeControl.FB_Init">
       <LineId Id="7" Count="1" />
-    </LineIds>
-    <LineIds Name="FB_TelescopeControl.Focus.Get">
-      <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_TelescopeControl.Focus.Set">
-      <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="FB_TelescopeControl.Home">
       <LineId Id="1" Count="0" />
