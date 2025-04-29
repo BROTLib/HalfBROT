@@ -151,6 +151,11 @@
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
+              <v n="TextID">"822"</v>
+              <v n="TextDefault">"Cover 1\"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
               <v n="TextID">"678"</v>
               <v n="TextDefault">"Cover 2"</v>
               <l n="LanguageTexts" t="ArrayList" />
