@@ -436,6 +436,11 @@
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
+              <v n="TextID">"27"</v>
+              <v n="TextDefault">"Start suction"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
               <v n="TextID">"809"</v>
               <v n="TextDefault">"State: %s"</v>
               <l n="LanguageTexts" t="ArrayList" />
@@ -468,6 +473,11 @@
             <o>
               <v n="TextID">"782"</v>
               <v n="TextDefault">"Sucction running"</v>
+              <l n="LanguageTexts" t="ArrayList" />
+            </o>
+            <o>
+              <v n="TextID">"552"</v>
+              <v n="TextDefault">"Suction"</v>
               <l n="LanguageTexts" t="ArrayList" />
             </o>
             <o>
