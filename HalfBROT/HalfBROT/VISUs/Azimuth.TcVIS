@@ -289,6 +289,10 @@
                           <v n="Id">2597686782L</v>
                           <v n="Value">false</v>
                         </o>
+                        <o>
+                          <v n="Id">743958181L</v>
+                          <v n="Value">"MAIN.AzimuthControl.bError"</v>
+                        </o>
                       </l>
                     </o>
                     <v n="VisualElementName">"Lamp1"</v>
@@ -2684,6 +2688,10 @@
                           <v n="Id">2597686782L</v>
                           <v n="Value">false</v>
                         </o>
+                        <o>
+                          <v n="Id">743958181L</v>
+                          <v n="Value">"MAIN.AzimuthControl.bMoveNeg"</v>
+                        </o>
                       </l>
                     </o>
                     <v n="VisualElementName">"PushSwitch"</v>
@@ -2781,6 +2789,10 @@
                         <o>
                           <v n="Id">2597686782L</v>
                           <v n="Value">false</v>
+                        </o>
+                        <o>
+                          <v n="Id">743958181L</v>
+                          <v n="Value">"MAIN.AzimuthControl.bMovePos"</v>
                         </o>
                       </l>
                     </o>
@@ -2880,6 +2892,10 @@
                           <v n="Id">2597686782L</v>
                           <v n="Value">false</v>
                         </o>
+                        <o>
+                          <v n="Id">743958181L</v>
+                          <v n="Value">"MAIN.AzimuthControl.bMoveAxis"</v>
+                        </o>
                       </l>
                     </o>
                     <v n="VisualElementName">"DipSwitch"</v>
@@ -2964,7 +2980,7 @@
                         </o>
                         <o>
                           <v n="Id">390574330L</v>
-                          <v n="Value">"Velocity"</v>
+                          <v n="Value">"-"</v>
                         </o>
                         <o>
                           <v n="Id">3729828405L</v>
@@ -3007,7 +3023,7 @@
                         </o>
                         <o>
                           <v n="Id">823443203L</v>
-                          <v n="Value">"67"</v>
+                          <v n="Value">"114"</v>
                         </o>
                       </l>
                     </o>
@@ -3093,7 +3109,7 @@
                         </o>
                         <o>
                           <v n="Id">390574330L</v>
-                          <v n="Value">"Velocity"</v>
+                          <v n="Value">"+"</v>
                         </o>
                         <o>
                           <v n="Id">3729828405L</v>
@@ -3136,7 +3152,7 @@
                         </o>
                         <o>
                           <v n="Id">823443203L</v>
-                          <v n="Value">"67"</v>
+                          <v n="Value">"78"</v>
                         </o>
                       </l>
                     </o>
@@ -3222,7 +3238,7 @@
                         </o>
                         <o>
                           <v n="Id">390574330L</v>
-                          <v n="Value">"Velocity"</v>
+                          <v n="Value">"Move"</v>
                         </o>
                         <o>
                           <v n="Id">3729828405L</v>
@@ -3265,7 +3281,7 @@
                         </o>
                         <o>
                           <v n="Id">823443203L</v>
-                          <v n="Value">"67"</v>
+                          <v n="Value">"564"</v>
                         </o>
                       </l>
                     </o>
@@ -3735,79 +3751,67 @@
             <o n="GeneratedVisuFbDescription" t="GenericFbDescription">
               <d n="FbMethods" t="CaseInsensitiveHashtable" ckt="String" cvt="Guid">
                 <v>ContainsPoint</v>
-                <v>3da3e6e2-ffae-4d17-ada1-ecf7a3914c74</v>
+                <v>942bd4ea-c87d-411c-badb-0e60e881c097</v>
                 <v>Destruct</v>
-                <v>3451a335-4f53-4d63-ae2b-da5f25de8517</v>
+                <v>cbe65a60-d8ed-4f3a-a707-3ca229887b4b</v>
                 <v>ElementInfo</v>
-                <v>d4947772-d3f6-481e-9586-102fee61f042</v>
+                <v>87c67b4d-ad38-4723-a16a-57cd547e5535</v>
                 <v>FB_Exit</v>
-                <v>9a85e4c9-72a4-4b0d-8b7c-ab1a9962e622</v>
+                <v>4f0a21fd-16af-4310-89a8-d32b6f9f177a</v>
                 <v>FB_Reinit</v>
-                <v>e6f2da7b-e6eb-4acd-a275-077f3fdec80b</v>
+                <v>d365ab66-a212-479e-bd4a-1f7207703dc4</v>
                 <v>GetClientData</v>
-                <v>ae06e1cb-943d-40d8-a858-bab5c81458fa</v>
-                <v>GetDialogInterface</v>
-                <v>ef9b0a8c-1010-4df1-aca1-d38a04ecd8b9</v>
-                <v>GetDialogInterfaceSize</v>
-                <v>9fd4ea57-7eca-4348-8d4a-c4dc77832363</v>
+                <v>df8ec2f0-0d49-47fa-9aa9-a28ec0fbf3d3</v>
                 <v>GetElementArray</v>
-                <v>c413fc1b-cd79-4e28-9f94-5f83c76b450b</v>
+                <v>3b54d630-c933-4c26-add7-0a2efe62c2c1</v>
                 <v>GetElementIdArray</v>
-                <v>661987b2-42ed-447a-9e55-21409faf2817</v>
+                <v>975ffde7-a10e-4ea6-b473-2c239eb64f69</v>
                 <v>GetInitializeVersion</v>
-                <v>0ad9dde4-e25c-4176-a454-8b09b1eed730</v>
-                <v>GetInstance</v>
-                <v>bdb74bd4-27a7-4fc9-9dec-cb23f7106f03</v>
+                <v>6078efbe-d5d1-4563-94f2-75b1893883fd</v>
                 <v>GetLocalUsergroup</v>
-                <v>ea3c9410-a892-4cbf-8b51-f74038d4bd1a</v>
+                <v>adce1323-ab31-4026-9f71-f965d454bc47</v>
                 <v>GetName</v>
-                <v>c6a4bc8c-da99-4f2b-9a19-7834f04665b0</v>
+                <v>179dfc44-f132-48c6-abd1-d13949a5c8a9</v>
                 <v>GetNamespace</v>
-                <v>2ee51235-0b89-4310-89f6-8e66160a48a7</v>
-                <v>GetResult</v>
-                <v>36d11e09-6eb2-4493-8899-fb14188e22a5</v>
+                <v>dbdde356-9543-4c16-af9f-893b22ca0183</v>
                 <v>GetSize</v>
-                <v>d0aa654e-387c-4b19-9a36-6e2a6cd4fe41</v>
+                <v>a7badeb6-b162-463f-b307-b7f0768b9890</v>
                 <v>GetSurroundingRect</v>
-                <v>2d82dfef-9a60-4ff0-8f7e-638ef239dea4</v>
+                <v>d9ee2455-fb00-4163-8071-4977b598105b</v>
                 <v>GetText</v>
-                <v>990e82ee-bfec-4586-838b-955841cf3c07</v>
+                <v>b0238cf6-6b62-4f73-8e85-f37384d03365</v>
                 <v>GetTextProperties</v>
-                <v>039df110-7fd7-4aeb-8abb-3fd18d3560ee</v>
+                <v>4a7fdacc-6515-4eaa-977f-50de046ed073</v>
                 <v>GetTooltip</v>
-                <v>576f4d16-7e77-49f5-b501-a13d397bb7e3</v>
+                <v>3332eb6c-bded-425a-9452-9f7aa5a6f7bc</v>
                 <v>GetTranslator</v>
-                <v>ab9250d4-7da1-46ce-8f06-a41c66bd3710</v>
+                <v>e5fffd07-dfc0-4fb0-8e34-c8dc66c36fb1</v>
                 <v>GetUpdateRects</v>
-                <v>adc7bac9-1ebd-410d-b25c-20248d894b49</v>
+                <v>17e39cbb-9c1b-415c-8057-93758feb1810</v>
                 <v>HandleInput</v>
-                <v>0aeb47ee-0f5c-4396-bd2a-0a4b5a3a1341</v>
+                <v>54e6f05a-aa65-4fb4-91cc-cbc92e55a4c2</v>
                 <v>HasInputAccess</v>
-                <v>90631385-8a82-4538-90b6-d4856f446c54</v>
+                <v>bacd6806-f1d3-4905-b383-6adebda5e3b9</v>
                 <v>HasInputAccessIntern</v>
-                <v>76210b40-675c-4fad-a9aa-1b5e1843fa24</v>
+                <v>4eb95777-8620-4cd2-9ab1-39aae88a0225</v>
                 <v>HasVisibilityAccess</v>
-                <v>c53eec68-509b-446f-ac15-e09d3e3cdb2b</v>
+                <v>99089731-bba9-4cff-8b7e-8213de9265b7</v>
                 <v>HasVisibilityAccessIntern</v>
-                <v>2c81291f-7bcb-48f3-a176-c9b6b207ed56</v>
+                <v>6ff3172a-91df-4197-b289-7926f30a2aa3</v>
                 <v>Initialize</v>
-                <v>b587060a-38d1-484c-97eb-15235d343b46</v>
+                <v>ffb399d4-eb89-46b9-ae0d-42d2cf01fed7</v>
                 <v>IsAntialiasingInactive</v>
-                <v>de905c9f-c246-4096-baf5-4db5f4f01bff</v>
+                <v>5056f11b-7192-49b6-bba9-57bde7b374b5</v>
                 <v>Paint</v>
-                <v>0e16c420-322e-49aa-bc6d-f4db0eec071a</v>
+                <v>168f8031-e773-42df-8bf3-ba36eeadd4dc</v>
                 <v>SetClientData</v>
-                <v>5d60ab61-ba49-4f9d-83c5-539f2e9802ff</v>
-                <v>SetDialogInterface</v>
-                <v>11dee482-6475-4feb-9c91-218f75d45953</v>
-                <v>SetResult</v>
-                <v>6cf778ab-2109-4b9a-8f33-15b9009dfd8c</v>
+                <v>1098053f-d4a6-49f7-a254-9c1a8f24c44e</v>
                 <v>SetStaticState</v>
-                <v>dd095f48-94f0-4b73-bd06-0729c863a3d1</v>
+                <v>b58b0b61-ee35-4679-86c4-2d1aab6fb74b</v>
                 <v>SetVisuFlagsInternal</v>
-                <v>5f3b7b23-6178-4cc5-82fa-05b43d4d43b6</v>
+                <v>c8dcb485-b694-481e-9bea-c7a675df95dc</v>
                 <v>Update</v>
-                <v>01a1e13a-64b0-4fb4-ba05-cc6f0b053448</v>
+                <v>e0e7e257-d09a-4136-b2fd-5b69b9ee843e</v>
               </d>
               <v n="FbName">"NotImportant"</v>
               <v n="FbGuid">{632e0126-0c13-4fd7-bb12-d5c69bed56cb}</v>
