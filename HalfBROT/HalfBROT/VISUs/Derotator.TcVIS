@@ -289,6 +289,10 @@
                           <v n="Id">2597686782L</v>
                           <v n="Value">false</v>
                         </o>
+                        <o>
+                          <v n="Id">743958181L</v>
+                          <v n="Value">"MAIN.DerotatorControl.bError"</v>
+                        </o>
                       </l>
                     </o>
                     <v n="VisualElementName">"Lamp1"</v>
@@ -2395,7 +2399,7 @@
                     <v n="VisualElementIdentifier">"GenElemInst_41"</v>
                     <n n="VisualElementOfflinePaintCommands" />
                     <n n="VisualElementFrameInformation" />
-                    <d n="VisualElementInputActions" t="Hashtable" ckt="String" cvt="IInputAction[]">
+                    <d n="VisualElementInputActions" t="Hashtable" ckt="String" cvt="InputBoxInputAction[]">
                       <v>OnMouseUp</v>
                       <a cet="InputBoxInputAction">
                         <o>
@@ -2575,7 +2579,7 @@
                     <v n="VisualElementIdentifier">"GenElemInst_45"</v>
                     <n n="VisualElementOfflinePaintCommands" />
                     <n n="VisualElementFrameInformation" />
-                    <d n="VisualElementInputActions" t="Hashtable" ckt="String" cvt="IInputAction[]">
+                    <d n="VisualElementInputActions" t="Hashtable" ckt="String" cvt="InputBoxInputAction[]">
                       <v>OnMouseUp</v>
                       <a cet="InputBoxInputAction">
                         <o>
@@ -2684,6 +2688,10 @@
                           <v n="Id">2597686782L</v>
                           <v n="Value">false</v>
                         </o>
+                        <o>
+                          <v n="Id">743958181L</v>
+                          <v n="Value">"MAIN.DerotatorControl.bMoveNeg"</v>
+                        </o>
                       </l>
                     </o>
                     <v n="VisualElementName">"PushSwitch"</v>
@@ -2781,6 +2789,10 @@
                         <o>
                           <v n="Id">2597686782L</v>
                           <v n="Value">false</v>
+                        </o>
+                        <o>
+                          <v n="Id">743958181L</v>
+                          <v n="Value">"MAIN.DerotatorControl.bMovePos"</v>
                         </o>
                       </l>
                     </o>
@@ -2880,6 +2892,10 @@
                           <v n="Id">2597686782L</v>
                           <v n="Value">false</v>
                         </o>
+                        <o>
+                          <v n="Id">743958181L</v>
+                          <v n="Value">"MAIN.DerotatorControl.bMoveAxis"</v>
+                        </o>
                       </l>
                     </o>
                     <v n="VisualElementName">"DipSwitch"</v>
@@ -2964,7 +2980,7 @@
                         </o>
                         <o>
                           <v n="Id">390574330L</v>
-                          <v n="Value">"Velocity"</v>
+                          <v n="Value">"-"</v>
                         </o>
                         <o>
                           <v n="Id">3729828405L</v>
@@ -3007,7 +3023,7 @@
                         </o>
                         <o>
                           <v n="Id">823443203L</v>
-                          <v n="Value">"67"</v>
+                          <v n="Value">"114"</v>
                         </o>
                       </l>
                     </o>
@@ -3093,7 +3109,7 @@
                         </o>
                         <o>
                           <v n="Id">390574330L</v>
-                          <v n="Value">"Velocity"</v>
+                          <v n="Value">"+"</v>
                         </o>
                         <o>
                           <v n="Id">3729828405L</v>
@@ -3136,7 +3152,7 @@
                         </o>
                         <o>
                           <v n="Id">823443203L</v>
-                          <v n="Value">"67"</v>
+                          <v n="Value">"78"</v>
                         </o>
                       </l>
                     </o>
@@ -3222,7 +3238,7 @@
                         </o>
                         <o>
                           <v n="Id">390574330L</v>
-                          <v n="Value">"Velocity"</v>
+                          <v n="Value">"Move"</v>
                         </o>
                         <o>
                           <v n="Id">3729828405L</v>
@@ -3265,7 +3281,7 @@
                         </o>
                         <o>
                           <v n="Id">823443203L</v>
-                          <v n="Value">"67"</v>
+                          <v n="Value">"564"</v>
                         </o>
                       </l>
                     </o>
@@ -3735,79 +3751,67 @@
             <o n="GeneratedVisuFbDescription" t="GenericFbDescription">
               <d n="FbMethods" t="CaseInsensitiveHashtable" ckt="String" cvt="Guid">
                 <v>ContainsPoint</v>
-                <v>c6bcef8a-9dcc-4c3e-9bb0-5bb3d8e50e84</v>
+                <v>ccd905ac-2952-4154-ae91-6c1b9aa75853</v>
                 <v>Destruct</v>
-                <v>df75e8d2-575c-4a63-97a8-ec238f02b54c</v>
+                <v>e79994c0-97f1-496b-ae3a-c4ee9d87956e</v>
                 <v>ElementInfo</v>
-                <v>066b09d0-c9ce-4844-bb5b-60d098714dea</v>
+                <v>efc416d7-69ba-42b3-ad44-d970fad44823</v>
                 <v>FB_Exit</v>
-                <v>ed23e613-5bab-4199-88d6-684a4b706ec6</v>
+                <v>1394281e-c9f9-41d6-bc50-01ae14ccfa1a</v>
                 <v>FB_Reinit</v>
-                <v>e9d845a1-2b87-42f5-b227-afdf48ab25c1</v>
+                <v>a5070a2f-20f2-4b75-be44-d64c92b8ab8a</v>
                 <v>GetClientData</v>
-                <v>1cc94b3d-8371-4a61-b571-d05e62bf597d</v>
-                <v>GetDialogInterface</v>
-                <v>23f470cb-48c2-471f-bf6f-160e749db82e</v>
-                <v>GetDialogInterfaceSize</v>
-                <v>7c0ab1bf-6165-4da6-8de6-42cb3a2efc9d</v>
+                <v>cb6af255-5f8e-4503-b757-8ae365d80a33</v>
                 <v>GetElementArray</v>
-                <v>884091a3-fe7e-4270-a951-57ad82cf9616</v>
+                <v>aea83183-b15f-4fa5-b17e-fce227de9a0a</v>
                 <v>GetElementIdArray</v>
-                <v>36032251-3a4a-4936-b87e-b17158f19e85</v>
+                <v>07809682-a08e-428d-af08-e061978d9f6f</v>
                 <v>GetInitializeVersion</v>
-                <v>d39c3954-cdc9-4219-a5ad-a0e659f46bd6</v>
-                <v>GetInstance</v>
-                <v>3608df8e-2646-4598-9957-984c5c49486c</v>
+                <v>cc948930-dcfa-42c7-a388-eb4f401b5861</v>
                 <v>GetLocalUsergroup</v>
-                <v>b90c5486-5d2d-410d-a5e3-a906b53ab7a2</v>
+                <v>63edd216-d648-48e1-9ca3-9fa82e4e1c6f</v>
                 <v>GetName</v>
-                <v>945ffa28-1085-42a6-a47a-1687347bd4a0</v>
+                <v>89804511-8873-4c8f-9b11-a52f0c7821d8</v>
                 <v>GetNamespace</v>
-                <v>ced4d8c7-9157-43ab-9609-de8911ada331</v>
-                <v>GetResult</v>
-                <v>a11ee01d-94c7-4562-8063-8dc625c0aa09</v>
+                <v>c8471c03-ae9e-45dc-bd31-cf27d1f594af</v>
                 <v>GetSize</v>
-                <v>5619dd99-517e-45f1-8dcf-3735fe059897</v>
+                <v>0392e410-5092-46a3-ae5c-37a7cf770105</v>
                 <v>GetSurroundingRect</v>
-                <v>6f75d815-5428-413c-b5a5-f8007deaa714</v>
+                <v>bf6fa7af-fe32-492f-aa84-18642425625c</v>
                 <v>GetText</v>
-                <v>816d6bc3-f144-403d-ac5f-c00812fd03a8</v>
+                <v>6825d395-c9d8-4eac-9aa3-ee73e77c846e</v>
                 <v>GetTextProperties</v>
-                <v>ad863635-ad2a-40b7-ba35-341d78167ece</v>
+                <v>842f9f8b-cb0e-4db0-8bf8-b179f19834be</v>
                 <v>GetTooltip</v>
-                <v>6564f5f2-17c6-4c34-ac2e-62b6afd922ca</v>
+                <v>c6a20e24-99c7-4df6-9e31-6070afd2ea35</v>
                 <v>GetTranslator</v>
-                <v>6c921b0e-baea-4541-b07e-2a45aafdf29e</v>
+                <v>b2928890-15b1-4184-8cb2-5923cb16edbe</v>
                 <v>GetUpdateRects</v>
-                <v>e42c1b46-7233-4c4d-bc10-dc331922d070</v>
+                <v>cdfeba59-a15e-4808-ac7a-abab3e7aa269</v>
                 <v>HandleInput</v>
-                <v>4500fea6-ef44-4596-9fa0-4bc782e81b7b</v>
+                <v>e1a3c5b0-9f70-41bd-b485-38dac91bf989</v>
                 <v>HasInputAccess</v>
-                <v>e2247066-ffeb-452a-a8d0-5502e0dd59dc</v>
+                <v>90e993fe-3d1e-47b8-9b2f-b0595b75b533</v>
                 <v>HasInputAccessIntern</v>
-                <v>1df0db5b-2cd4-450c-b315-a42530b3c066</v>
+                <v>292e7183-2d6f-4b28-8319-2787b53954f7</v>
                 <v>HasVisibilityAccess</v>
-                <v>a57ae0dd-5939-46e6-9018-b90eb47681b4</v>
+                <v>37caffce-ad25-492d-8066-7943573267d8</v>
                 <v>HasVisibilityAccessIntern</v>
-                <v>59452e11-da09-4923-8817-c5b02bba35bc</v>
+                <v>7a607dc7-6b32-48cc-947a-14699710af10</v>
                 <v>Initialize</v>
-                <v>8a581459-e685-43b4-8f4e-fb8de1dc27eb</v>
+                <v>503087be-3821-480d-a14c-aafdf83a2f84</v>
                 <v>IsAntialiasingInactive</v>
-                <v>9014e4d8-ba35-4c28-bf5a-d35f8881e1ac</v>
+                <v>664a58b1-ccf2-4de8-989a-7f956d44fd7c</v>
                 <v>Paint</v>
-                <v>0571a76b-2138-4c26-a4c4-8b5983cbe0d7</v>
+                <v>9fa5ea12-b71e-4b2b-9c0b-b47d7cf0382e</v>
                 <v>SetClientData</v>
-                <v>a2b54aed-4956-4447-bf6d-826cd802a99e</v>
-                <v>SetDialogInterface</v>
-                <v>a40eb2d5-8d2f-4535-8612-05be53ac12c0</v>
-                <v>SetResult</v>
-                <v>7510f3b5-c994-4d25-b555-7f86b015c45d</v>
+                <v>12826a1a-b97f-486c-9968-62c26bdadad7</v>
                 <v>SetStaticState</v>
-                <v>0c66b1e2-8fc1-45d7-9ddc-580120755900</v>
+                <v>d0386f92-544b-4908-b7cc-f240fd495647</v>
                 <v>SetVisuFlagsInternal</v>
-                <v>769ef7b7-ebeb-442d-8e63-3b6c32731a33</v>
+                <v>86fccb42-872d-421c-a622-74932fa291c0</v>
                 <v>Update</v>
-                <v>2d6bb7c1-d403-43ae-8112-71668aa8d8c2</v>
+                <v>63d774c7-b943-4af5-851d-f7752a1227b4</v>
               </d>
               <v n="FbName">"NotImportant"</v>
               <v n="FbGuid">{3e0ab98e-3f5b-47cf-aa03-74fe5a990ded}</v>
@@ -3931,8 +3935,8 @@
         <Type n="Guid">System.Guid</Type>
         <Type n="Hashtable">System.Collections.Hashtable</Type>
         <Type n="HotkeyConfiguration">{6b108d46-58af-4e41-a3f4-174d8f160cc4}</Type>
-        <Type n="IInputAction[]">_3S.CoDeSys.VisualElem.IInputAction[], VisualElem, Version=3.5.13.0, Culture=neutral, PublicKeyToken=null</Type>
         <Type n="InputBoxInputAction">{e8e7e747-f76f-4dee-ab1c-b9637e41ac26}</Type>
+        <Type n="InputBoxInputAction[]">_3S.CoDeSys.VisualElem.InputBoxInputAction[], VisualElem.plugin, Version=3.5.13.32, Culture=neutral, PublicKeyToken=null</Type>
         <Type n="Int16">System.Int16</Type>
         <Type n="Int32">System.Int32</Type>
         <Type n="Int64">System.Int64</Type>
