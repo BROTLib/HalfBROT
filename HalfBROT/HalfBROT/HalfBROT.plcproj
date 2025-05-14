@@ -26,9 +26,6 @@
     <CompilerDefines>VISU_USEPROPERTYINFO</CompilerDefines>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="DUTs\ST_TelescopeConfig.TcDUT">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="GlobalTextList.TcGTLO">
       <SubType>Code</SubType>
     </Compile>
@@ -200,6 +197,11 @@
     <LibraryReference Include="VisuSymbols,3.5.10.0,System">
       <Namespace>VisuSymbols</Namespace>
     </LibraryReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PlaceholderResolution Include="BROTLib">
+      <Resolution>BROTLib, * (BROT)</Resolution>
+    </PlaceholderResolution>
   </ItemGroup>
   <ProjectExtensions>
     <PlcProjectOptions>
