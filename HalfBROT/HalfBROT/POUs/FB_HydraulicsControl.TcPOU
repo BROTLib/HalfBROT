@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <POU Name="FB_HydraulicsControl" Id="{0d9c5732-af19-4096-a83e-065687a13da0}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_HydraulicsControl IMPLEMENTS I_Hydraulics, I_Brake
 VAR_INPUT
@@ -13,6 +13,8 @@ VAR_INPUT
 	nMaxPanLevel		: INT := 16383;		// maximum oil level from sensor
 	fMinPanPercent		: REAL := 0;		// oil level percentage to be seen as empty
 	fMaxPanPercent		: REAL := 90;		// oil level percentage to be seen as full
+	bOpenBrake			: BOOL := FALSE;	// command to open the brake
+	bCloseBrake			: BOOL;				// command to open the brake
 END_VAR
 VAR_OUTPUT
 	bBrakeOpen			: BOOL;				// status of the brake: is the brake open?
@@ -53,8 +55,6 @@ VAR
 	ObResetOilPump		AT%Q* : BOOL;
 	ObResetSuctionPump	AT%Q* : BOOL;
 	
-	bOpenBrake			: BOOL := FALSE;	// command to open the brake
-	bCloseBrake			: BOOL;				// command to open the brake
 	tonPressureWatchdog	: TON;				// monitors the pressure of the pump is running
 	tonSuctionWatchdog	: TON;				// monitors the activation of the suction pump
 	tonMainPumpWatchdog	: TON;				// monitors the activation of the main pump			

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <POU Name="FB_AzimuthControl" Id="{fd112fcf-fe5a-48e7-aea8-3fe8a57db212}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_AzimuthControl EXTENDS FB_AxisControl
 VAR_INPUT

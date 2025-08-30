@@ -1006,13 +1006,13 @@ Drive Status 4 (manually linked):
 			<Name GUID="{F7B9FC50-054E-4547-B468-83A9E72D8064}" Namespace="MC" TcBaseType="true" HideType="true">NCTOPLC_AXIS_REF_STATE3_FLAGS</Name>
 			<BitSize>32</BitSize>
 			<SubItem>
-				<Name>TouchProbe1InputState</Name>
+				<Name>TouchProbe1InputState </Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
 				<BitSize>1</BitSize>
 				<BitOffs>0</BitOffs>
 			</SubItem>
 			<SubItem>
-				<Name>TouchProbe2InputState</Name>
+				<Name>TouchProbe2InputState </Name>
 				<Type GUID="{18071995-0000-0000-0000-000000000010}">BIT</Type>
 				<BitSize>1</BitSize>
 				<BitOffs>1</BitOffs>
@@ -1424,16 +1424,7 @@ External Setpoint Generation:
 			</Relations>
 		</DataType>
 		<DataType>
-			<Name GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}" IecBaseType="true" AutoDeleteType="true">ARRAY [1..3] OF BOOL</Name>
-			<BitSize>24</BitSize>
-			<BaseType GUID="{18071995-0000-0000-0000-000000000030}">BOOL</BaseType>
-			<ArrayInfo>
-				<LBound>1</LBound>
-				<Elements>3</Elements>
-			</ArrayInfo>
-		</DataType>
-		<DataType>
-			<Name GUID="{18071995-0000-0000-0000-002000000007}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..6] OF BIT</Name>
+			<Name GUID="{18071995-0000-0000-0000-002000000007}" IecBaseType="true" BitType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..6] OF BIT</Name>
 			<BitSize>7</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000010}">BIT</BaseType>
 			<ArrayInfo>
@@ -2024,7 +2015,7 @@ External Setpoint Generation:
 			</ArrayInfo>
 		</DataType>
 		<DataType>
-			<Name GUID="{18071995-0000-0000-0000-002000000001}" IecBaseType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..0] OF BIT</Name>
+			<Name GUID="{18071995-0000-0000-0000-002000000001}" IecBaseType="true" BitType="true" AutoDeleteType="true" HideSubItems="true">ARRAY [0..0] OF BIT</Name>
 			<BitSize>1</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-000000000010}">BIT</BaseType>
 			<ArrayInfo>
@@ -2073,7 +2064,7 @@ External Setpoint Generation:
 		<ImageData Id="1009">424dd6020000000000003600000028000000100000000e0000000100180000000000a002000000000000000000000000000000000000ff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ff808080808080808080808080808080ff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c0808080ff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c0808080ff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c0808080ff00ffff00ffff00ffff00ffff00ffff00ffff00ff000000ff00ffff00ffff00ffff0000ff0000ff0000ff0000808080ff00ff000000000000000000000000000000000000000000ff00ffff00ffff00ffff0000c0c0c0c0c0c0c0c0c0808080ff00ff0000000000000000000000000000000000000000000000ff0000ffff00ffc0c0c0ff0000c0c0c0c0c0c0808080ff00ff000000000000000000000000000000000000000000ff00ffff00ffff00ffc0c0c0c0c0c0ff0000c0c0c0808080ff00ffff00ffff00ffff00ff000000ff00ffff00ff000000ff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0ff0000808080ff00ff000000000000000000000000ff00ffff00ffff00ffff00ffff00ffff00ffff0000c0c0c0c0c0c0ff0000808080ff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffc0c0c0ff0000ff0000c0c0c0808080ff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c0808080ff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c0808080ff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c0808080ff00ff</ImageData>
 		<ImageData Id="1010">424dd6020000000000003600000028000000100000000e0000000100180000000000a002000000000000000000000000000000000000ff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ff808080808080808080808080808080ff00ffff00ffff00ffff00ffff00ffff00ffff00ff000000ff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c08080800000ff000000000000000000000000000000000000000000ff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c08080800000ff0000000000000000000000000000000000000000000000ff0000ffff00ffc0c0c0c0c0c0c0c0c0c0c0c08080800000ff000000000000000000000000000000000000000000ff00ffff00ffff00ffff0000ff0000ff0000ff00008080800000ffff00ffff00ffff00ff000000ff00ffff00ff000000ff00ffff00ffff00ffff0000c0c0c0c0c0c0c0c0c0808080000000000000000000000000000000ff00ffff00ffff00ffff00ffff00ffff00ffc0c0c0ff0000c0c0c0c0c0c0808080000000ff00ffff00ffff00ffff00ffff00ffff00ff000000ff00ffff00ffff00ffc0c0c0c0c0c0ff0000c0c0c0808080000000000000000000000000000000000000000000000000ff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0ff00008080800000000000000000000000000000000000000000000000000000ff0000ffff00ffff0000c0c0c0c0c0c0ff0000808080000000000000000000000000000000000000000000000000ff00ffff00ffff00ffc0c0c0ff0000ff0000c0c0c0808080000000ff00ffff00ffff00ff000000ff00ffff00ff000000ff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c0808080000000000000000000000000000000ff00ffff00ffff00ffff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c0808080000000ff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffff00ffc0c0c0c0c0c0c0c0c0c0c0c0808080</ImageData>
 	</ImageDatas>
-	<Project ProjectGUID="{F509BB80-4C91-45D0-AE04-8022D7D6840F}" TargetNetId="5.131.251.159.1.1" Target64Bit="true" ShowHideConfigurations="#x6">
+	<Project ProjectGUID="{F509BB80-4C91-45D0-AE04-8022D7D6840F}" TargetNetId="5.131.251.159.1.1" ShowHideConfigurations="#x6">
 		<System>
 			<Tasks>
 				<Task Id="3" Priority="20" CycleTime="100000" AmsPort="350" AdtTasks="true">
@@ -2083,7 +2074,7 @@ External Setpoint Generation:
 		</System>
 		<Motion>
 			<NC>
-				<SafTask Priority="4" CycleTime="20000" AmsPort="501" IoAtBegin="true" SafTaskInfo="256" HighPrioAds="true">
+				<SafTask Priority="4" CycleTime="20000" AmsPort="501" IoAtBegin="true" SafTaskInfo="256">
 					<Name>NC-Task 1 SAF</Name>
 					<Vars VarGrpType="1" InsertType="1">
 						<Name>Inputs</Name>
@@ -2975,350 +2966,46 @@ External Setpoint Generation:
 		</Motion>
 		<Plc>
 			<Project GUID="{363DA9F7-A2C1-43F1-A4FF-717FB38D77B2}" Name="HalfBROT" PrjFilePath="HalfBROT\HalfBROT.plcproj" TmcFilePath="HalfBROT\HalfBROT.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcHash="{30119DB7-DEC1-E143-E7D7-5A4A806CB1A6}" TmcPath="HalfBROT\HalfBROT.tmc">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="HalfBROT\HalfBROT.tmc" TmcHash="{A5DF4CD3-0A9C-D8B6-4F75-3E68928EACAE}">
 					<Name>HalfBROT Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
-					<Vars VarGrpType="2" AreaNo="1">
-						<Name>PlcTask Outputs</Name>
-						<Var>
-							<Name>MAIN.CoverControl.OabOpenCover</Name>
-							<Comment><![CDATA[ open cover1-3 command]]></Comment>
-							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.OabCloseCover</Name>
-							<Comment><![CDATA[ close cover1-3 command]]></Comment>
-							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.ObOilPumpEnable</Name>
-							<Comment><![CDATA[DOUT4 0.3]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.ObOilSuctionEnable</Name>
-							<Comment><![CDATA[DOUT5 0.4	]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.ObBrakeAzEl</Name>
-							<Comment><![CDATA[ brake set]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.ObResetOilPump</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.ObResetSuctionPump</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.FocusControl.ObFocusUnlock</Name>
-							<Comment><![CDATA[ whether focus is unlocked]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.FocusControl.refAxis.PlcToNc</Name>
-							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.DerotatorControl.axisRef.PlcToNc</Name>
-							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.ElevationControl.axisRef.PlcToNc</Name>
-							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.AzimuthControl.axisRef.PlcToNc</Name>
-							<Type GUID="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" Namespace="MC">PLCTONC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.lamp_up</Name>
-							<Comment><![CDATA[ Outputs
-DOUT9 1.0]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.lamp_down</Name>
-							<Comment><![CDATA[DOUT10 1.1]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.lamp_right</Name>
-							<Comment><![CDATA[DOUT11 1.2]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.lamp_left</Name>
-							<Comment><![CDATA[DOUT12 1.3]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.lamp_error</Name>
-							<Comment><![CDATA[DOUT13 1.4]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.Run</Name>
-							<Comment><![CDATA[ Run/Stop Safety]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.Restart</Name>
-							<Comment><![CDATA[ Restart Safety]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.ErrAck</Name>
-							<Comment><![CDATA[ Error Acknowledgement ]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.Reset_STO_Azimuth</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.Reset_STO_Elevation</Name>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.Reset_STO_Derotator</Name>
-							<Type>BOOL</Type>
-						</Var>
-					</Vars>
-					<Vars VarGrpType="1">
-						<Name>PlcTask Inputs</Name>
-						<Var>
-							<Name>MAIN.CoverControl.IabCoverOpen</Name>
-							<Comment><![CDATA[ limit coper 1 open switch]]></Comment>
-							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.CoverControl.IabCoverClosed</Name>
-							<Comment><![CDATA[ limit coper 1 closed switch]]></Comment>
-							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.IbOilLow</Name>
-							<Comment><![CDATA[ 2.1]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.IbOilHigh</Name>
-							<Comment><![CDATA[ ?]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.IbOilPressureOK</Name>
-							<Comment><![CDATA[ 2.3]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.IbOilHot</Name>
-							<Comment><![CDATA[ 2.4]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.IbOilCold</Name>
-							<Comment><![CDATA[ 2.5]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.IbOilFilterDirty</Name>
-							<Comment><![CDATA[ 2.6]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.IbPumpRunning</Name>
-							<Comment><![CDATA[ 2.7]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.IbSuctionRunning</Name>
-							<Comment><![CDATA[ 2.8]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.InOilLevel</Name>
-							<Comment><![CDATA[BT2]]></Comment>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.IbOilpanMaximum</Name>
-							<Comment><![CDATA[DIN39 4.6]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.HydraulicsControl.IbOilReserve</Name>
-							<Comment><![CDATA[DIN40 4.7]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.FocusControl.IbLimitNear</Name>
-							<Comment><![CDATA[ DIN29 3.4]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.FocusControl.IbLimitFar</Name>
-							<Comment><![CDATA[ DIN30 3.5]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.FocusControl.refAxis.NcToPlc</Name>
-							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.DerotatorControl.InDigitalInputs</Name>
-							<Comment><![CDATA[ digitale inputs der Endlagen]]></Comment>
-							<Type>WORD</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.DerotatorControl.InDiagnostic</Name>
-							<Comment><![CDATA[ diagnostic number]]></Comment>
-							<Type>UDINT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.DerotatorControl.InTorque</Name>
-							<Comment><![CDATA[ derotator torque feedback]]></Comment>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.DerotatorControl.IbSTO</Name>
-							<Comment><![CDATA[ STO]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.DerotatorControl.axisRef.NcToPlc</Name>
-							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.ElevationControl.InDigitalInputs</Name>
-							<Comment><![CDATA[ digitale inputs der Endlagen]]></Comment>
-							<Type>WORD</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.ElevationControl.InDiagnostic</Name>
-							<Comment><![CDATA[ diagnostic number]]></Comment>
-							<Type>UDINT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.ElevationControl.InTorque</Name>
-							<Comment><![CDATA[ derotator torque feedback]]></Comment>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.ElevationControl.IbSTO</Name>
-							<Comment><![CDATA[ STO]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.ElevationControl.axisRef.NcToPlc</Name>
-							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.AzimuthControl.InDigitalInputs</Name>
-							<Comment><![CDATA[ digitale inputs der Endlagen]]></Comment>
-							<Type>WORD</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.AzimuthControl.InDiagnostic</Name>
-							<Comment><![CDATA[ diagnostic number]]></Comment>
-							<Type>UDINT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.AzimuthControl.InTorque</Name>
-							<Comment><![CDATA[ derotator torque feedback]]></Comment>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.AzimuthControl.IbSTO</Name>
-							<Comment><![CDATA[ STO]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.AzimuthControl.axisRef.NcToPlc</Name>
-							<Type GUID="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM2</Name>
-							<Comment><![CDATA[ BT9 mirror]]></Comment>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.TelescopeControl.TelescopeAuxiliary.tempSensorM1</Name>
-							<Comment><![CDATA[ // BT10]]></Comment>
-							<Type>INT</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.BCD0</Name>
-							<Comment><![CDATA[DIN17 2.0]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.BCD2</Name>
-							<Comment><![CDATA[DIN18 2.1]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.BCD4</Name>
-							<Comment><![CDATA[DIN19 2.2]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.BCD8</Name>
-							<Comment><![CDATA[DIN20 2.3]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.reset_switch</Name>
-							<Comment><![CDATA[DIN21 2.4]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.direction_up</Name>
-							<Comment><![CDATA[DIN22 2.5]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.direction_down</Name>
-							<Comment><![CDATA[DIN23 2.6]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.key_switch</Name>
-							<Comment><![CDATA[DIN24 2.7]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.start_switch</Name>
-							<Comment><![CDATA[DIN25 3.0 (enable)]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.direction_left</Name>
-							<Comment><![CDATA[DIN26 3.1]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.PendantControl.direction_right</Name>
-							<Comment><![CDATA[DIN27 3.2]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.Error</Name>
-							<Comment><![CDATA[ Safety Error Condition]]></Comment>
-							<Type>BOOL</Type>
-						</Var>
-						<Var>
-							<Name>MAIN.State</Name>
-							<Comment><![CDATA[ Stop signal coming from Safety
- Stop		AT%I*:	BOOL;
- state variable]]></Comment>
-							<Type>USINT</Type>
-						</Var>
-					</Vars>
+					<UnrestoredVarLinks ImportTime="2025-08-30T11:49:51">
+						<OwnerA Name="InputDst" Prefix="TIPC^HalfBROT^HalfBROT Instance" Type="1">
+							<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 10 (EL1008)">
+								<Link VarA="MAIN.HydraulicsControl.IbOilCold" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 5^MAIN.HydraulicsControl.in_oil_undertemperature" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.HydraulicsControl.IbOilFilterDirty" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 6^MAIN.HydraulicsControl.in_oilfilter_dirty" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.HydraulicsControl.IbOilHigh" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 2^MAIN.HydraulicsControl.in_oil_high" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.HydraulicsControl.IbOilHot" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 4^MAIN.HydraulicsControl.in_oil_overtemperature" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.HydraulicsControl.IbOilLow" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 1^MAIN.HydraulicsControl.in_oil_low" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.HydraulicsControl.IbOilPressureOK" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 3^MAIN.HydraulicsControl.in_oil_pressure_OK" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.HydraulicsControl.IbOilReserve" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 8^MAIN.HydraulicsControl.in_oil_reserve" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.HydraulicsControl.IbOilpanMaximum" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 7^MAIN.HydraulicsControl.in_oilpan_maximum" Size="1" RestoreInfo="ANotFound"/>
+							</OwnerB>
+							<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 9 (EL1008)">
+								<Link VarA="MAIN.FocusControl.IbLimitFar" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 5^MAIN.FocusControl.focus_limit_far" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.FocusControl.IbLimitNear" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 4^MAIN.FocusControl.focus_limit_near" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.HydraulicsControl.IbPumpRunning" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 1^MAIN.HydraulicsControl.in_pump_running" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.HydraulicsControl.IbSuctionRunning" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 2^MAIN.HydraulicsControl.in_suction_running" Size="1" RestoreInfo="ANotFound"/>
+							</OwnerB>
+							<OwnerB Name="TINC^NC-Task 1 SAF^Axes^Focus">
+								<Link VarA="MAIN.FocusControl.refAxis.NcToPlc" TypeA="MC.NCTOPLC_AXIS_REF" InOutA="0" GuidA="{25521FAA-EA5F-4C7F-8864-BBCCDACD2E98}" VarB="Outputs^ToPlc" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
+						<OwnerA Name="OutputSrc" Prefix="TIPC^HalfBROT^HalfBROT Instance" Type="2">
+							<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 5 (EL6910)">
+								<Link VarA="MAIN.ErrAck" TypeA="BOOL" InOutA="1" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="StandardOutputs^Standard In Var 1" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.Restart" TypeA="BOOL" InOutA="1" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="StandardOutputs^Standard In Var 3" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.Run" TypeA="BOOL" InOutA="1" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="StandardOutputs^Standard In Var 2" Size="1" RestoreInfo="ANotFound"/>
+							</OwnerB>
+							<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 8 (EL2008)">
+								<Link VarA="MAIN.HydraulicsControl.ObOilPumpEnable" TypeA="BOOL" InOutA="1" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 1^MAIN.HydraulicsControl.out_oil_pump_enable" Size="1" RestoreInfo="ANotFound"/>
+								<Link VarA="MAIN.HydraulicsControl.ObOilSuctionEnable" TypeA="BOOL" InOutA="1" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 3^MAIN.HydraulicsControl.out_oil_suction_enable" Size="1" RestoreInfo="ANotFound"/>
+							</OwnerB>
+							<OwnerB Name="TINC^NC-Task 1 SAF^Axes^Focus">
+								<Link VarA="MAIN.FocusControl.refAxis.PlcToNc" TypeA="MC.PLCTONC_AXIS_REF" InOutA="1" GuidA="{96B75FEB-2D84-43BE-A3EC-D9A681F27D52}" VarB="Inputs^FromPlc" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
+					</UnrestoredVarLinks>
 					<Contexts>
 						<Context>
 							<Id>0</Id>
@@ -3383,9 +3070,6 @@ DOUT9 1.0]]></Comment>
 				</AddressInfo>
 				<Image Id="1" AddrType="9" ImageType="3">
 					<Name>Image</Name>
-				</Image>
-				<Image Id="6" AddrType="10" ImageType="3">
-					<Name>Image-2</Name>
 				</Image>
 				<Box Id="1" BoxType="9099">
 					<Name>Term 1 (EK1200)</Name>
@@ -4922,12 +4606,12 @@ DOUT9 1.0]]></Comment>
 									<Type>UINT</Type>
 								</Entry>
 							</Pdo>
-							<CoeProfile ProfileNo="33493897" DisplayName="Ch 1 - DC motor interface"/>
-							<CoeProfile ProfileNo="33493897" DisplayName="Ch 2 - DC motor interface"/>
-							<CoeProfile ProfileNo="48042889" DisplayName="Ch 1 - DC motor interface"/>
-							<CoeProfile ProfileNo="48042889" DisplayName="Ch 2 - DC motor interface"/>
-							<CoeProfile ProfileNo="46142345" DisplayName="Ch 1 - Positioning interface"/>
-							<CoeProfile ProfileNo="46142345" DisplayName="Ch 2 - Positioning interface"/>
+							<CoeProfile ProfileNo="33493897" DisplayName="Ch 1 - DC motor inte"/>
+							<CoeProfile ProfileNo="33493897" DisplayName="Ch 2 - DC motor inte"/>
+							<CoeProfile ProfileNo="48042889" DisplayName="Ch 1 - DC motor inte"/>
+							<CoeProfile ProfileNo="48042889" DisplayName="Ch 2 - DC motor inte"/>
+							<CoeProfile ProfileNo="46142345" DisplayName="Ch 1 - Positioning i"/>
+							<CoeProfile ProfileNo="46142345" DisplayName="Ch 2 - Positioning i"/>
 						</EtherCAT>
 					</Box>
 					<Box Id="13" BoxType="9099" BoxFlags="#x00000020">
@@ -5297,9 +4981,9 @@ Bit1: Value smaller than Limit2]]></Comment>
 									<Type GUID="{18071995-0000-0000-0000-00200000008E}">ARRAY [0..141] OF BIT</Type>
 								</Entry>
 							</Pdo>
-							<CoeProfile ProfileNo="22352777" DisplayName="Power Measuring Extended"/>
-							<CoeProfile ProfileNo="22352777" DisplayName="Power Measuring Extended"/>
-							<CoeProfile ProfileNo="22352777" DisplayName="Power Measuring Extended"/>
+							<CoeProfile ProfileNo="22352777" DisplayName="Power Measuring Exte"/>
+							<CoeProfile ProfileNo="22352777" DisplayName="Power Measuring Exte"/>
+							<CoeProfile ProfileNo="22352777" DisplayName="Power Measuring Exte"/>
 						</EtherCAT>
 					</Box>
 					<Box Id="15" BoxType="9099">
@@ -6872,13 +6556,11 @@ Bit1: Value smaller than Limit2]]></Comment>
 		</Io>
 	</Project>
 	<Mappings>
-		<MappingInfo Identifier="{00000000-2001-0850-0020-500861000403}" Id="#x02030060"/>
 		<MappingInfo Identifier="{00000000-0010-0304-5000-040310000403}" Id="#x02030010"/>
 		<MappingInfo Identifier="{00000000-0030-0304-5000-040330000403}" Id="#x02030020"/>
 		<MappingInfo Identifier="{00000000-0040-0304-5000-040341000403}" Id="#x02030030"/>
-		<MappingInfo Identifier="{05000010-2001-0850-5000-040300205008}" Id="#x02030070" Watchdog="14000000040000000400000004000000"/>
-		<MappingInfo Identifier="{03040060-0030-0304-6000-040330000403}" Id="#x02030040" Watchdog="04000000140000000400000004000000"/>
-		<MappingInfo Identifier="{03040060-0060-0304-6000-040360000403}" Id="#x02030050" Watchdog="04000000040000000400000004000000"/>
+		<MappingInfo Identifier="{03040010-0010-0304-1000-040310000403}" Id="#x02030050" Watchdog="04000000040000000400000004000000"/>
+		<MappingInfo Identifier="{03040030-0010-0304-3000-040310000403}" Id="#x02030040" Watchdog="04000000040000000400000004000000"/>
 		<OwnerA Name="TIID^Device 1 (EtherCAT)">
 			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 6 (EL1904)">
 				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionInputs^Message_7 TxPDO" VarB="Module 1 (FSOES)^RxPDO^FSOE"/>
@@ -6892,13 +6574,15 @@ Bit1: Value smaller than Limit2]]></Comment>
 				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionInputs^Message_5 TxPDO" VarB="Module 1 (Safety Process Data, 1 axis)^Outputs (Controlword)^FSOE"/>
 				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionOutputs^Message_5 RxPDO" VarB="Module 1 (Safety Process Data, 1 axis)^Inputs (Statusword)^FSOE"/>
 			</OwnerB>
-			<OwnerB Name="TIID^Device 2 (EtherCAT)^Drive 28 (AX5125-0000-0214)^Term 29 (AX5805)">
-				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionInputs^Message_6 TxPDO" VarB="Module 1 (Safety Process Data, 1 axis)^Outputs (Controlword)^FSOE"/>
-				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionOutputs^Message_6 RxPDO" VarB="Module 1 (Safety Process Data, 1 axis)^Inputs (Statusword)^FSOE"/>
-			</OwnerB>
 			<OwnerB Name="TIID^Device 2 (EtherCAT)^Drive 30 (AX5206-0000-0214)^Term 31 (AX5805)">
-				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionInputs^Message_17 TxPDO" VarB="Module 1 (Safety Process Data, 2 axis)^Outputs (Controlword)^FSOE"/>
 				<Link VarA="Term 1 (EK1200)^Term 5 (EL6910)^ConnectionOutputs^Message_17 RxPDO" VarB="Module 1 (Safety Process Data, 2 axis)^Inputs (Statusword)^FSOE"/>
+			</OwnerB>
+		</OwnerA>
+		<OwnerA Name="TIID^Device 2 (EtherCAT)">
+			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 5 (EL6910)">
+				<Link VarA="Drive 28 (AX5125-0000-0214)^Term 29 (AX5805)^Module 1 (Safety Process Data, 1 axis)^Inputs (Statusword)^FSOE" VarB="ConnectionOutputs^Message_6 RxPDO"/>
+				<Link VarA="Drive 28 (AX5125-0000-0214)^Term 29 (AX5805)^Module 1 (Safety Process Data, 1 axis)^Outputs (Controlword)^FSOE" VarB="ConnectionInputs^Message_6 TxPDO"/>
+				<Link VarA="Drive 30 (AX5206-0000-0214)^Term 31 (AX5805)^Module 1 (Safety Process Data, 2 axis)^Outputs (Controlword)^FSOE" VarB="ConnectionInputs^Message_17 TxPDO"/>
 			</OwnerB>
 		</OwnerA>
 		<OwnerA Name="TINC^NC-Task 1 SAF^Axes^Axis 2">
@@ -7049,37 +6733,6 @@ Bit1: Value smaller than Limit2]]></Comment>
 				<Link VarA="Drive^Outputs^Out^nCtrl1" VarB="DCM Control Channel 1^Control^Reset" Size="1" OffsA="1"/>
 				<Link VarA="Drive^Outputs^Out^nCtrl1" VarB="DCM Control Channel 1^Control^Threshold active" Size="1" OffsA="3"/>
 				<Link VarA="Drive^Outputs^Out^nDataOut2[0]" VarB="DCM Velocity Channel 1^Velocity"/>
-			</OwnerB>
-		</OwnerA>
-		<OwnerA Name="TIPC^HalfBROT^HalfBROT Instance">
-			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 10 (EL1008)">
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.IbOilCold" VarB="Channel 5^MAIN.HydraulicsControl.in_oil_undertemperature"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.IbOilFilterDirty" VarB="Channel 6^MAIN.HydraulicsControl.in_oilfilter_dirty"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.IbOilHigh" VarB="Channel 2^MAIN.HydraulicsControl.in_oil_high"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.IbOilHot" VarB="Channel 4^MAIN.HydraulicsControl.in_oil_overtemperature"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.IbOilLow" VarB="Channel 1^MAIN.HydraulicsControl.in_oil_low"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.IbOilPressureOK" VarB="Channel 3^MAIN.HydraulicsControl.in_oil_pressure_OK"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.IbOilReserve" VarB="Channel 8^MAIN.HydraulicsControl.in_oil_reserve"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.IbOilpanMaximum" VarB="Channel 7^MAIN.HydraulicsControl.in_oilpan_maximum"/>
-			</OwnerB>
-			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 5 (EL6910)">
-				<Link VarA="PlcTask Outputs^MAIN.ErrAck" VarB="StandardOutputs^Standard In Var 1"/>
-				<Link VarA="PlcTask Outputs^MAIN.Restart" VarB="StandardOutputs^Standard In Var 3"/>
-				<Link VarA="PlcTask Outputs^MAIN.Run" VarB="StandardOutputs^Standard In Var 2"/>
-			</OwnerB>
-			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 8 (EL2008)">
-				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.ObOilPumpEnable" VarB="Channel 1^MAIN.HydraulicsControl.out_oil_pump_enable"/>
-				<Link VarA="PlcTask Outputs^MAIN.HydraulicsControl.ObOilSuctionEnable" VarB="Channel 3^MAIN.HydraulicsControl.out_oil_suction_enable"/>
-			</OwnerB>
-			<OwnerB Name="TIID^Device 1 (EtherCAT)^Term 1 (EK1200)^Term 9 (EL1008)">
-				<Link VarA="PlcTask Inputs^MAIN.FocusControl.IbLimitFar" VarB="Channel 5^MAIN.FocusControl.focus_limit_far"/>
-				<Link VarA="PlcTask Inputs^MAIN.FocusControl.IbLimitNear" VarB="Channel 4^MAIN.FocusControl.focus_limit_near"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.IbPumpRunning" VarB="Channel 1^MAIN.HydraulicsControl.in_pump_running"/>
-				<Link VarA="PlcTask Inputs^MAIN.HydraulicsControl.IbSuctionRunning" VarB="Channel 2^MAIN.HydraulicsControl.in_suction_running"/>
-			</OwnerB>
-			<OwnerB Name="TINC^NC-Task 1 SAF^Axes^Focus">
-				<Link VarA="PlcTask Inputs^MAIN.FocusControl.refAxis.NcToPlc" VarB="Outputs^ToPlc"/>
-				<Link VarA="PlcTask Outputs^MAIN.FocusControl.refAxis.PlcToNc" VarB="Inputs^FromPlc"/>
 			</OwnerB>
 		</OwnerA>
 	</Mappings>

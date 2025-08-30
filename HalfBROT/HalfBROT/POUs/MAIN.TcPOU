@@ -1,121 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <POU Name="MAIN" Id="{bc9c3e96-a690-4690-b444-ea9323d20ce0}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
-	comm				: FB_Comm_MQTT_Influx;
-	CoverControl		: FB_CoverControl(comm := comm);
-	HydraulicsControl	: FB_HydraulicsControl(comm := comm);
-	FocusControl		: FB_FocusControl(comm := comm);
-	DerotatorControl	: FB_DerotatorControl(comm := comm);
-	ElevationControl	: FB_ElevationControl(comm := comm);
-	AzimuthControl		: FB_AzimuthControl(comm := comm);
-	TelescopeControl	: FB_TelescopeControl(comm := comm);
-	PendantControl		: FB_PendantControl(comm := comm);
-	
-	// Safety Error Condition
-	Error		AT%I*:	BOOL;
-	// Run/Stop Safety
-	Run			AT%Q*:	BOOL;
-	// Restart Safety
-	Restart		AT%Q*:	BOOL;
-	// Error Acknowledgement 
-	ErrAck		AT%Q*:	BOOL;
-	// Stop signal coming from Safety
-	// Stop		AT%I*:	BOOL;
-	// state variable
-	State		AT%I*:	USINT;
-	
-	Reset_STO_Azimuth		AT%Q*: BOOL;
-	Reset_STO_Elevation		AT%Q*: BOOL;
-	Reset_STO_Derotator		AT%Q*: BOOL;
-END_VAR
-VAR CONSTANT
-	telescopeConfig		: ST_TelescopeConfig := (longitude := -104.0217, latitude := 30.6714, altitude := 2000.0);
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[Run := TRUE;
-
-TelescopeControl(
-	fbElevation 		:= ElevationControl, 
-	fbAzimuth 			:= AzimuthControl, 
-	fbDerotator 		:= DerotatorControl,
-	fbFocus				:= FocusControl
-);
-CoverControl();
-HydraulicsControl(
-	fMinPanPercent		:= 26.0, 
-	fMaxPanPercent		:= 56.0
-);
-FocusControl(
-	eTelescopeMode 		:= E_TelescopeMode.automatic
-);
-DerotatorControl();
-ElevationControl(
-	fbCovers 			:= CoverControl, 
-	fbBrake 			:= HydraulicsControl
-);
-AzimuthControl(
-	bBrakeOpen			:= HydraulicsControl.bBrakeOpen
-);
-TelescopeControl(
-	telescopeConfig 	:= telescopeConfig,
-	fbCovers 			:= CoverControl, 
-	fbBrake 			:= HydraulicsControl, 
-	fbHydraulics 		:= HydraulicsControl,
-	fbFocus				:= FocusControl
-);
-PendantControl(
-	fbCovers 			:= CoverControl, 
-	fbBrake 			:= HydraulicsControl, 
-	fbHydraulics 		:= HydraulicsControl, 
-	fbFocus 			:= FocusControl, 
-	fbElevation 		:= ElevationControl, 
-	fbAzimuth 			:= AzimuthControl, 
-	fbDerotator 		:= DerotatorControl, 
-	fbTelescope 		:= TelescopeControl
-);
-
-comm(	
-	sHostName			:= '169.254.146.10',
-    nHostPort  			:= 1883,
-    nKeepAlive  		:= 60,
-	sTopicSub  		 	:= 'MONETN/Telescope/SET',
-	sTopicPublish		:= 'MONETN/Telemetry',
-	sTopicLog			:= 'MONETN/Log',
-);
-]]></ST>
+      <ST><![CDATA[]]></ST>
     </Implementation>
     <LineIds Name="MAIN">
-      <LineId Id="29" Count="0" />
-      <LineId Id="50" Count="0" />
-      <LineId Id="30" Count="0" />
-      <LineId Id="60" Count="3" />
-      <LineId Id="59" Count="0" />
-      <LineId Id="15" Count="1" />
-      <LineId Id="64" Count="0" />
-      <LineId Id="66" Count="0" />
-      <LineId Id="65" Count="0" />
-      <LineId Id="35" Count="0" />
-      <LineId Id="37" Count="0" />
-      <LineId Id="33" Count="0" />
-      <LineId Id="45" Count="1" />
-      <LineId Id="68" Count="1" />
-      <LineId Id="67" Count="0" />
-      <LineId Id="47" Count="0" />
-      <LineId Id="52" Count="0" />
-      <LineId Id="51" Count="0" />
-      <LineId Id="53" Count="0" />
-      <LineId Id="79" Count="0" />
-      <LineId Id="56" Count="2" />
-      <LineId Id="55" Count="0" />
-      <LineId Id="54" Count="0" />
-      <LineId Id="49" Count="0" />
-      <LineId Id="71" Count="7" />
-      <LineId Id="70" Count="0" />
-      <LineId Id="28" Count="0" />
-      <LineId Id="38" Count="6" />
-      <LineId Id="24" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

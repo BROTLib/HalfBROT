@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.8">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <POU Name="FB_PendantControl" Id="{e2b10f6c-d16d-4403-9ebe-8d8a369c8dbd}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_PendantControl
 VAR_INPUT
@@ -10,10 +10,10 @@ VAR_INPUT
 	fbElevation			: REFERENCE TO FB_ElevationControl;
 	fbAzimuth	 		: REFERENCE TO FB_AzimuthControl;
 	fbDerotator			: REFERENCE TO FB_DerotatorControl;
-	fbTelescope			: REFERENCE TO FB_TelescopeControl;	
+	fbTelescope			: REFERENCE TO FB_AltAzTelescopeControl;	
 END_VAR
 VAR
-	comm				: I_Comm;
+	fbComm				: I_Comm;
 
 	// program selection of the pendant control
 	Selection:	UINT;
@@ -228,8 +228,8 @@ CASE Selection OF
 			fbElevation.MoveNeg := direction_down AND fbElevation.inDigitalInputs.1;
 			fbAzimuth.MoveNeg := direction_left AND fbAzimuth.inDigitalInputs.0;
 			fbAzimuth.MovePos := direction_right AND fbAzimuth.inDigitalInputs.1;
-			fbTelescope.fRightAscension := fbTelescope.rightascension_calc;
-			fbTelescope.fDeclination := fbTelescope.declination_calc;
+			fbTelescope.fRightAscension := fbTelescope.fRightAscensionCalc;
+			fbTelescope.fDeclination := fbTelescope.fDeclinationCalc;
 		ELSE
 			lamp_up := fbElevation.bEnable;
 			lamp_down := fbElevation.bEnable;
@@ -294,7 +294,7 @@ VAR_INPUT
 	comm			: I_Comm;   
 END_VAR]]></Declaration>
       <Implementation>
-        <ST><![CDATA[THIS^.comm 	:= comm;]]></ST>
+        <ST><![CDATA[THIS^.fbComm 	:= comm;]]></ST>
       </Implementation>
     </Method>
     <LineIds Name="FB_PendantControl">
