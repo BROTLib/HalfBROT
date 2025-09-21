@@ -8,6 +8,9 @@ VAR_INPUT
 	eTelescopeMode		: E_TelescopeMode;
 	fHomingPosition		: LREAL := 92.02; // 104.02 - 12.00 	// reference position for homing
 	fTolerance			: LREAL := 0.005;
+	
+	// telemetry interval
+	fTelemetryInterval		: TIME := T#5S;	
 END_VAR
 VAR_OUTPUT
 	bFocusUnlocked		: BOOL;
@@ -18,7 +21,7 @@ VAR
 	tonFocusDelay		: TON;
 	tonBrakeDelay		: TON;
 	bManualUnlock		: BOOL;		// manual override to unlock the focus
-	tonMqttTimer 		: TON := (PT:=T#5S);
+	tonComm 			: TON := (PT:=fTelemetryInterval);
 	//getlastposition:	BOOL := TRUE;
 	fbAxisEvent			: FB_EventLog;
 	fbCalibrationEvent	: FB_EventLog;
@@ -143,9 +146,55 @@ END_IF
 bCalibrated := fbAxis.calibrated;
 bReady := fbAxis.Ready AND fbAxis.StandStill OR NOT ObFocusUnlock;
 
-SendTelemetry();
+// send telemetry
+tonComm(IN:=TRUE);
+IF tonComm.Q THEN // publish new payload every 5 seconds
+	tonComm(IN:=FALSE);
+	THIS^._SendTelemetry();	
+END_IF
+
 HandleEvents();]]></ST>
     </Implementation>
+    <Method Name="_SendTelemetry" Id="{9492de4d-6d2e-401c-bc97-10786d283636}">
+      <Declaration><![CDATA[METHOD PRIVATE _SendTelemetry : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// > FOCUS
+// POWER_STATE
+// for now we always return that it's powered on
+//IF THIS^.Enable THEN
+fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.POWER_STATE', '1.0');
+//ELSE
+//	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.POWER_STATE', '0.0');
+//END_IF
+//REFERENCED
+IF THIS^.Calibrated THEN
+	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.REFERENCED', '1.0');
+ELSE
+	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.REFERENCED', '0.0');
+END_IF
+//ERROR_STATE
+IF THIS^.Error THEN
+	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.ERROR_STATE', UDINT_TO_STRING(THIS^.ErrorID));
+ELSE
+	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.ERROR_STATE', '0');
+END_IF
+//MOTION_STATE
+IF THIS^.Busy THEN
+	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.MOTION_STATE', '1');
+ELSE
+	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.MOTION_STATE', '0');
+END_IF
+fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.CURRPOS', LREAL_TO_STRING(THIS^.ActualPosition));
+fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.REALPOS', LREAL_TO_STRING(THIS^.ActualPosition));
+fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.TARGETPOS', LREAL_TO_STRING(THIS^.Position));
+fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.TARGETDISTANCE', LREAL_TO_STRING(ABS(THIS^.ActualPosition-THIS^.Position)));
+fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.CURRSPEED', LREAL_TO_STRING(THIS^.Velocity));
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="HandleEvents" Id="{375f50c9-e6ea-4fcd-9fab-a26147b70ce8}">
       <Declaration><![CDATA[METHOD PRIVATE HandleEvents : BOOL
 VAR_INPUT
@@ -191,25 +240,16 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
-    <Method Name="SendTelemetry" Id="{9492de4d-6d2e-401c-bc97-10786d283636}">
-      <Declaration><![CDATA[METHOD PRIVATE SendTelemetry : BOOL
-VAR_INPUT
-END_VAR
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[tonMqttTimer(IN:=TRUE);
-IF tonMqttTimer.Q THEN // publish new payload every second
-	tonMqttTimer(IN:=FALSE);
-	fbComm.Publish('telescope', 'dome', 'FocusPosition', LREAL_TO_FMTSTR(fActualPosition, 5, TRUE));
-	fbComm.Publish('telescope', 'dome', 'Focuscalibrated', BOOL_TO_STRING(bCalibrated));	
-	fbComm.Publish('telescope', 'dome', 'FocusReady', BOOL_TO_STRING(bReady));	
-END_IF
-]]></ST>
-      </Implementation>
-    </Method>
     <LineIds Name="FB_FocusControl">
-      <LineId Id="5725" Count="109" />
+      <LineId Id="5866" Count="108" />
+      <LineId Id="5981" Count="4" />
+      <LineId Id="5980" Count="0" />
+      <LineId Id="5975" Count="0" />
       <LineId Id="136" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl._SendTelemetry">
+      <LineId Id="13" Count="30" />
+      <LineId Id="6" Count="0" />
     </LineIds>
     <LineIds Name="FB_FocusControl.HandleEvents">
       <LineId Id="1" Count="14" />
@@ -219,9 +259,6 @@ END_IF
     </LineIds>
     <LineIds Name="FB_FocusControl.InPosLimit.Get">
       <LineId Id="1" Count="0" />
-    </LineIds>
-    <LineIds Name="FB_FocusControl.SendTelemetry">
-      <LineId Id="1" Count="7" />
     </LineIds>
   </POU>
 </TcPlcObject>
