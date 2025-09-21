@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4026.11">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <POU Name="FB_CoverControl" Id="{febe04fb-b0fe-4b52-a725-1c7655537933}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_CoverControl IMPLEMENTS I_MirrorCovers
 VAR_INPUT
@@ -14,7 +14,8 @@ VAR_OUTPUT
 	bWarning			: BOOL;		// warning state of the DC drives
 END_VAR
 VAR
-	fbComm				: I_Comm;	
+	fbComm				: I_Comm;
+	tonComm 			: TON := (PT:=T#5S);	
 
 	bReset				: BOOL;		// resets all drives after an error has occured
 	bOpen				: BOOL;		// open the cover in proper order
@@ -114,6 +115,13 @@ IF bError THEN
 	END_IF
 END_IF
 
+// send telemetry
+tonComm(IN:=TRUE);
+IF tonComm.Q THEN // publish new payload every second
+	tonComm(IN:=FALSE);
+	THIS^._SendTelemetry();	
+END_IF
+
 fbCoversErrorEvent(
 	Trigger 	:= bError, 
    	Level   	:= ADSLOG_MSGTYPE_ERROR, 
@@ -177,6 +185,22 @@ fbCoversClosedEvent(
 	comm 		:= fbComm);
 ]]></ST>
     </Implementation>
+    <Method Name="_SendTelemetry" Id="{0a8e627f-9fae-40e1-bd53-318ad436c233}">
+      <Declaration><![CDATA[METHOD _SendTelemetry : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF eCoverState = E_MirrorCoverState.closed THEN
+	fbComm.Publish('telescope', 'dome', 'AUXILIARY.COVER.REALPOS', '0.0');
+ELSIF eCoverState = E_MirrorCoverState.open THEN
+	fbComm.Publish('telescope', 'dome', 'AUXILIARY.COVER.REALPOS', '1.0');
+ELSE
+	fbComm.Publish('telescope', 'dome', 'AUXILIARY.COVER.REALPOS', '0.5');
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="Close" Id="{da11c9a0-3757-4491-b03d-01cf2bd99294}">
       <Declaration><![CDATA[METHOD Close : BOOL
 VAR_INPUT
@@ -255,8 +279,18 @@ END_VAR
       </Implementation>
     </Method>
     <LineIds Name="FB_CoverControl">
-      <LineId Id="6494" Count="129" />
+      <LineId Id="6494" Count="67" />
+      <LineId Id="6667" Count="0" />
+      <LineId Id="6669" Count="4" />
+      <LineId Id="6666" Count="0" />
+      <LineId Id="6562" Count="61" />
       <LineId Id="122" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_CoverControl._SendTelemetry">
+      <LineId Id="6" Count="1" />
+      <LineId Id="9" Count="3" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="FB_CoverControl.Close">
       <LineId Id="1" Count="1" />
