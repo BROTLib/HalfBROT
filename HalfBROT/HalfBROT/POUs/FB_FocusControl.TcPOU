@@ -10,7 +10,9 @@ VAR_INPUT
 	fTolerance			: LREAL := 0.005;
 	
 	// telemetry interval
-	fTelemetryInterval		: TIME := T#5S;	
+	fTelemetryInterval		: TIME := T#5S;
+	ptFocusDelay			: TIME := T#500MS;
+	ptBrakeDelay			: TIME := T#4S;	
 END_VAR
 VAR_OUTPUT
 	bFocusUnlocked		: BOOL;
@@ -54,9 +56,9 @@ fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
 ObFocusUnlock := (bManualUnlock OR bEnable) AND NOT bError;
 
 // wait until the focus is unlocked for n milliseconds
-tonFocusDelay(IN := ObFocusUnlock, PT := T#500MS, Q => bFocusUnlocked);
+tonFocusDelay(IN := ObFocusUnlock, PT := ptFocusDelay, Q => bFocusUnlocked);
 // wait for brake until we are at rest
-tonBrakeDelay(IN := NOT fbAxis.Busy AND fbAxis.StandStill, PT := T#4000MS);
+tonBrakeDelay(IN := NOT fbAxis.Busy AND fbAxis.StandStill, PT := ptBrakeDelay);
 
 // if we are on automatic mode then position the focus
 IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
