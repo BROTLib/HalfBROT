@@ -51,7 +51,7 @@ fbAxis(
 	Enable_Negative := TRUE,
 	Jog_Forward 	:= bMovePos,
 	Jog_Backwards 	:= bMoveNeg,
-	bCalibrationCam := inDigitalInputs.0,
+	//bCalibrationCam := inDigitalInputs.0,
 	isModuloAxis 	:= FALSE,
 	Tracking 		:= bTracking,
 	ActualPosition 	=> fActualPosition,
