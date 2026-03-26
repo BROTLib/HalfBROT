@@ -38,6 +38,10 @@ IF bHomeAxis THEN
 	fPosition := fCalibPosition;
 END_IF
 
+IF fbAxis.ActualPosition > fMaxPosition OR fbAxis.ActualPosition < fMinPosition THEN
+	bStopAxis := TRUE;
+END_IF
+
 fbAxis(
 	enable 			:= bEnable,
 	Reset 			:= bReset,
@@ -47,8 +51,8 @@ fbAxis(
 	HomingMode 		:= MC_ForceCalibration,
 	Position 		:= fPosition, 
 	Velocity 		:= fVelocity,
-	Enable_Positive := TRUE,
-	Enable_Negative := TRUE,
+	Enable_Positive := fbAxis.ActualPosition < fMaxPosition,
+	Enable_Negative := fbAxis.ActualPosition > fMinPosition,
 	Jog_Forward 	:= bMovePos,
 	Jog_Backwards 	:= bMoveNeg,
 	//bCalibrationCam := inDigitalInputs.0,
@@ -163,7 +167,11 @@ END_VAR
       </Get>
     </Property>
     <LineIds Name="FB_DerotatorControl">
-      <LineId Id="4057" Count="126" />
+      <LineId Id="4057" Count="25" />
+      <LineId Id="4193" Count="0" />
+      <LineId Id="4192" Count="0" />
+      <LineId Id="4194" Count="1" />
+      <LineId Id="4083" Count="100" />
       <LineId Id="127" Count="0" />
     </LineIds>
     <LineIds Name="FB_DerotatorControl.InNegLimit.Get">
