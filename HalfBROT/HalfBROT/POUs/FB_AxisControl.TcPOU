@@ -6,7 +6,6 @@ VAR_INPUT
 	bMoveAxis				: BOOL;		// Move azimuth to given position
 	bTracking				: BOOL;		// enable tracking
 	bStopAxis				: BOOL;		// stop the Axis
-	bSoEReset				: BOOL;		// diagnostic reset
 	fMinPosition			: REAL := 0;
 	fMaxPosition			: REAL := 450.0;
 	fCalibPosition			: LREAL := 45.0; // // current position of the calibration cam
@@ -15,16 +14,14 @@ VAR_OUTPUT
 END_VAR
 VAR
 	fSlewTime				: LREAL;	// time to reach target position
-	
+
 	InDigitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
 	InDiagnostic	  AT%I*	: UDINT;	// diagnostic number
 	InTorque	 	  AT%I*	: INT;		// derotator torque feedback
 	IbSTO		  	  AT%I*	: BOOL;		// STO
-	axisRef					: AXIS_REF;	
-	
+
 	fbAxisCalibration		: MC_SetPosition;
 
-	fbSoEReset			  :	FB_SoEReset;
 	axisEvent			: FB_EventLog;
 	diagnosticEvent		: FB_EventLog;
 	
