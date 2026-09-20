@@ -151,11 +151,12 @@ the input is not wired, `bOilHigh` is permanently TRUE and bit 1 of `statusWord`
   is a no-op and the lamp is never cleared, so it stays lit after leaving a selection with an error.
   MONETcommon's rewrite keeps the same `bError` and `ObLampError := ObLampError` lines (sampled).
 
-**M8. The next release would fail half way, because `main` is ahead of `develop`.**
+**M8. The next release would fail half way, because `main` is ahead of `develop`. Resolved 2026-09-20: `origin/main` was merged into `develop` (71dab61) and pushed.**
 *Verified (code).* `git rev-list --left-right --count origin/main...origin/develop` gives `2 0`.
 `release.yml` pushes the version bump to `develop`, then runs `git merge --ff-only develop` on `main`.
 `main` has 2 commits `develop` lacks, so the merge fails, the job stops with the bump on `develop`, `main`
-not updated and no tag. This is the same situation AstroBROT had (its M8). Merge `main` into `develop` first.
+not updated and no tag. This is the same situation AstroBROT had (its M8). Merging `main` into `develop` fixed the
+divergence (`rev-list` now gives `0 2`).
 Nothing stops it from recurring when `main` gets commits directly. I did not run the workflow.
 
 ### Low
@@ -277,13 +278,12 @@ Verified from the repo and `gh`:
 - Runner setup, TcBuild exit codes, and why numeric or runtime tests are an open question are covered in the
   CI section of `../AstroBROT/specs/plans/2026-09-20-code-review.md` and are not repeated.
 
-Recommendation: merge `main` into `develop` (M8), add the TcBuild job to `develop`, make the release job
+Recommendation: add the TcBuild job to `develop` (the merge for M8 brought the workflow file over), make the release job
 depend on a successful build, and fix S1 in the same change.
 
 ## Suggested order of work
 
-1. Small, certain fixes: H1 (diagnostic condition), H2 (`bReset := TRUE`), M8 (merge `main` into `develop`),
-   S1, L2 dead code.
+1. Small, certain fixes: H1 (diagnostic condition), H2 (`bReset := TRUE`), S1, L2 dead code (M8 is resolved).
 2. Decide the canonical copies (design point 1) before fixing H3, H4 or M7 anywhere, otherwise they get fixed
    in a block nobody runs. H4 also applies to the MONETcommon pendant that MONETN/MONETS do run.
 3. Test M2 on the telescope (power-cycle with a saved position, watch `Calibrated`), and check M1 and M4
