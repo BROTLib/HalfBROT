@@ -65,7 +65,8 @@ VAR
 	rsBrakeState		: RS;				// represents the state of the brake
 	tonBrakeOpenDelay	: TON;				// wait for the brake to open after pressure has been established
 	tonBrakeOpenedDelay	: TON;				// report brake opend after a short delay
-	
+	tonPressureLossDelay	: TON;				// debounce for loss of oil pressure, which closes the brake
+
 	srErrorState			: SR;				// error state (set dominant)
 	srSuctionTrigger		: SR;				// trigger for suction pump
 	tonHydraulicsOffTimer	: TON  := (PT := T#300S);	// timer to shut off hydraulics after break was closed
@@ -97,7 +98,7 @@ Main control Logic for the Hydraulics system
 * start suction pump if maximum in pan is reached
 * suction pump runs for 60 seconds
 * stop main pump if oil is low
-* stop main pump if pressure fails for 10 seconds
+* stop main pump if pressure fails for 30 seconds
 *)
 
 // get values from sensors
@@ -137,13 +138,19 @@ rsOilPumpState(
 // switch oil pump
 ObOilPumpEnable := rsOilPumpState.Q1;
 
-(* This section controls the hydraulic brake responsible for azimuth and elevation. 
-Especially the elevation is imbalanced if not in the position control loop. 
-The brake must only be opened, if the elevation drive is activated concurrently.
+(* This section controls the hydraulic brake responsible for azimuth and elevation.
+The brake needs oil pressure to stay open. There is no brake feedback input, so the
+brake state is inferred from the output, the pump and the oil pressure.
+The elevation is balanced, but the brake should only be opened, if the elevation drive is activated concurrently.
 *)
 
-// close the brake if the pump is not running	
-IF bCloseBrake OR NOT bPumpRunning THEN 
+// losing the oil pressure with the pump running closes the brake
+tonPressureLossDelay(
+	IN := bPumpRunning AND NOT bOilPressureOK,
+	PT := T#2S);
+
+// close the brake if the pump is not running or the pressure is lost
+IF bCloseBrake OR NOT bPumpRunning OR tonPressureLossDelay.Q THEN
 	bOpenBrake := FALSE;
 END_IF
 
@@ -154,7 +161,7 @@ tonBrakeOpenDelay(
 		
 rsBrakeState(
 	SET    := tonBrakeOpenDelay.Q AND bOpenBrake AND bBrakeClearing,
-	RESET1 := bAzimutLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR NOT bBrakeClearing,
+	RESET1 := bAzimutLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR tonPressureLossDelay.Q OR NOT bBrakeClearing,
 	Q1     => ObBrakeAzEl);
 
 // signal that the brake is open after one second
