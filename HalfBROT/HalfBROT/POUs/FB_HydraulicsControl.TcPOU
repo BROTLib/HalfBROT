@@ -96,7 +96,7 @@ Main control Logic for the Hydraulics system
 * power on delay for main pump and suction pump
 * start main pump if main control is ready (button pressed or remote)
 * start suction pump if maximum in pan is reached
-* suction pump runs for 60 seconds
+* suction pump runs until the oil level is below fMinPanPercent
 * stop main pump if oil is low
 * stop main pump if pressure fails for 30 seconds
 *)
@@ -198,6 +198,8 @@ tonPressureWatchdog(
 	IN := ObOilPumpEnable AND	NOT bOilPressureOK,
 	PT := T#30S,
 	Q  => bPressureFailure);
+// inherited unchanged from the STELLA1 control, purpose not documented (see #10): error if the main pump
+// runs for 140 s without the suction pump running
 tonHydraulicsWatchdog(
 	IN := bPumpRunning AND NOT bSuctionRunning,
 	PT := T#140S,
