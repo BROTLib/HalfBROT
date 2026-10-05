@@ -1,6 +1,6 @@
 # Code review of HalfBROT (develop @ 0566865)
 
-**Status: draft. Review finished, no fixes applied. Nothing here has been run on a PLC or a telescope.**
+**Status: draft. Review finished; the body below describes `develop` at the review commit. Since then the `FB_CoverControl` reset (#3, `91a0694`) was fixed on `develop`, and generated build outputs and the stale TwinSAFE `bak/` stopped being tracked (`d29b2b6`, partly addressing #25 and #26). Nothing here has been run on a PLC or a telescope. Open items: GitHub issues.**
 
 Reviewed at `develop` 0566865. `origin/main` is 2 commits ahead (a TcBuild test workflow and its runner
 labels). They matter only for the CI and release sections.

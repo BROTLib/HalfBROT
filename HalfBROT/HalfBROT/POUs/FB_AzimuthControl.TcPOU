@@ -59,7 +59,7 @@ END_IF
 
 // enable the azimuth if not moved by the power chain. Sorry for the hack
 tonRestTimer(IN := bBrakeOpen AND (ABS(axisRef.NcToPlc.ActVelo) < 0.01), PT := T#2S);
-// if azimuth at rest or calibrated, allow enabling the azimuth
+// if azimuth at rest or calibrated, allow enabling the azimuth (the brake must still be open, see Enable below)
 IF tonRestTimer.Q or bCalibrated THEN
 	bAtRest := TRUE;
 ELSIF NOT bBrakeOpen THEN
@@ -72,7 +72,7 @@ MC_SetAcceptBlockedDriveSignal(
 	Enable 	:= bHomeAxis);
 
 fbAxis(	
-	Enable 			:= bEnable AND bAtRest,
+	Enable 			:= bEnable AND bAtRest AND bBrakeOpen,
 	Reset 			:= bReset,
 	MoveAxis 		:= bMoveAxis,
 	HomeAxis 		:= bHomeAxis,
