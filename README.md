@@ -140,3 +140,5 @@ The library is built with TwinCAT 3.1 Build 4024.66 in TwinCAT XAE (PLC task
 TwinCAT RT (x64/x86), TwinCAT CE7 (ARMV7) and TwinCAT OS (ARM/x64). Versioned
 with git tags `v0.2.0`, `v0.4.0`; the library release (`Released=false`) has
 not been performed yet.
+
+**CI.** `.github/workflows/tcbuild.yml` builds `HalfBROT.sln` with TcBuild on every push (self-hosted runner, never on pull requests). A green run means the project compiles; TcBuild exit code 1 (built with warnings) counts as success. It only compiles; no tests run in CI.
