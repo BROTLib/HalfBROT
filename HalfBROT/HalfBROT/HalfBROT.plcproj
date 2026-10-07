@@ -29,9 +29,6 @@
     <Compile Include="GlobalTextList.TcGTLO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PlcTask.TcTTO">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="POUs\FB_AxisControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
@@ -57,9 +54,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\FB_TelescopeAuxiliary.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="POUs\MAIN.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="VisualizationManager.TcVMO">
