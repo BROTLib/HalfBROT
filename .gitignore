@@ -278,3 +278,6 @@ _Libraries/
 *.tclrs
 *.tclrq
 VSSettings/
+
+# IntelliJ/PyCharm module files
+*.iml

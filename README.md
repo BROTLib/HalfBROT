@@ -10,10 +10,10 @@ pump/brake system, the manual hand pendant and auxiliary telemetry. The
 MONET-class telescopes (MONETN / MONETS via MONETcommon) are built on this
 layer, on top of the core BROTLib library.
 
-> **Status:** the library is under active development — `MAIN` is an empty
-> skeleton and the compiled module description contains no HalfBROT function
-> blocks yet (the `.tsproj` still records unrestored symbolic I/O links
-> leftover from the fuller application this library was extracted from).
+> **Status:** the library is under active development. It is a standalone PLC
+> project (`HalfBROT.tspproj`, no TwinCAT system part): no I/O, NC axes, tasks or
+> safety project. The `AT %I*` / `AT %Q*` variables in the blocks are mapped by the
+> consuming applications (MONETN, MONETS) in their own system projects.
 
 ---
 
@@ -23,18 +23,16 @@ layer, on top of the core BROTLib library.
 HalfBROT/
 ├── HalfBROT.sln                  # TwinCAT solution
 ├── HalfBROT/
-│   ├── HalfBROT.tsproj           # TwinCAT system project (I/O, NC, tasks, mappings)
+│   ├── HalfBROT.tspproj          # standalone PLC project (no system part)
 │   ├── HalfBROT/
-│   │   ├── HalfBROT.plcproj      # PLC library project (Company BROT, v0.4.0)
-│   │   ├── PlcTask.TcTTO         # PLC task (10 ms, priority 20, calls MAIN)
+│   │   ├── HalfBROT.plcproj      # PLC library project (Company BROT)
 │   │   ├── POUs/                 # Function blocks (see below)
+│   │   ├── GVLs/                 # Global_Version
 │   │   ├── VISUs/                # TwinCAT visualizations
 │   │   │   ├── Azimuth.TcVIS, Elevation.TcVIS, Derotator.TcVIS
 │   │   │   ├── Focus.TcVIS, Cover.TcVIS, Hydraulics.TcVIS
-│   │   │   └── Visualization Manager.TcVMO
+│   │   │   └── VisualizationManager.TcVMO
 │   │   └── GlobalTextList.TcGTLO # Global text list (visu texts, format strings)
-│   ├── MONETNTwinSAFE/           # TwinSAFE safety project (FSoE over EtherCAT)
-│   └── _Boot/                    # Boot project for TwinCAT RT
 └── README.md
 ```
 
@@ -95,31 +93,15 @@ implements the `I_Axis` interface. Common features:
 
 ---
 
-## Safety (TwinSAFE)
+## Removed system part (safety, NC axes, I/O)
 
-A TwinSAFE safety application (`TwinSafeGroup1` on the **EL6910** safety PLC,
-FSoE over EtherCAT) provides the safety chain:
-
-- **`FBEstop1`** (safeEstop) monitors the emergency-stop chain; its output
-  drives **Safe Torque Off (STO) on all three servo axes** (azimuth, elevation,
-  derotator) through the **AX5805** TwinSAFE option cards of the AX5000 drives.
-- **`FBEdm2`** (safeEdm) monitors the contactor/feedback contacts with
-  switch-on/off monitoring times.
-- Per-axis STO activation/reset and STO-state/error feedback are implemented
-  with safeAnd (`FBAnd1/2/3`) and safeDecouple (`FBDecouple1/2`) blocks and
-  exposed as alias devices (`Azimuth/Elevation/Derotator_STOState/_STOReset`,
-  `Restart`, `Run`, `ErrorAcknowledgement`, `Safety IN (EL1904)`, `Safety OUT
-  (EL2904)`).
-
-## NC axes and I/O
-
-The system project defines six NC axes: `Focus` (Id 1, EL7342 DCM channel 1 +
-EL5101 incremental encoder) and `Axis 2`…`Axis 6`. Three of the axes are driven
-by the AX5000 servo drives with AX5805 STO option cards (AX5125 ×2, AX5206 ×1);
-the exact axis→FB assignment beyond Focus is not recorded in the project
-files. The EtherCAT I/O (Device 1) includes the EL6910 safety PLC, EL1904 /
-EL2904 TwinSAFE terminals, EL2008 / EL1008 digital I/O and the EL9410 power
-supply.
+Until the commit tagged `pre-standalone-plc-project` this repository also held
+a TwinCAT system project (`HalfBROT.tsproj`: EtherCAT I/O, NC axes, the
+`PlcTask`, symbolic I/O mappings), a TwinSAFE project (`MONETNTwinSAFE`) and an
+empty `MAIN`. It was removed because a library cannot carry a machine
+configuration: the mappings of the `AT` variables, the NC axes and the safety
+project live in the application repositories (MONETN, MONETS). The old system
+part is still in git history under that tag.
 
 ## Dependencies
 
@@ -140,3 +122,5 @@ The library is built with TwinCAT 3.1 Build 4024.66 in TwinCAT XAE (PLC task
 TwinCAT RT (x64/x86), TwinCAT CE7 (ARMV7) and TwinCAT OS (ARM/x64). Versioned
 with git tags `v0.2.0`, `v0.4.0`; the library release (`Released=false`) has
 not been performed yet.
+
+**CI.** `.github/workflows/tcbuild.yml` builds `HalfBROT.sln` with TcBuild on every push (self-hosted runner, never on pull requests). A green run means the project compiles; TcBuild exit code 1 (built with warnings) counts as success. It only compiles; no tests run in CI.
