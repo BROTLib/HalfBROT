@@ -35,6 +35,9 @@ VAR
 	refAxis			: AXIS_REF;
 END_VAR
 VAR PERSISTENT
+	fLastPosition		: LREAL := -1.0;
+	// DEPRECATED (#49): the old misspelled name. Persistent data is restored by name, so it is kept for one release
+	// and copied to fLastPosition once (_MigrateLastPosition); remove it, and the method, in the next minor version.
 	fLastPposition		: LREAL := -1.0;
 END_VAR
 ]]></Declaration>
@@ -48,6 +51,8 @@ gear: Faulhaber ; MINIMOTOR SA ; swiss made ; 38/1S  43:1 ; 033896  503
 Focus is locked by default
 70,8W; 0,100A no load current; 2,0 Terminal resistance; 1,950A max Current 
 *)
+
+_MigrateLastPosition();
 
 // limit to sane positions
 fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
@@ -80,7 +85,7 @@ IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 		END_IF
 		// store actual position, if we are calibrated and locked
 		IF NOT ObFocusUnlock THEN
-			fLastPposition := fActualPosition;
+			fLastPosition := fActualPosition;
 		END_IF
 	ELSE // not calibrated
 		IF fbAxis.Ready THEN
@@ -90,9 +95,9 @@ IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 END_IF
 
 IF bHomeAxis THEN
-	IF fLastPposition > 0.0 THEN
+	IF fLastPosition > 0.0 THEN
 		eHomingMode := MC_ForceCalibration; // MC_Direct
-		fPosition := fLastPposition;
+		fPosition := fLastPosition;
 		fbSetPosition.Execute := TRUE;
 	ELSE
 		eHomingMode := MC_DefaultHoming;
@@ -105,7 +110,7 @@ END_IF
 
 // deactivate limit switches on homing
 MC_SetAcceptBlockedDriveSignal(Axis := refAxis, enable := bHomeAxis);
-fbSetPosition(Axis := refAxis, Position := fLastPposition);
+fbSetPosition(Axis := refAxis, Position := fLastPosition);
 		
 fbAxis(	
 	enable 			:= bFocusUnlocked,
@@ -130,7 +135,7 @@ END_IF
 IF fbAxis.HomeDone THEN
 	bHomeAxis := FALSE;
 	bEnable := FALSE;
-	fLastPposition := fPosition;
+	fLastPosition := fPosition;
 END_IF
 	
 IF fbAxis.ResetDone THEN
@@ -142,7 +147,7 @@ IF fbAxis.calibrated OR bError THEN
 END_IF
 
 IF bError THEN
-	fLastPposition := -1.0;
+	fLastPosition := -1.0;
 	//focusAxis.calibrated := FALSE;
 	bCalibrated := FALSE;
 END_IF
@@ -167,9 +172,24 @@ VAR
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[fReference := SEL(fLastPposition > 0.0, fHomingPosition, fLastPposition);
+        <ST><![CDATA[_MigrateLastPosition();	// HomeAxis may be set before the body has run once
+fReference := SEL(fLastPosition > 0.0, fHomingPosition, fLastPosition);
 fbAxis.Home(fReference := fReference);
 _StartHoming := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_MigrateLastPosition" Id="{f569a766-83bb-4e6b-b691-64e5241889be}">
+      <Declaration><![CDATA[// One-time copy of the stored focus position from the misspelled persistent variable fLastPposition (#49), so the
+// first homing after the update can still restore the position instead of a reference run. Remove in the next minor.
+METHOD PRIVATE _MigrateLastPosition : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF fLastPosition < 0.0 AND fLastPposition > 0.0 THEN
+	fLastPosition := fLastPposition;
+	fLastPposition := -1.0;
+	_MigrateLastPosition := TRUE;
+END_IF
 ]]></ST>
       </Implementation>
     </Method>
