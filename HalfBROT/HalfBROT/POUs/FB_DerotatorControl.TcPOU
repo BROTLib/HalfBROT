@@ -26,7 +26,7 @@ TcNc-Lib, siehe SPS-Funktion AxisSetAcceptBlockedDriveSignal in der TwinCAT  PLC
 fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
 
 IF bEnable AND NOT fbAxis.Calibrated THEN
-	bHomeAxis := TRUE;
+	THIS^.HomeAxis := TRUE;
 END_IF
 
 IF fbAxis.Calibrated THEN
@@ -39,15 +39,12 @@ IF bHomeAxis THEN
 END_IF
 
 IF fbAxis.ActualPosition > fMaxPosition OR fbAxis.ActualPosition < fMinPosition THEN
-	bStopAxis := TRUE;
+	THIS^.StopAxis := TRUE;
 END_IF
 
 fbAxis(
 	enable 			:= bEnable,
 	Reset 			:= bReset,
-	MoveAxis 		:= bMoveAxis,
-	HomeAxis 		:= bHomeAxis,
-	StopAxis 		:= bStopAxis,
 	HomingMode 		:= MC_ForceCalibration,
 	Position 		:= fPosition, 
 	Velocity 		:= fVelocity,
@@ -144,6 +141,16 @@ CalibrationEvent(
 	Comm			:= fbComm);
 	]]></ST>
     </Implementation>
+    <Method Name="_StartHoming" Id="{2319eae6-c8f8-4699-9437-36645660ec26}">
+      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_ForceCalibration: fCalibPosition becomes the current position.
+METHOD _StartHoming : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbAxis.Home(fReference := fCalibPosition);
+_StartHoming := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="InNegLimit" Id="{5e7f9e66-b876-444b-bc02-75ea47096cf0}">
       <Declaration><![CDATA[PROPERTY InNegLimit : BOOL]]></Declaration>
       <Get Name="Get" Id="{2b9866db-9dc6-47f0-beb6-6e3aa86d150c}">

@@ -68,9 +68,6 @@ MC_SetAcceptBlockedDriveSignal(
 fbAxis(
 	Enable 			:= bEnable AND fbBrake.BrakeOpen,
 	Reset 			:= bReset,
-	MoveAxis 		:= bMoveAxis,
-	HomeAxis 		:= bHomeAxis,
-	StopAxis 		:= bStopAxis,
 	Tracking 		:= bTracking,
 	Position 		:= fPosition, 
 	Velocity 		:= fVelocity,
@@ -195,6 +192,16 @@ calibrationEvent(
 	OnMessage 		:= 'Elevation is calibrated.', 
 	comm 			:= fbComm);]]></ST>
     </Implementation>
+    <Method Name="_StartHoming" Id="{aac1270b-136b-490c-ab35-c16095c8f240}">
+      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). Cam homing, the position at the cam.
+METHOD _StartHoming : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbAxis.Home(fReference := fCalibPosition);
+_StartHoming := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="InNegLimit" Id="{bca76ac6-a9e8-49f4-a2a1-8acedfe699e8}">
       <Declaration><![CDATA[PROPERTY InNegLimit : BOOL]]></Declaration>
       <Get Name="Get" Id="{fab57b52-8373-41c8-911b-d290096e30c0}">
