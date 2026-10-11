@@ -3,7 +3,7 @@
 HalfBROT is the **"BROTLib library for Halfmann telescopes"** — the hardware
 abstraction layer of the BROT project for
 [Halfmann](https://www.halfmann.com/) telescope mounts (TwinCAT 3, IEC 61131-3
-Structured Text, version 0.4.0). It provides the function blocks that control
+Structured Text). It provides the function blocks that control
 the mechanical subsystems of a Halfmann-mounted Alt-Az telescope: the azimuth,
 elevation and derotator axes, focus, the three mirror covers, the hydraulic
 pump/brake system, the manual hand pendant and auxiliary telemetry. The
@@ -14,6 +14,11 @@ layer, on top of the core BROTLib library.
 > project (`HalfBROT.tspproj`, no TwinCAT system part): no I/O, NC axes, tasks or
 > safety project. The `AT %I*` / `AT %Q*` variables in the blocks are mapped by the
 > consuming applications (MONETN, MONETS) in their own system projects.
+>
+> **Planned changes:** the blocks will stop using their inputs as internal state
+> (commands only through methods), the `AT` I/O moves out of the library into
+> structs, and each block gets an explicit state machine with TcUnit tests. See
+> [the plan](specs/plans/2026-10-11-commands-state-machines-io.md) (#31, #32).
 
 ---
 
@@ -69,18 +74,25 @@ implements the `I_Axis` interface. Common features:
   its hardware end position (`MC_ForceCalibration`); the focus homes to the
   stored last position or a fixed homing position. After an SoE reset the axis
   must fully re-home.
-- **Calibration restore** — `MC_SetPosition` re-applies the persistent last
-  position after a restart, so the mount resumes without re-homing.
+- **Calibration restore** — the azimuth applies the persistent last position
+  with `MC_SetPosition` after a restart (only if it is `>= 0.0`; `-1.0` means
+  "none stored"). Whether the axis then counts as calibrated, so that no
+  re-homing is needed, depends on the NC `Homed` flag and has not been tested
+  on hardware (#7).
 - **Diagnostics and slew-time prediction** — the drive diagnostic word is
   translated via `NCError_TO_STRING` into `FB_EventLog` messages; the remaining
   slew time is read cyclically with `MC_ReadParameter`.
 
 ### Covers, hydraulics and pendant
 
-- `FB_CoverControl` — three mirror covers, sequenced by limit switches:
-  opening order **1 → 3 → 2**, closing order **2 → 3 → 1** (interlocked, close
-  takes precedence); a cover is in error when both open and closed signals are
-  active.
+- `FB_CoverControl` — three mirror covers, sequenced by limit switches. Opening:
+  covers 1 and 3 start together, cover 2 starts once cover 3 has left its closed
+  position (plus a delay). Closing: cover 2 starts, cover 3 once cover 2 has left
+  its open position (plus a delay), cover 1 once cover 3 is closed. A close
+  command clears a pending open. A cover is in error when both its open and
+  closed signals are active. Known gaps: outputs of the inactive direction are
+  not cleared, so both directions can be commanded, and there is no timeout
+  (#4). MONETS/MONETN use MONETcommon's `FB_MonetCoverControl` instead.
 - `FB_HydraulicsControl` — oil pump + suction pump + the hydraulic brake for
   azimuth and elevation, with oil pressure/level/filter monitoring and four
   watchdog timers (suction 15 s, pressure 30 s, main pump 10 s, hydraulics
@@ -88,8 +100,10 @@ implements the `I_Axis` interface. Common features:
 - `FB_PendantControl` — BCD-selector manual hand pendant with 15 functions
   (covers, focus, derotator, elevation, azimuth, dome, filter wheel, torque
   display, manual telescope control, horn, hydraulics, ...). Selection 0 means
-  control disconnect and is treated as an error. *Warning: some safety routines
-  are disabled when the telescope is operated manually.*
+  the pendant is disconnected and sets `Error`, but nothing acts on it yet
+  (#12). MONETS/MONETN use MONETcommon's `FB_MonetPendantControl` instead.
+  *Warning: some safety routines are disabled when the telescope is operated
+  manually.*
 
 ---
 
@@ -108,10 +122,12 @@ part is still in git history under that tag.
 - **BROTLib** — `FB_BaseAxis`, `FB_Axis2`, `FB_AltAzTelescopeControl`,
   interfaces (`I_Axis`, `I_Focus`, `I_Brake`, `I_Hydraulics`,
   `I_MirrorCovers`), `FB_EventLog`, `E_TelescopeMode`, communication.
-- **AstroBROT** — astronomical calculations used by the telescope control.
 - Beckhoff system libraries: `Tc2_MC2`, `Tc2_MC2_Drive` (motion control),
-  `Tc2_EtherCAT`, `Tc3_IotCommunicator`, `Tc3_Module`, `Tc2_Utilities`, plus
-  the TwinCAT visualization libraries (`VisuSymbols`, `VisuElems`, ...).
+  `Tc2_Standard`, `Tc2_System`, `Tc2_Utilities`, `Tc3_Module`, plus the TwinCAT
+  visualization libraries (`VisuSymbols`, `VisuElems`, ...).
+
+Library references resolve to the newest installed version (`*`); the
+application that consumes HalfBROT decides which versions are actually built.
 
 HalfBROT is consumed by **MONETcommon** (and through it MONETN / MONETS).
 
@@ -119,8 +135,9 @@ HalfBROT is consumed by **MONETcommon** (and through it MONETN / MONETS).
 
 The library is built with TwinCAT 3.1 Build 4024.66 in TwinCAT XAE (PLC task
 10 ms, priority 20; NC-Task 1 SAF 2 ms / SVB 10 ms). Solution platforms cover
-TwinCAT RT (x64/x86), TwinCAT CE7 (ARMV7) and TwinCAT OS (ARM/x64). Versioned
-with git tags `v0.2.0`, `v0.4.0`; the library release (`Released=false`) has
-not been performed yet.
+TwinCAT RT (x64/x86), TwinCAT CE7 (ARMV7) and TwinCAT OS (ARM/x64). Releases are
+cut by `.github/workflows/release.yml` (version bump on `develop`, release PR to
+`main`, tag `vX.Y.Z`); each GitHub release carries the compiled
+`HalfBROT_vX.Y.Z.library`.
 
 **CI.** `.github/workflows/tcbuild.yml` builds `HalfBROT.sln` with TcBuild on every push (self-hosted runner, never on pull requests). A green run means the project compiles; TcBuild exit code 1 (built with warnings) counts as success. It only compiles; no tests run in CI.
