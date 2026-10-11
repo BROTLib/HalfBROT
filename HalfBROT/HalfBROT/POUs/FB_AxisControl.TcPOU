@@ -66,7 +66,14 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[bMoveAxis := MoveAxis;]]></ST>
+          <ST><![CDATA[// FALSE -> TRUE starts a move to fPosition (fbAxis.Move(), BROTLib #63); FALSE drops a move that has not started.
+// bMoveAxis stays the level the telescopes see; the axis block clears it on MoveDone.
+IF MoveAxis AND NOT bMoveAxis THEN
+	fbAxis.Move();
+ELSIF NOT MoveAxis THEN
+	fbAxis.CancelMove();
+END_IF
+bMoveAxis := MoveAxis;]]></ST>
         </Implementation>
       </Set>
     </Property>
@@ -107,7 +114,11 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[bStopAxis := StopAxis;]]></ST>
+          <ST><![CDATA[// FALSE -> TRUE stops the axis (fbAxis.Stop(), BROTLib #63); the axis block clears bStopAxis on StopDone.
+IF StopAxis AND NOT bStopAxis THEN
+	fbAxis.Stop();
+END_IF
+bStopAxis := StopAxis;]]></ST>
         </Implementation>
       </Set>
     </Property>
