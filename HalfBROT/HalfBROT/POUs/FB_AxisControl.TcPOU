@@ -66,10 +66,10 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[// FALSE -> TRUE starts a move to fPosition (fbAxis.Move(), BROTLib #63); FALSE drops a move that has not started.
+          <ST><![CDATA[// FALSE -> TRUE starts a move to fPosition (fbAxis.MoveTo(), BROTLib #63); FALSE drops a move that has not started.
 // bMoveAxis stays the level the telescopes see; the axis block clears it on MoveDone.
 IF MoveAxis AND NOT bMoveAxis THEN
-	fbAxis.Move();
+	fbAxis.MoveTo();
 ELSIF NOT MoveAxis THEN
 	fbAxis.CancelMove();
 END_IF

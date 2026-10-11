@@ -67,7 +67,7 @@ IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 			IF fbAxis.Ready THEN
 				// start a move on FALSE -> TRUE (BROTLib #63); bMoveAxis is cleared on MoveDone
 				IF NOT bMoveAxis THEN
-					fbAxis.Move();
+					fbAxis.MoveTo();
 				END_IF
 				bMoveAxis := TRUE;
 			ELSE
@@ -162,9 +162,13 @@ HandleEvents();]]></ST>
     <Method Name="_StartHoming" Id="{d763a0dd-f5c6-4dbb-a6cd-b9a5c12596fe}">
       <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_ForceCalibration to the stored last position if there is one, else cam homing to fHomingPosition (the same choice as eHomingMode in the body).
 METHOD _StartHoming : BOOL
+VAR
+	fReference	: LREAL;	// Home() needs a variable (VAR_IN_OUT CONSTANT)
+END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[fbAxis.Home(fReference := SEL(fLastPposition > 0.0, fHomingPosition, fLastPposition));
+        <ST><![CDATA[fReference := SEL(fLastPposition > 0.0, fHomingPosition, fLastPposition);
+fbAxis.Home(fReference := fReference);
 _StartHoming := TRUE;
 ]]></ST>
       </Implementation>
