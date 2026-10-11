@@ -74,7 +74,7 @@ implements the `I_Axis` interface. Common features:
   its hardware end position (`MC_ForceCalibration`); the focus homes to the
   stored last position or a fixed homing position. After an SoE reset the axis
   must fully re-home.
-- **Calibration restore** — the azimuth applies the persistent last position
+- **Calibration restore** — azimuth and elevation apply the persistent last position
   with `MC_SetPosition` after a restart (only if it is `>= 0.0`; `-1.0` means
   "none stored"). Whether the axis then counts as calibrated, so that no
   re-homing is needed, depends on the NC `Homed` flag and has not been tested
