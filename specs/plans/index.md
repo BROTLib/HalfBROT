@@ -16,3 +16,6 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
 - [2026-10-12-telemetry-interval-and-bursts.md](2026-10-12-telemetry-interval-and-bursts.md): #19, hydraulics
   telemetry on change and every `fTelemetryInterval`, at most once per second (no lost updates, no bursts);
   `fTelemetryInterval` effective in covers/focus. **implemented**, CI build only.
+- [2026-10-12-derotator-range-stop-once.md](2026-10-12-derotator-range-stop-once.md): #20, the derotator
+  stops once when leaving its software range instead of every cycle (which cancelled every move/homing back in).
+  **implemented**, CI build only, hardware check in #59.
