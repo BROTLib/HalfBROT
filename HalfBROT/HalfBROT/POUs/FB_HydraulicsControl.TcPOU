@@ -229,7 +229,7 @@ ELSE
 	statusWord.15 := FALSE;
 END_IF
 
-IF statusWord<>LastStatus THEN // publish new payload every second
+IF statusWord<>LastStatus AND fbComm <> 0 THEN // publish on change; no comm assigned: nothing to publish to (#16)
 	LastStatus := statusWord;
 	fbComm.Publish('hydraulics', 'base', 'OilLow',		BOOL_TO_STRING(bOilLow));
 	fbComm.Publish('hydraulics', 'base', 'OilHigh',		BOOL_TO_STRING(bOilHigh));

@@ -242,7 +242,11 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// > FOCUS
+        <ST><![CDATA[// no comm assigned in FB_Init: nothing to publish to (#16)
+IF fbComm = 0 THEN
+	RETURN;
+END_IF
+// > FOCUS
 // POWER_STATE
 // for now we always return that it's powered on
 //IF THIS^.Enable THEN
