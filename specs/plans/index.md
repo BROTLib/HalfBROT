@@ -9,3 +9,7 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   commands only through methods, I/O through structs (no `AT` in the library), TcUnit
   tests, then one explicit state machine per block. **draft**, nothing implemented; three open questions (manual brake semantics,
   `FB_BaseAxis` inputs, struct layout).
+- [2026-10-12-soe-reset-and-restore-in-base.md](2026-10-12-soe-reset-and-restore-in-base.md): #14, SoE reset
+  and position restore once in `FB_AxisControl` (`_SoEReset`, `_RestoreLastPosition`); the SoE reset now waits
+  for `Busy` to rise and drop, logs `Error` and no longer resets the axis after a failed reset.
+  **implemented**, CI build only, hardware check pending.

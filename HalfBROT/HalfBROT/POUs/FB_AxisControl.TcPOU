@@ -33,6 +33,13 @@ VAR
 	calibrationEvent		: FB_Eventlog;
 	fTorque			: REAL;	// percentage of the derotator torque
 	torqueWarning			: FB_EventLog;	
+
+	// SoE reset sequence, see _SoEReset (#14)
+	nSoEResetStep			: INT;		// 0 idle, 1 started, 2 running, 10 finished
+	tonSoEResetWatchdog		: TON;		// fails the sequence if FB_SoEReset never starts or never ends
+	bSoEResetFailed			: BOOL;		// last SoE reset failed (cleared when the next one starts)
+	sSoEResetMessage		: STRING(255);
+	soeResetEvent			: FB_EventLog;
 END_VAR
 VAR PERSISTENT
 	fLastPosition			: LREAL := -1.0;
@@ -40,6 +47,90 @@ END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
+    <Method Name="_RestoreLastPosition" Id="{6ef50641-e714-41a9-b661-7e8cde077d3a}">
+      <Declaration><![CDATA[// Re-apply the persistent last position after a restart (MC_SetPosition), and track it while calibrated.
+// Called every cycle by the axis blocks that restore their position (azimuth, elevation). Open points: #7.
+METHOD PROTECTED _RestoreLastPosition
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbAxisCalibration(
+	Axis 		:= axisRef,
+	Execute 	:= bGetLastPosition AND fLastPosition>=0.0 AND NOT bCalibrated,
+	Position 	:= fLastPosition);
+
+IF fbAxisCalibration.Done THEN
+	bGetLastPosition := FALSE;
+END_IF
+
+IF bCalibrated THEN
+	fLastPosition := fActualPosition;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_SoEReset" Id="{cd368f17-00a6-4e0c-8d56-6282f98096bc}">
+      <Declaration><![CDATA[// Diagnostic (SoE) reset of the drive, requested with bSoEReset; call every cycle (#14).
+// FB_SoEReset has no Done: the reset worked when Busy was TRUE and dropped without Error. On success the
+// axis is reset (bReset) and has to home again; on failure an error is logged and the axis is not reset.
+// The state is in the FB's VAR (nSoEResetStep, ...), because a method's VAR is re-created on every call.
+METHOD PROTECTED _SoEReset
+VAR_INPUT
+	sAxis	: STRING;	// axis name for the event log
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// longer than the Timeout passed to FB_SoEReset, so it only fires if the block never starts or never ends
+tonSoEResetWatchdog(IN := nSoEResetStep <> 0, PT := T#15S);
+
+CASE nSoEResetStep OF
+0:	// idle
+	IF bSoEReset THEN
+		fLastPosition := -1.0;		// a drive reset loses the position: home again, no restore
+		bSoEResetFailed := FALSE;
+		fbSoEReset(Axis := axisRef, Execute := FALSE);	// the next call is a rising edge
+		nSoEResetStep := 1;
+	END_IF
+
+1, 2:	// 1: started, waiting for Busy; 2: running, waiting for Busy to drop
+	fbSoEReset(
+		Axis 	:= axisRef,
+		Execute := TRUE,
+		Timeout := DEFAULT_ADS_TIMEOUT);
+	IF fbSoEReset.Error THEN
+		bSoEResetFailed := TRUE;
+		sSoEResetMessage := CONCAT(sAxis, ': SoE reset failed (ADS error ');
+		sSoEResetMessage := CONCAT(sSoEResetMessage, UINT_TO_STRING(fbSoEReset.AdsErrId));
+		sSoEResetMessage := CONCAT(sSoEResetMessage, ', SERCOS error ');
+		sSoEResetMessage := CONCAT(sSoEResetMessage, UINT_TO_STRING(fbSoEReset.SercosErrId));
+		sSoEResetMessage := CONCAT(sSoEResetMessage, ')');
+		nSoEResetStep := 10;
+	ELSIF tonSoEResetWatchdog.Q THEN
+		bSoEResetFailed := TRUE;
+		sSoEResetMessage := CONCAT(sAxis, ': SoE reset timed out');
+		nSoEResetStep := 10;
+	ELSIF fbSoEReset.Busy THEN
+		nSoEResetStep := 2;
+	ELSIF nSoEResetStep = 2 THEN
+		nSoEResetStep := 10;	// Busy dropped without Error: done
+	END_IF
+END_CASE
+
+IF nSoEResetStep = 10 THEN
+	fbSoEReset(Axis := axisRef, Execute := FALSE);
+	bSoEReset := FALSE;
+	IF NOT bSoEResetFailed THEN
+		bReset := TRUE;		// reset the axis after the drive reset, as before
+	END_IF
+	nSoEResetStep := 0;
+END_IF
+
+soeResetEvent(
+	Trigger 		:= bSoEResetFailed,
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	FormatString 	:= '%s',
+	OnMessage 		:= sSoEResetMessage,
+	Comm 			:= fbComm);]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="isTracking" Id="{d14d4ed7-aa44-40b8-a06b-dbd9bb4bc398}">
       <Declaration><![CDATA[PROPERTY isTracking : BOOL]]></Declaration>
       <Get Name="Get" Id="{d8cce5f4-c21e-4d9a-87e8-69b1f87cb648}">

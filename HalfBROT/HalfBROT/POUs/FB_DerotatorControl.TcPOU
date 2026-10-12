@@ -95,17 +95,8 @@ IF fbReadParameter.Valid THEN
 	fSlewTime := fbReadParameter.Value;
 END_IF
 
-IF bSoEReset THEN
-	fbSoEReset(
-		Axis 	:= axisRef,
-		Execute := TRUE,
-		Timeout := DEFAULT_ADS_TIMEOUT);
- 	IF NOT fbSoEReset.Busy THEN
-		fbSoEReset(Axis := axisRef, Execute := FALSE);
-		bSoEReset := FALSE;
-		bReset := TRUE;
-	END_IF
-END_IF
+// diagnostic reset of the drive on bSoEReset
+_SoEReset(sAxis := 'Derotator');
 
 fTorque := inTorque / 10.0;
 // nominal torque is 3%, max is 25%
