@@ -73,7 +73,8 @@ implements the `I_Axis` interface. Common features:
   (`MC_SetAcceptBlockedDriveSignal` during homing, `fCalibPosition` per telescope);
   the derotator has an absolute encoder and only gets the calibrated flag
   (`MC_ForceCalibration`, no motion, position unchanged, `fCalibPosition` ignored);
-  the focus homes to the stored last position or a fixed homing position. After an SoE reset the axis
+  the focus (incremental encoder) takes the stored last position with `MC_Direct`
+  (no motion) or, without one, homes onto the cam at `fHomingPosition`. After an SoE reset the axis
   must fully re-home.
 - **Calibration restore** — azimuth and elevation apply the persistent last position
   with `MC_SetPosition` after a restart (only if it is `>= 0.0`; `-1.0` means
