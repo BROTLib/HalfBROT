@@ -19,3 +19,6 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
 - [2026-10-12-derotator-range-stop-once.md](2026-10-12-derotator-range-stop-once.md): #20, the derotator
   stops once when leaving its software range instead of every cycle (which cancelled every move/homing back in).
   **implemented**, CI build only, hardware check in #59.
+- [2026-10-12-remove-axis-position-restore.md](2026-10-12-remove-axis-position-restore.md): #7, remove the
+  `MC_SetPosition` restore from azimuth/elevation (most likely never set `Calibrated`; the axes home on their cam at
+  every start anyway). **proposed**, decided 2026-10-12.
