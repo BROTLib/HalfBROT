@@ -30,3 +30,7 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   offsets one 10 arcsec step per press, error lamp cleared each cycle and lit on selection 0 (no safety function),
   horn left unwired. Part A HalfBROT `FB_PendantControl` (CI build only), Part B MONETcommon `FB_MonetPendantControl`
   held on a branch until an on-site test on MONETS and MONETN. Part A **implemented** (CI build only), Part B **proposed**.
+- [2026-10-12-drive-diagnostic-check.md](2026-10-12-drive-diagnostic-check.md): #2, drive diagnostic check once in
+  `FB_AxisControl._CheckDiagnostic`: AX5000 F errors -> ERROR event and `nErrorID`, E warnings (not ECD0/ECD1) -> WARN
+  event only; derotator SoE reset on a reset at most once per drive error (the old line would loop). MONET/S derotator
+  diagnostic is linked to the other (apparently unused) drive channel. **proposed**, Q1/Q2 recommendations for Tim.
