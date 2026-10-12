@@ -26,3 +26,7 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   focus's persistent `fLastPosition` to disk with `FB_WritePersistentData` (`SPDM_2PASS`, port 851) after it changed,
   at rest, at most once a minute, so an unclean power-off does not restore a stale position with `MC_Direct`.
   **implemented**, CI build only, hardware check in #59.
+- [2026-10-12-pendant-fixes.md](2026-10-12-pendant-fixes.md): #12, pendant: TC_Restart only in manual mode, pointing
+  offsets one 10 arcsec step per press, error lamp cleared each cycle and lit on selection 0 (no safety function),
+  horn left unwired. Part A HalfBROT `FB_PendantControl` (CI build only), Part B MONETcommon `FB_MonetPendantControl`
+  held on a branch until an on-site test. **proposed**, nothing implemented.
