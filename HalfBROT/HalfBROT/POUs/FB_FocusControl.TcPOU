@@ -28,7 +28,6 @@ VAR
 	fbAxisEvent			: FB_EventLog;
 	fbCalibrationEvent	: FB_EventLog;
 	eHomingMode			: MC_HOMINGMODE := MC_DefaultHoming;
-	fbSetPosition		: MC_SetPosition;
 	
 	IbLimitNear    AT%I*: BOOL;	// DIN29 3.4
 	IbLimitFar     AT%I*: BOOL;	// DIN30 3.5
@@ -94,23 +93,23 @@ IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 	END_IF
 END_IF
 
+// The encoder is incremental (reference mark). With a stored position, MC_Direct sets that position and the
+// calibrated flag in one step, without motion; HomeDone only after both. Otherwise cam homing to fHomingPosition.
+// (#18: MC_ForceCalibration only sets the flag, the position came from a parallel MC_SetPosition nobody checked.)
+// fPosition is overwritten so the automatic positioning does not move after homing: a target set before
+// calibration is lost, the caller sets it again once Calibrated.
 IF bHomeAxis THEN
 	IF fLastPosition > 0.0 THEN
-		eHomingMode := MC_ForceCalibration; // MC_Direct
+		eHomingMode := MC_Direct;
 		fPosition := fLastPosition;
-		fbSetPosition.Execute := TRUE;
 	ELSE
 		eHomingMode := MC_DefaultHoming;
 		fPosition := fHomingPosition;
-		fbSetPosition.Execute := FALSE;
 	END_IF
-ELSE
-	fbSetPosition.Execute := FALSE;	
 END_IF
 
 // deactivate limit switches on homing
 MC_SetAcceptBlockedDriveSignal(Axis := refAxis, enable := bHomeAxis);
-fbSetPosition(Axis := refAxis, Position := fLastPosition);
 		
 fbAxis(	
 	enable 			:= bFocusUnlocked,
@@ -163,7 +162,7 @@ END_IF
 HandleEvents();]]></ST>
     </Implementation>
     <Method Name="_StartHoming" Id="{d763a0dd-f5c6-4dbb-a6cd-b9a5c12596fe}">
-      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_ForceCalibration to the stored last position if there is one, else cam homing to fHomingPosition (the same choice as eHomingMode in the body).
+      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_Direct to the stored last position if there is one, else cam homing to fHomingPosition (the same choice as eHomingMode in the body).
 METHOD _StartHoming : BOOL
 VAR
 	fReference	: LREAL;	// Home() needs a variable (VAR_IN_OUT CONSTANT)
