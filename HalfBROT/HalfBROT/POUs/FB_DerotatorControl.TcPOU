@@ -133,7 +133,7 @@ CalibrationEvent(
 	]]></ST>
     </Implementation>
     <Method Name="_StartHoming" Id="{2319eae6-c8f8-4699-9437-36645660ec26}">
-      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_ForceCalibration: fCalibPosition becomes the current position.
+      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_ForceCalibration only sets the calibrated flag, it does not move the axis or change its position: the position comes from the absolute encoder and fCalibPosition is ignored (#17).
 METHOD _StartHoming : BOOL
 ]]></Declaration>
       <Implementation>
