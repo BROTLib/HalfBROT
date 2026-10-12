@@ -53,9 +53,6 @@
     <Compile Include="POUs\FB_PendantControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\FB_TelescopeAuxiliary.TcPOU">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="VisualizationManager.TcVMO">
       <SubType>Code</SubType>
     </Compile>
