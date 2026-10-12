@@ -34,6 +34,8 @@ VAR
 	telescope_mode : E_TelescopeMode;
 	
 	reset_trigger		: R_TRIG;
+	// all references the current selection uses are valid (#16)
+	bReferencesValid	: BOOL;
 
 	//DIN17 2.0
 	BCD0		AT%I*: BOOL;
@@ -115,26 +117,31 @@ reset_trigger(CLK := reset_switch);
 fbStartTrigger(CLK := start_switch);
 
 // enable only the selected item and connect lamps and buttons accordingly
-CASE Selection OF
-	1, 2, 3:	// reserved for Cover 1-3 control
-		lamp_up := fbCovers.IabCoverOpen[Selection];
-		lamp_down := fbCovers.IabCoverClosed[Selection];
-		IF key_switch THEN
-			fbCovers.OabOpenCover[Selection] := direction_up AND fbCovers.IabCoverOpen[Selection];
-			fbCovers.OabCloseCover[Selection] := direction_down AND fbCovers.IabCoverClosed[Selection];
-			lamp_error := fbCovers.abCoverError[Selection];	
-		ELSE
-			IF direction_down THEN 
-				fbCovers.Close();
-			ELSIF direction_up THEN
-				fbCovers.Open();
-			END_IF		
-		END_IF
-		
-	4:	// Nasmyth / mirror M3 control
-		
-	5:	// Focus Control
-		IF __ISVALIDREF(fbFocus) THEN
+// a selection whose blocks are not connected does nothing and lights the error lamp:
+// using an unset reference stops the PLC task (#16)
+bReferencesValid := _ReferencesValid(nSelection := Selection);
+IF NOT bReferencesValid THEN
+	lamp_error := TRUE;
+ELSE
+	CASE Selection OF
+		1, 2, 3:	// reserved for Cover 1-3 control
+			lamp_up := fbCovers.IabCoverOpen[Selection];
+			lamp_down := fbCovers.IabCoverClosed[Selection];
+			IF key_switch THEN
+				fbCovers.OabOpenCover[Selection] := direction_up AND fbCovers.IabCoverOpen[Selection];
+				fbCovers.OabCloseCover[Selection] := direction_down AND fbCovers.IabCoverClosed[Selection];
+				lamp_error := fbCovers.abCoverError[Selection];	
+			ELSE
+				IF direction_down THEN 
+					fbCovers.Close();
+				ELSIF direction_up THEN
+					fbCovers.Open();
+				END_IF		
+			END_IF
+			
+		4:	// Nasmyth / mirror M3 control
+			
+		5:	// Focus Control
 			lamp_up := fbFocus.Ready AND NOT fbFocus.InPosLimit;
 			lamp_down := fbFocus.Ready AND NOT fbFocus.InNegLimit;
 			IF key_switch THEN
@@ -148,139 +155,163 @@ CASE Selection OF
 				END_IF
 				lamp_error := fbFocus.Error;
 			END_IF
-		END_IF
-							
-	6:	// Derotator control
-		lamp_left  := fbDerotator.Ready AND NOT fbDerotator.InNegLimit;
-		lamp_right := fbDerotator.Ready AND NOT fbDerotator.InPosLimit;
-		IF key_switch THEN
-			DerotatorEnable(SET := start_switch, Q := fbDerotator.bEnable);
-			fbDerotator.MoveNeg := direction_left AND NOT fbDerotator.inDigitalInputs.1;
-			fbDerotator.MovePos := direction_right AND NOT fbDerotator.inDigitalInputs.0;
-			fbDerotator.bReset := reset_switch;
-			lamp_error := fbDerotator.Error;
-		END_IF
-							
-	7:	// Elevation Control
-		
-		fbElevation.MovePos := direction_up AND fbElevation.inDigitalInputs.0;
-		fbElevation.MoveNeg := direction_down AND fbElevation.inDigitalInputs.1;
-		IF key_switch THEN
-			ElevationEnable(
-				SET := start_switch, 
-				Q := fbElevation.bEnable);	
-		END_IF
-		fbElevation.bReset := reset_switch;
-		lamp_up := fbElevation.inDigitalInputs.0;
-		lamp_down := fbElevation.inDigitalInputs.1;
-		lamp_error := fbElevation.bError;
-		
-	8:	// Azimuth Control
-		lamp_left := fbAzimuth.inDigitalInputs.0;
-		lamp_right := fbAzimuth.inDigitalInputs.1;
-		fbAzimuth.MoveNeg := direction_left AND fbAzimuth.inDigitalInputs.0;
-		fbAzimuth.MovePos := direction_right AND fbAzimuth.inDigitalInputs.1;
-		fbAzimuth.bReset := reset_switch;
-		IF key_switch THEN
-			AzimuthEnable(
-				SET := start_switch, 
-				Q := fbAzimuth.bEnable);
-			lamp_error := fbAzimuth.Error;
-		END_IF
-		
-	9: 	// Dome control
-		
-	10:	// FilterWheel control
-		
-	11: lamp_up := fbElevation.fTorque > 0.0;
-		lamp_down := fbElevation.fTorque < 0.0;
-		
-	12:	// manual Telescope Control
-		IF key_switch THEN
-			lamp_up := fbTelescope.bPower;
-			lamp_down := fbTelescope.bPower;
-			lamp_left := fbTelescope.bPower;
-			lamp_right := fbTelescope.bPower;
-	
-			fbTelescope.bGoHome := direction_down;
-			fbTelescope.bPark := direction_up;
-			fbTelescope.bGoto := direction_right;
-			TrackingEnable(SET := start_switch, 
-							RESET := reset_switch, 
-							Q := fbTelescope.bTrack);
-			fbTelescope.bReset := reset_switch;
-			fbTelescope.bStop := direction_left;	
-			lamp_error := fbTelescope.bError;
-		END_IF
-		
-	13: // Telescope Control
-		TelescopeControlEnable(
-			SET := start_switch, 
-			Q := fbTelescope.bPower);
-		fbTelescope.bReset := reset_switch;
-		IF key_switch THEN
-			lamp_up := fbElevation.inDigitalInputs.0;
-			lamp_down := fbElevation.inDigitalInputs.1;
-			lamp_left := fbAzimuth.inDigitalInputs.0;
-			lamp_right := fbAzimuth.inDigitalInputs.1;
+								
+		6:	// Derotator control
+			lamp_left  := fbDerotator.Ready AND NOT fbDerotator.InNegLimit;
+			lamp_right := fbDerotator.Ready AND NOT fbDerotator.InPosLimit;
+			IF key_switch THEN
+				DerotatorEnable(SET := start_switch, Q := fbDerotator.bEnable);
+				fbDerotator.MoveNeg := direction_left AND NOT fbDerotator.inDigitalInputs.1;
+				fbDerotator.MovePos := direction_right AND NOT fbDerotator.inDigitalInputs.0;
+				fbDerotator.bReset := reset_switch;
+				lamp_error := fbDerotator.Error;
+			END_IF
+								
+		7:	// Elevation Control
+			
 			fbElevation.MovePos := direction_up AND fbElevation.inDigitalInputs.0;
 			fbElevation.MoveNeg := direction_down AND fbElevation.inDigitalInputs.1;
+			IF key_switch THEN
+				ElevationEnable(
+					SET := start_switch, 
+					Q := fbElevation.bEnable);	
+			END_IF
+			fbElevation.bReset := reset_switch;
+			lamp_up := fbElevation.inDigitalInputs.0;
+			lamp_down := fbElevation.inDigitalInputs.1;
+			lamp_error := fbElevation.bError;
+			
+		8:	// Azimuth Control
+			lamp_left := fbAzimuth.inDigitalInputs.0;
+			lamp_right := fbAzimuth.inDigitalInputs.1;
 			fbAzimuth.MoveNeg := direction_left AND fbAzimuth.inDigitalInputs.0;
 			fbAzimuth.MovePos := direction_right AND fbAzimuth.inDigitalInputs.1;
-			fbTelescope.fRightAscension := fbTelescope.fRightAscensionCalc;
-			fbTelescope.fDeclination := fbTelescope.fDeclinationCalc;
-		ELSE
-			lamp_up := fbElevation.bEnable;
-			lamp_down := fbElevation.bEnable;
-			lamp_left := fbAzimuth.bEnable;
-			lamp_right := fbAzimuth.bEnable;
-			IF direction_up THEN 
-				fbTelescope.fElevationOffset := fbTelescope.fElevationOffset + 10.0/3600.0; 
-			ELSIF direction_down THEN 
-				fbTelescope.fElevationOffset := fbTelescope.fElevationOffset - 10.0/3600.0; 
-			END_IF;
-			IF direction_left THEN 
-				fbTelescope.fAzimuthOffset := fbTelescope.fAzimuthOffset - 10.0/3600.0; 
-			ELSIF direction_right THEN 
-				fbTelescope.fAzimuthOffset := fbTelescope.fAzimuthOffset + 10.0/3600.0; 
-			END_IF;
-		END_IF
-		ResetDelay(IN := reset_switch, PT := T#3S);
-		// wait for suction pump to stop
-		TwinCATRestart(NETID := '', RESTART := ResetDelay.Q AND NOT fbHydraulics.SuctionRunning, TMOUT := T#60S);
-	
-	14: horn := key_switch;
-		lamp_up := key_switch;
-		lamp_down := key_switch;
-		lamp_left := key_switch;
-		lamp_right := key_switch;
-	
-	15:	// Hydraulics control
-		lamp_up := fbHydraulics.OilPressureOK AND NOT fbBrake.BrakeOpen;
-		lamp_down := fbHydraulics.OilPressureOK AND fbBrake.BrakeOpen;
-		lamp_left := fbHydraulics.PumpRunning;
-		lamp_right := fbHydraulics.SuctionRunning;
-		IF key_switch THEN
-			IF fbStartTrigger.Q THEN
-				fbHydraulics.Enable := NOT fbHydraulics.Enable;
-			END_IF
-			IF reset_trigger.Q THEN
-				fbHydraulics.Reset();
+			fbAzimuth.bReset := reset_switch;
+			IF key_switch THEN
+				AzimuthEnable(
+					SET := start_switch, 
+					Q := fbAzimuth.bEnable);
+				lamp_error := fbAzimuth.Error;
 			END_IF
 			
-			IF direction_up THEN
-				fbBrake.OpenBrake();
+		9: 	// Dome control
+			
+		10:	// FilterWheel control
+			
+		11: lamp_up := fbElevation.fTorque > 0.0;
+			lamp_down := fbElevation.fTorque < 0.0;
+			
+		12:	// manual Telescope Control
+			IF key_switch THEN
+				lamp_up := fbTelescope.bPower;
+				lamp_down := fbTelescope.bPower;
+				lamp_left := fbTelescope.bPower;
+				lamp_right := fbTelescope.bPower;
+		
+				fbTelescope.bGoHome := direction_down;
+				fbTelescope.bPark := direction_up;
+				fbTelescope.bGoto := direction_right;
+				TrackingEnable(SET := start_switch, 
+								RESET := reset_switch, 
+								Q := fbTelescope.bTrack);
+				fbTelescope.bReset := reset_switch;
+				fbTelescope.bStop := direction_left;	
+				lamp_error := fbTelescope.bError;
 			END_IF
-			IF direction_down THEN
-				fbBrake.CloseBrake();
+			
+		13: // Telescope Control
+			TelescopeControlEnable(
+				SET := start_switch, 
+				Q := fbTelescope.bPower);
+			fbTelescope.bReset := reset_switch;
+			IF key_switch THEN
+				lamp_up := fbElevation.inDigitalInputs.0;
+				lamp_down := fbElevation.inDigitalInputs.1;
+				lamp_left := fbAzimuth.inDigitalInputs.0;
+				lamp_right := fbAzimuth.inDigitalInputs.1;
+				fbElevation.MovePos := direction_up AND fbElevation.inDigitalInputs.0;
+				fbElevation.MoveNeg := direction_down AND fbElevation.inDigitalInputs.1;
+				fbAzimuth.MoveNeg := direction_left AND fbAzimuth.inDigitalInputs.0;
+				fbAzimuth.MovePos := direction_right AND fbAzimuth.inDigitalInputs.1;
+				fbTelescope.fRightAscension := fbTelescope.fRightAscensionCalc;
+				fbTelescope.fDeclination := fbTelescope.fDeclinationCalc;
+			ELSE
+				lamp_up := fbElevation.bEnable;
+				lamp_down := fbElevation.bEnable;
+				lamp_left := fbAzimuth.bEnable;
+				lamp_right := fbAzimuth.bEnable;
+				IF direction_up THEN 
+					fbTelescope.fElevationOffset := fbTelescope.fElevationOffset + 10.0/3600.0; 
+				ELSIF direction_down THEN 
+					fbTelescope.fElevationOffset := fbTelescope.fElevationOffset - 10.0/3600.0; 
+				END_IF;
+				IF direction_left THEN 
+					fbTelescope.fAzimuthOffset := fbTelescope.fAzimuthOffset - 10.0/3600.0; 
+				ELSIF direction_right THEN 
+					fbTelescope.fAzimuthOffset := fbTelescope.fAzimuthOffset + 10.0/3600.0; 
+				END_IF;
 			END_IF
-			fbHydraulics.ManualStartSuction := direction_right;
-			fbHydraulics.ManualStopPump := direction_left;
-			lamp_error := fbHydraulics.Error;
-		END_IF
-END_CASE
+			ResetDelay(IN := reset_switch, PT := T#3S);
+			// wait for suction pump to stop
+			TwinCATRestart(NETID := '', RESTART := ResetDelay.Q AND NOT fbHydraulics.SuctionRunning, TMOUT := T#60S);
+		
+		14: horn := key_switch;
+			lamp_up := key_switch;
+			lamp_down := key_switch;
+			lamp_left := key_switch;
+			lamp_right := key_switch;
+		
+		15:	// Hydraulics control
+			lamp_up := fbHydraulics.OilPressureOK AND NOT fbBrake.BrakeOpen;
+			lamp_down := fbHydraulics.OilPressureOK AND fbBrake.BrakeOpen;
+			lamp_left := fbHydraulics.PumpRunning;
+			lamp_right := fbHydraulics.SuctionRunning;
+			IF key_switch THEN
+				IF fbStartTrigger.Q THEN
+					fbHydraulics.Enable := NOT fbHydraulics.Enable;
+				END_IF
+				IF reset_trigger.Q THEN
+					fbHydraulics.Reset();
+				END_IF
+				
+				IF direction_up THEN
+					fbBrake.OpenBrake();
+				END_IF
+				IF direction_down THEN
+					fbBrake.CloseBrake();
+				END_IF
+				fbHydraulics.ManualStartSuction := direction_right;
+				fbHydraulics.ManualStopPump := direction_left;
+				lamp_error := fbHydraulics.Error;
+			END_IF
+	END_CASE
+END_IF
 ]]></ST>
     </Implementation>
+    <Method Name="_ReferencesValid" Id="{5b0e4c1d-8f3a-4e27-9d61-2c7a90b4e816}">
+      <Declaration><![CDATA[// TRUE if every reference the given selector position uses is set (#16).
+METHOD PRIVATE _ReferencesValid : BOOL
+VAR_INPUT
+	nSelection	: UINT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE nSelection OF
+	1, 2, 3:	_ReferencesValid := __ISVALIDREF(fbCovers);
+	5:			_ReferencesValid := __ISVALIDREF(fbFocus);
+	6:			_ReferencesValid := __ISVALIDREF(fbDerotator);
+	7, 11:		_ReferencesValid := __ISVALIDREF(fbElevation);
+	8:			_ReferencesValid := __ISVALIDREF(fbAzimuth);
+	12:			_ReferencesValid := __ISVALIDREF(fbTelescope);
+	13:			_ReferencesValid := __ISVALIDREF(fbTelescope) AND __ISVALIDREF(fbElevation)
+									AND __ISVALIDREF(fbAzimuth) AND __ISVALIDREF(fbHydraulics);
+	15:			_ReferencesValid := __ISVALIDREF(fbHydraulics) AND __ISVALIDREF(fbBrake);
+ELSE
+	_ReferencesValid := TRUE;
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="FB_Init" Id="{377c4b19-44fb-4929-801b-86205f66218e}">
       <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
 //The return value is not evaluated. For a specific influence, you can also declare the

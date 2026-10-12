@@ -21,10 +21,13 @@ END_VAR]]></Declaration>
 temperature_mirror2 := tempSensorM2 / 32767.0 * 150.0 - 50.0;
 
 MQTTTimer(IN:=TRUE);
-IF MQTTTimer.Q THEN // publish new payload every second
+IF MQTTTimer.Q THEN // publish new payload every 5 s
 
-	comm.Publish('telescope', 'dome', 'Mirror1Temperature',	LREAL_TO_FMTSTR(temperature_mirror1, 2, TRUE));
-	comm.Publish('telescope', 'dome', 'Mirror2Temperature',	LREAL_TO_FMTSTR(temperature_mirror2, 2, TRUE));
+	// comm is a plain input: calling it unassigned stops the PLC task (#16)
+	IF comm <> 0 THEN
+		comm.Publish('telescope', 'dome', 'Mirror1Temperature',	LREAL_TO_FMTSTR(temperature_mirror1, 2, TRUE));
+		comm.Publish('telescope', 'dome', 'Mirror2Temperature',	LREAL_TO_FMTSTR(temperature_mirror2, 2, TRUE));
+	END_IF
 	
 	MQTTTimer(IN:=FALSE);
 
