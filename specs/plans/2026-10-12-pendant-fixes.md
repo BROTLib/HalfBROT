@@ -1,6 +1,8 @@
 # Pendant: restart only in manual mode, offsets per press, error lamp, horn (#12)
 
-**Status: proposed.** Nothing implemented, nothing run on a PLC or a telescope. Facts below were read on 2026-10-12
+**Status: Part A implemented on `develop` (PR linked from #12, CI build only), Part B proposed (branch, not
+released).** Decided 2026-10-12 (Tim): B2 yes, horn option (a), on-site test on MONETS and MONETN. Nothing was run
+on a PLC or a telescope. Facts below were read on 2026-10-12
 from HalfBROT `develop` @ `6a065e0`, MONETcommon `develop` @ `38b5896`, MONETS `origin/develop` @ `67e683d` and
 MONETN `develop` @ `5f94f89`. Line numbers refer to those commits.
 

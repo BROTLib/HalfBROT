@@ -100,9 +100,12 @@ implements the `I_Axis` interface. Common features:
   140 s); 16-bit `statusWord` telemetry.
 - `FB_PendantControl` — BCD-selector manual hand pendant with 15 functions
   (covers, focus, derotator, elevation, azimuth, dome, filter wheel, torque
-  display, manual telescope control, horn, hydraulics, ...). Selection 0 means
-  the pendant is disconnected and sets `Error`, but nothing acts on it yet
-  (#12). MONETS/MONETN use MONETcommon's `FB_MonetPendantControl` instead.
+  display, manual telescope control, horn (not wired), hydraulics, ...).
+  Selection 0 (pendant disconnected) lights the error lamp, nothing else; the
+  lamp otherwise shows the selected function's error. Selection 13 steps the
+  pointing offsets by 10 arcsec per press in automatic mode and restarts
+  TwinCAT after reset is held 3 s in manual mode only. MONETS/MONETN use
+  MONETcommon's `FB_MonetPendantControl` instead.
   *Warning: some safety routines are disabled when the telescope is operated
   manually.*
 
