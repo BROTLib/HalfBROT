@@ -122,8 +122,9 @@ IF bError THEN
 END_IF
 
 // send telemetry
-tonComm(IN:=TRUE);
-IF tonComm.Q THEN // publish new payload every second
+// PT set in the call: the declaration's initial value is evaluated only once, at init (#19)
+tonComm(IN:=TRUE, PT:=fTelemetryInterval);
+IF tonComm.Q THEN // publish new payload every fTelemetryInterval
 	tonComm(IN:=FALSE);
 	THIS^._SendTelemetry();	
 END_IF

@@ -153,8 +153,9 @@ bCalibrated := fbAxis.calibrated;
 bReady := fbAxis.Ready AND fbAxis.StandStill OR NOT ObFocusUnlock;
 
 // send telemetry
-tonComm(IN:=TRUE);
-IF tonComm.Q THEN // publish new payload every 5 seconds
+// PT set in the call: the declaration's initial value is evaluated only once, at init (#19)
+tonComm(IN:=TRUE, PT:=fTelemetryInterval);
+IF tonComm.Q THEN // publish new payload every fTelemetryInterval
 	tonComm(IN:=FALSE);
 	THIS^.SendTelemetry();	
 END_IF
@@ -247,7 +248,8 @@ IF fbComm = 0 THEN
 END_IF
 // > FOCUS
 // POWER_STATE
-// for now we always return that it's powered on
+// always '1.0': the drive is switched off at rest to engage the brake (tonBrakeDelay), which is not
+// "powered off" for pyobs (#19)
 //IF THIS^.Enable THEN
 fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.POWER_STATE', '1.0');
 //ELSE

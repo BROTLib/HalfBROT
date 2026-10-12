@@ -13,3 +13,6 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   and position restore once in `FB_AxisControl` (`_SoEReset`, `_RestoreLastPosition`); the SoE reset now waits
   for `Busy` to rise and drop, logs `Error` and no longer resets the axis after a failed reset.
   **implemented**, CI build only, hardware check pending.
+- [2026-10-12-telemetry-interval-and-bursts.md](2026-10-12-telemetry-interval-and-bursts.md): #19, hydraulics
+  telemetry on change and every `fTelemetryInterval`, at most once per second (no lost updates, no bursts);
+  `fTelemetryInterval` effective in covers/focus. **implemented**, CI build only.
