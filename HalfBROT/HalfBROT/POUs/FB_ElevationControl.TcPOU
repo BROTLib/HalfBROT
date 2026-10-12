@@ -23,7 +23,8 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[// limit the position input to a sane value
-fPosition := LIMIT(0.0, fPosition, 90.0);
+// fMinPosition/fMaxPosition narrow the range (#17), 0-90 deg stays the hard limit
+fPosition := LIMIT(MAX(0.0, fMinPosition), fPosition, MIN(90.0, fMaxPosition));
 
 // covers and brake are interfaces: calling an unassigned one stops the PLC task (#16).
 // Without both the brake state is unknown, so the axis stays disabled.
