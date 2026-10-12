@@ -1,7 +1,7 @@
 # Remove the position restore from the azimuth and elevation axes (#7)
 
-**Status: proposed.** Nothing implemented. Facts below were read from `develop` @ `018ddae` and the consumers'
-`develop` on 2026-10-12; nothing was run on a PLC or a telescope.
+**Status: implemented on `develop` (see the PR linked from #7), not run on a PLC or a telescope.** Built by CI
+(TcBuild) only. Facts below were read from `develop` @ `018ddae` and the consumers' `develop` on 2026-10-12.
 
 Decided 2026-10-12 (Tim): remove the restore rather than make it work. Azimuth and elevation keep homing on their
 cam at every start.

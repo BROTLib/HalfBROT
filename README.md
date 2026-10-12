@@ -75,11 +75,9 @@ implements the `I_Axis` interface. Common features:
   the focus (incremental encoder) takes the stored last position with `MC_Direct`
   (no motion) or, without one, homes onto the cam at `fHomingPosition`. After an SoE reset the axis
   must fully re-home.
-- **Calibration restore** — azimuth and elevation apply the persistent last position
-  with `MC_SetPosition` after a restart (only if it is `>= 0.0`; `-1.0` means
-  "none stored"). Whether the axis then counts as calibrated, so that no
-  re-homing is needed, depends on the NC `Homed` flag and has not been tested
-  on hardware (#7).
+- **No position restore** — azimuth and elevation home on their cam at every start. A restore with
+  `MC_SetPosition` was removed (#7): it most likely never set `Calibrated`, and a mount moved while switched off
+  must not trust an old position. Only the focus restores its last position (`MC_Direct`, see Homing).
 - **Diagnostics and slew-time prediction** — the drive diagnostic word is
   translated via `NCError_TO_STRING` into `FB_EventLog` messages; the remaining
   slew time is read cyclically with `MC_ReadParameter`.

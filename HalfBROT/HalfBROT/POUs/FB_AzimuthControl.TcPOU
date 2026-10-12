@@ -30,15 +30,11 @@ bCalibrated := fbAxis.Calibrated;
 
 IF bCalibrated OR bError THEN
 	bHomeAxis := FALSE;
-	bGetLastPosition := FALSE;
 END_IF
 	
 IF bHomeAxis THEN
 	fPosition := fCalibPosition;
 END_IF
-
-// perform a recalibration on the last known position
-_RestoreLastPosition();
 
 // enable the azimuth if not moved by the power chain. Sorry for the hack
 tonRestTimer(IN := bBrakeOpen AND (ABS(axisRef.NcToPlc.ActVelo) < 0.01), PT := T#2S);

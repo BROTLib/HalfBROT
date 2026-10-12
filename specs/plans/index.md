@@ -21,4 +21,4 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   **implemented**, CI build only, hardware check in #59.
 - [2026-10-12-remove-axis-position-restore.md](2026-10-12-remove-axis-position-restore.md): #7, remove the
   `MC_SetPosition` restore from azimuth/elevation (most likely never set `Calibrated`; the axes home on their cam at
-  every start anyway). **proposed**, decided 2026-10-12.
+  every start anyway). **implemented**, CI build only.
