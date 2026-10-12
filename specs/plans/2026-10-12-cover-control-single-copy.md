@@ -592,6 +592,21 @@ minus the last six. All names exist in the new block except `bWarning`, which is
 those three or only show them was not decoded from the XML (**unverified**); if they write `bOpen`/`bClose`
 directly, they bypass the methods exactly as today. No other VISU, GVL or DUT references the cover block.
 
+**VISU, checked 2026-10-12 (Tim's question):** in the MONETS and MONETN `Cover.TcVIS` three `VisuFbElemDipSwitch`
+elements are bound to `MAIN.CoverControl.bOpen`, `bClose` and `bReset`, so the VISU **writes these three flags
+directly** (a VISU can only write variables, not call methods). They must therefore stay ordinary writable
+symbols in the block: `VAR`, never `PRIVATE`/`PROTECTED` or properties, and under the same names. The VISU path is
+a deliberate bypass of `Open()`/`Close()`/`Reset()`: switch on `bOpen` starts the sequence, switch off drops the
+command and the outputs, `bClose` has precedence, completion clears the flag, `bError` clears both: all handled
+inside the block, so it behaves as today. The #31 plan's "commands only through methods" cannot cover the VISU
+until it has method-like buttons (e.g. `VisuFbElemButton` with an action calling a PROGRAM that calls the
+method); not part of this plan.
+
+`MAIN.CoverControl.bWarning` (read by the same VISU page) has not existed since MONETcommon v0.4.1 (and HalfBROT
+removed its own in #56): the element shows nothing and the VISU build reports an unresolved variable, probably
+the cause of one of the two known build warnings of MONETS/MONETN (**unverified**). Proposal: remove that element
+in the two VISUs (nothing ever sets it again); XAE edit by Tim, a separate PR, part of step 3.
+
 ## Migration order and rollback
 
 This changes safety-relevant motion (mirror covers) on two telescopes, so every step is built and checked
@@ -778,6 +793,11 @@ test plan:
   `RETURN`).
 - g. With a cover error present (only if T8 step 6 is done anyway, parked): holding a direction does not move
   anything; after reset, still nothing until the button is released and pressed again.
+- h. **VISU Cover page** (MONETS and MONETN, from XAE or the target VISU): the `bOpen` switch starts the opening
+  1->3->2, switching it off stops all outputs in the same second; the `bClose` switch closes 2->3->1 and wins over
+  `bOpen` when both are on; the `bReset` switch clears a cover error; the output, limit and error indicators follow
+  `OabOpenCover/OabCloseCover`, `abCoverOpen/Closed/Error`, `bAllOpen/bAllClosed/bError`. After a build: the number
+  of VISU warnings (the missing `bWarning` element gone if it was removed).
 
 Fail if: an order differs, a cover moves without a command, both outputs of one cover are on together, a
 release/key-off/selector change does not stop a pendant run, or a travel time is longer than 2/3 of
