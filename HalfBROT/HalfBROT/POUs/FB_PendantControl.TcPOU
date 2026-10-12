@@ -70,7 +70,6 @@ VAR
 	lamp_left			AT%Q*: BOOL;
 	//DOUT13 1.4
 	lamp_error			AT%Q*: BOOL;	
-	GVL_Telescope: INT;
 END_VAR
 
 ]]></Declaration>
@@ -177,8 +176,8 @@ CASE Selection OF
 		lamp_error := fbElevation.bError;
 		
 	8:	// Azimuth Control
-		lamp_left := fbAzimuth.inDigitalInputs.0; // NOT GVL_Telescope.azimut_limit_switch;
-		lamp_right := fbAzimuth.inDigitalInputs.1; // NOT GVL_Telescope.azimut_limit_switch;
+		lamp_left := fbAzimuth.inDigitalInputs.0;
+		lamp_right := fbAzimuth.inDigitalInputs.1;
 		fbAzimuth.MoveNeg := direction_left AND fbAzimuth.inDigitalInputs.0;
 		fbAzimuth.MovePos := direction_right AND fbAzimuth.inDigitalInputs.1;
 		fbAzimuth.bReset := reset_switch;
