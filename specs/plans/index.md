@@ -29,4 +29,4 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
 - [2026-10-12-pendant-fixes.md](2026-10-12-pendant-fixes.md): #12, pendant: TC_Restart only in manual mode, pointing
   offsets one 10 arcsec step per press, error lamp cleared each cycle and lit on selection 0 (no safety function),
   horn left unwired. Part A HalfBROT `FB_PendantControl` (CI build only), Part B MONETcommon `FB_MonetPendantControl`
-  held on a branch until an on-site test. **proposed**, nothing implemented.
+  held on a branch until an on-site test on MONETS and MONETN. Part A **implemented** (CI build only), Part B **proposed**.

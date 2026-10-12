@@ -17,8 +17,9 @@ VAR
 
 	// program selection of the pendant control
 	Selection:	UINT;
-	// error on the pendant control
+	// pendant disconnected or selector at 0 (Selection = 0); only lights the error lamp
 	Error:		BOOL;
+	// not mapped to an output (no AT %Q*): nothing sounds (#12)
 	horn:			BOOL;
 	fbStartTrigger			: R_TRIG;
 	DerotatorEnable:	FB_ButtonEnable;
@@ -30,6 +31,8 @@ VAR
 	TwinCATRestart: TC_Restart;
 	up_trigger:	R_TRIG;
 	down_trigger:	R_TRIG;	
+	left_trigger:	R_TRIG;
+	right_trigger:	R_TRIG;
 	// manual or automatic operation of the telescope
 	telescope_mode : E_TelescopeMode;
 	
@@ -88,7 +91,7 @@ Selection := 1*BOOL_TO_UINT(BCD0) +
 			 4*BOOL_TO_UINT(BCD4) +
 			 8*BOOL_TO_UINT(BCD8);
 
-// detect disconnection of the manual controls (should also trigger emergency stop).			 
+// selector reads 0: pendant disconnected (or selector at 0). Only lights the error lamp, no stop (#12)
 Error := (Selection = 0);
 
 // disable all the lamps
@@ -100,9 +103,10 @@ horn := FALSE;
 
 up_trigger(CLK := direction_up);
 down_trigger(CLK := direction_down);
-//R_Enable(CLK := enable);
-// the error lamp is the same as the error lamp of the main panel
-lamp_error := lamp_error;
+left_trigger(CLK := direction_left);
+right_trigger(CLK := direction_right);
+// error lamp: Error by default; the selected function overwrites it below with its own error
+lamp_error := Error;
 
 
 // determine the operation of the telescope based on the switch set
@@ -240,20 +244,22 @@ ELSE
 				lamp_down := fbElevation.bEnable;
 				lamp_left := fbAzimuth.bEnable;
 				lamp_right := fbAzimuth.bEnable;
-				IF direction_up THEN 
-					fbTelescope.fElevationOffset := fbTelescope.fElevationOffset + 10.0/3600.0; 
-				ELSIF direction_down THEN 
-					fbTelescope.fElevationOffset := fbTelescope.fElevationOffset - 10.0/3600.0; 
+				// one 10 arcsec step per press (was: per cycle while held, about 1000 arcsec/s) (#12)
+				IF up_trigger.Q THEN
+					fbTelescope.fElevationOffset := fbTelescope.fElevationOffset + 10.0/3600.0;
+				ELSIF down_trigger.Q THEN
+					fbTelescope.fElevationOffset := fbTelescope.fElevationOffset - 10.0/3600.0;
 				END_IF;
-				IF direction_left THEN 
-					fbTelescope.fAzimuthOffset := fbTelescope.fAzimuthOffset - 10.0/3600.0; 
-				ELSIF direction_right THEN 
-					fbTelescope.fAzimuthOffset := fbTelescope.fAzimuthOffset + 10.0/3600.0; 
+				IF left_trigger.Q THEN
+					fbTelescope.fAzimuthOffset := fbTelescope.fAzimuthOffset - 10.0/3600.0;
+				ELSIF right_trigger.Q THEN
+					fbTelescope.fAzimuthOffset := fbTelescope.fAzimuthOffset + 10.0/3600.0;
 				END_IF;
 			END_IF
-			ResetDelay(IN := reset_switch, PT := T#3S);
-			// wait for suction pump to stop
-			TwinCATRestart(NETID := '', RESTART := ResetDelay.Q AND NOT fbHydraulics.SuctionRunning, TMOUT := T#60S);
+			// restart TwinCAT: manual mode only, reset held 3 s, suction pump stopped (#12). The inputs are gated, not the
+			// calls: the timer and TC_Restart must see their input drop when the key goes off
+			ResetDelay(IN := key_switch AND reset_switch, PT := T#3S);
+			TwinCATRestart(NETID := '', RESTART := key_switch AND ResetDelay.Q AND NOT fbHydraulics.SuctionRunning, TMOUT := T#60S);
 		
 		14: horn := key_switch;
 			lamp_up := key_switch;
