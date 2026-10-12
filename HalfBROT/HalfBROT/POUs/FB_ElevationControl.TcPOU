@@ -12,13 +12,13 @@ END_VAR
 VAR
 	tonReadyDelay			: TON;	// delay until commutator angle is measured
 	enableTrigger			: F_TRIG;	// disable trigger for hydraulics
-	brakeEvent				: FB_Eventlog;
-	highElevationEvent		: FB_Eventlog;
-	lowElevationEvent		: FB_Eventlog;
+	brakeEvent				: FB_EventLog;
+	highElevationEvent		: FB_EventLog;
+	lowElevationEvent		: FB_EventLog;
 	tonTorqueTimer				: TON;		// timer to trigger a warning if torque is high
 	bConnected				: BOOL;		// fbCovers and fbBrake are assigned (#16)
 	bBrakeOpen				: BOOL;		// fbBrake.BrakeOpen, FALSE while fbBrake is not assigned
-	notConnectedEvent		: FB_Eventlog;
+	notConnectedEvent		: FB_EventLog;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -69,7 +69,7 @@ IF bMoveAxis THEN
 	bTracking := FALSE;
 END_IF
 
-// if NOT Enabled and ActVelo>1 then issue a warning
+// if NOT Enabled and ActVelo>2.0 then issue a warning
 bWarning := NOT bEnable AND axisRef.NcToPlc.ActVelo>2.0;
 
 // deactivate limit switches on homing

@@ -18,7 +18,7 @@ VAR
 
 	InDigitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
 	InDiagnostic	  AT%I*	: UDINT;	// diagnostic number
-	InTorque	 	  AT%I*	: INT;		// derotator torque feedback
+	InTorque	 	  AT%I*	: INT;		// torque feedback of the drive in 0.1 % (fTorque = InTorque / 10)
 	IbSTO		  	  AT%I*	: BOOL;		// STO state of the drive: linked and shown in the Safety visualisation of MONETS/MONETN, not used by the axis logic
 
 	fbAxisCalibration		: MC_SetPosition;
@@ -31,7 +31,7 @@ VAR
 	fbReadParameter		: MC_ReadParameter;
 	bGetLastPosition		: BOOL := TRUE;
 	
-	calibrationEvent		: FB_Eventlog;
+	calibrationEvent		: FB_EventLog;
 	fTorque			: REAL;	// percentage of the derotator torque
 	torqueWarning			: FB_EventLog;	
 

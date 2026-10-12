@@ -8,13 +8,13 @@ VAR_INPUT
 	bManualSuction		: BOOL;				// manual override to start the suction pump
 	bManualPumpStop		: BOOL;				// manual override to stop the pump
 	bBrakeClearing		: BOOL;				// external clearing for brakes
-	bAzimutLimitSwitch	: BOOL;				// external signal for azimuth limit switch
+	bAzimuthLimitSwitch	: BOOL;				// external signal for azimuth limit switch
 	nMinPanLevel		: INT := 0;			// minimum oil level from sensor
 	nMaxPanLevel		: INT := 16383;		// maximum oil level from sensor
 	fMinPanPercent		: REAL := 0;		// oil level percentage to be seen as empty
 	fMaxPanPercent		: REAL := 90;		// oil level percentage to be seen as full
 	bOpenBrake			: BOOL := FALSE;	// command to open the brake
-	bCloseBrake			: BOOL;				// command to open the brake
+	bCloseBrake			: BOOL;				// command to close the brake
 	fTelemetryInterval	: TIME := T#5S;		// publish at least this often, also without a change (#19)
 END_VAR
 VAR_OUTPUT
@@ -164,7 +164,7 @@ tonBrakeOpenDelay(
 		
 rsBrakeState(
 	SET    := tonBrakeOpenDelay.Q AND bOpenBrake AND bBrakeClearing,
-	RESET1 := bAzimutLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR tonPressureLossDelay.Q OR NOT bBrakeClearing,
+	RESET1 := bAzimuthLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR tonPressureLossDelay.Q OR NOT bBrakeClearing,
 	Q1     => ObBrakeAzEl);
 
 // signal that the brake is open after one second
