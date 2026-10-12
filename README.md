@@ -73,7 +73,9 @@ implements the `I_Axis` interface. Common features:
   the derotator has an absolute encoder and only gets the calibrated flag
   (`MC_ForceCalibration`, no motion, position unchanged, `fCalibPosition` ignored);
   the focus (incremental encoder) takes the stored last position with `MC_Direct`
-  (no motion) or, without one, homes onto the cam at `fHomingPosition`. After an SoE reset the axis
+  (no motion) or, without one, homes onto the cam at `fHomingPosition`. The stored position is also written to
+  disk (`FB_WritePersistentData`, port `nPersistentAdsPort` = 851) after it changed, at rest, at most once a
+  minute, so an unclean power-off restores the last position written, not the one of the last clean shutdown (#8). After an SoE reset the axis
   must fully re-home.
 - **No position restore** — azimuth and elevation home on their cam at every start. A restore with
   `MC_SetPosition` was removed (#7): it most likely never set `Calibrated`, and a mount moved while switched off
