@@ -42,7 +42,8 @@ properties say so.
 ## Checks
 
 - CI: TcBuild of HalfBROT.
-- Hardware (#59): with the derotator calibrated and at rest, set `DerotatorControl.fMaxPosition` over ADS just
-  below the current position: one stop (`bStopAxis` rises once, not repeatedly), then a `MoveTo` to a position
+- Hardware (#59): with the derotator calibrated and at rest, **force** `DerotatorControl.fMaxPosition` in XAE just
+  below the current position (writing it over ADS does not hold: `MAIN` passes `fMaxPosition` in the call every
+  cycle, found 2026-10-12): one stop (`bStopAxis` rises once, not repeatedly), then a `MoveTo` to a position
   inside the range runs. Restore `fMaxPosition`. Optionally the same before homing (PLC restart with the limit
   set): the derotator is homed (`Calibrated`) after the single stop.
