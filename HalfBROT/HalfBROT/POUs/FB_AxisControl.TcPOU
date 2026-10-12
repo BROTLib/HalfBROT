@@ -21,15 +21,12 @@ VAR
 	InTorque	 	  AT%I*	: INT;		// torque feedback of the drive in 0.1 % (fTorque = InTorque / 10)
 	IbSTO		  	  AT%I*	: BOOL;		// STO state of the drive: linked and shown in the Safety visualisation of MONETS/MONETN, not used by the axis logic
 
-	fbAxisCalibration		: MC_SetPosition;
-
 	axisEvent			: FB_EventLog;
 	diagnosticEvent		: FB_EventLog;
 	
 	bDiagnosticError		: BOOL;
 	
 	fbReadParameter		: MC_ReadParameter;
-	bGetLastPosition		: BOOL := TRUE;
 	
 	calibrationEvent		: FB_EventLog;
 	fTorque			: REAL;	// percentage of the derotator torque
@@ -41,33 +38,10 @@ VAR
 	bSoEResetFailed			: BOOL;		// last SoE reset failed (cleared when the next one starts)
 	sSoEResetMessage		: STRING(255);
 	soeResetEvent			: FB_EventLog;
-END_VAR
-VAR PERSISTENT
-	fLastPosition			: LREAL := -1.0;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Method Name="_RestoreLastPosition" Id="{6ef50641-e714-41a9-b661-7e8cde077d3a}">
-      <Declaration><![CDATA[// Re-apply the persistent last position after a restart (MC_SetPosition), and track it while calibrated.
-// Called every cycle by the axis blocks that restore their position (azimuth, elevation). Open points: #7.
-METHOD PROTECTED _RestoreLastPosition
-]]></Declaration>
-      <Implementation>
-        <ST><![CDATA[fbAxisCalibration(
-	Axis 		:= axisRef,
-	Execute 	:= bGetLastPosition AND fLastPosition>=0.0 AND NOT bCalibrated,
-	Position 	:= fLastPosition);
-
-IF fbAxisCalibration.Done THEN
-	bGetLastPosition := FALSE;
-END_IF
-
-IF bCalibrated THEN
-	fLastPosition := fActualPosition;
-END_IF]]></ST>
-      </Implementation>
-    </Method>
     <Method Name="_SoEReset" Id="{cd368f17-00a6-4e0c-8d56-6282f98096bc}">
       <Declaration><![CDATA[// Diagnostic (SoE) reset of the drive, requested with bSoEReset; call every cycle (#14).
 // FB_SoEReset has no Done: the reset worked when Busy was TRUE and dropped without Error. On success the
@@ -85,7 +59,6 @@ tonSoEResetWatchdog(IN := nSoEResetStep <> 0, PT := T#15S);
 CASE nSoEResetStep OF
 0:	// idle
 	IF bSoEReset THEN
-		fLastPosition := -1.0;		// a drive reset loses the position: home again, no restore
 		bSoEResetFailed := FALSE;
 		fbSoEReset(Axis := axisRef, Execute := FALSE);	// the next call is a rising edge
 		nSoEResetStep := 1;

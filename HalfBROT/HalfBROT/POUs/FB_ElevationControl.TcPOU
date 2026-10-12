@@ -115,9 +115,6 @@ IF inDiagnostic < 16#D012 AND inDiagnostic > 16#D014 THEN
 	nErrorID := inDiagnostic;
 END_IF
 
-// perform a recalibration on the last known position
-_RestoreLastPosition();
-
 // diagnostic reset of the drive on bSoEReset
 _SoEReset(sAxis := 'Elevation');
 

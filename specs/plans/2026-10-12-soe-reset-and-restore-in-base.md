@@ -3,6 +3,10 @@
 **Status: implemented on `develop` (see the PR linked from #14), not run on a PLC or a telescope.** Built by CI
 (TcBuild) only. Hardware check: separate issue (linked from #14).
 
+> **Update 2026-10-12:** `_RestoreLastPosition` was removed again (#7, see
+> [2026-10-12-remove-axis-position-restore.md](2026-10-12-remove-axis-position-restore.md)); `_SoEReset` no longer
+> sets `fLastPosition`. The rest of this plan stands.
+
 ## Problem
 
 `FB_AzimuthControl`, `FB_ElevationControl` and `FB_DerotatorControl` each carry their own copy of the SoE
