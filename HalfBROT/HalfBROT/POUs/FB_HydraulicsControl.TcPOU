@@ -15,6 +15,7 @@ VAR_INPUT
 	fMaxPanPercent		: REAL := 90;		// oil level percentage to be seen as full
 	bOpenBrake			: BOOL := FALSE;	// command to open the brake
 	bCloseBrake			: BOOL;				// command to open the brake
+	fTelemetryInterval	: TIME := T#5S;		// publish at least this often, also without a change (#19)
 END_VAR
 VAR_OUTPUT
 	bBrakeOpen			: BOOL;				// status of the brake: is the brake open?
@@ -71,7 +72,10 @@ VAR
 	srSuctionTrigger		: SR;				// trigger for suction pump
 	tonHydraulicsOffTimer	: TON  := (PT := T#300S);	// timer to shut off hydraulics after break was closed
 	fOilLevel			: REAL;
-	fLastOilLevel		: REAL;
+	fLastOilLevel		: REAL;				// oil level of the last publish
+	tonComm				: TON;				// time since the last publish, periodic publish (#19)
+	tonPublishHoldoff	: TON;				// at most one publish per second (#19)
+	bPublishPending		: BOOL;				// a publish is requested but not sent yet
 	hydraulicsLog,
 	pumpLog,
 	reserveLog,
@@ -222,15 +226,22 @@ statusWord.10 := bSuctionRunning;
 statusWord.11 := bOilPanMaximum;
 statusWord.12 := ObOilPumpEnable;
 statusWord.13 := ObOilSuctionEnable;
-IF ABS(fLastOilLevel - fOilLevel) > 5 THEN
-	statusWord.15 := TRUE;
-	fLastOilLevel := fOilLevel;
-ELSE
-	statusWord.15 := FALSE;
+
+// Publish is not retried (FB_Comm_MQTT_Influx, bQueue FALSE), so publish on a change AND every
+// fTelemetryInterval: a dropped message recovers within the interval. At most once per second, so contact
+// bounce or level noise does not send a burst per cycle (#19). No comm assigned: nothing to publish to (#16).
+tonComm(IN := TRUE, PT := fTelemetryInterval);
+tonPublishHoldoff(IN := TRUE, PT := T#1S);
+IF statusWord <> LastStatus OR ABS(fLastOilLevel - fOilLevel) > 5 OR tonComm.Q THEN
+	bPublishPending := TRUE;
 END_IF
 
-IF statusWord<>LastStatus AND fbComm <> 0 THEN // publish on change; no comm assigned: nothing to publish to (#16)
+IF bPublishPending AND tonPublishHoldoff.Q AND fbComm <> 0 THEN
+	bPublishPending := FALSE;
 	LastStatus := statusWord;
+	fLastOilLevel := fOilLevel;
+	tonComm(IN := FALSE);
+	tonPublishHoldoff(IN := FALSE);
 	fbComm.Publish('hydraulics', 'base', 'OilLow',		BOOL_TO_STRING(bOilLow));
 	fbComm.Publish('hydraulics', 'base', 'OilHigh',		BOOL_TO_STRING(bOilHigh));
 	fbComm.Publish('hydraulics', 'base', 'OilMaximum',	BOOL_TO_STRING(bOilPanMaximum));
