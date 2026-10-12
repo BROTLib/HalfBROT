@@ -25,4 +25,4 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
 - [2026-10-12-persistent-write-focus-position.md](2026-10-12-persistent-write-focus-position.md): #8, write the
   focus's persistent `fLastPosition` to disk with `FB_WritePersistentData` (`SPDM_2PASS`, port 851) after it changed,
   at rest, at most once a minute, so an unclean power-off does not restore a stale position with `MC_Direct`.
-  **proposed**, nothing implemented.
+  **implemented**, CI build only, hardware check in #59.

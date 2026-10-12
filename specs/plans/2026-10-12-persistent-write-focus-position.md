@@ -1,6 +1,7 @@
 # Write the stored focus position to disk while running (#8)
 
-**Status: proposed.** Nothing implemented. Facts below were read from HalfBROT `develop` @ `68faea3` and the
+**Status: implemented on `develop` (see the PR linked from #8), not run on a PLC or a telescope.** Built by CI
+(TcBuild) only; hardware check: item 5 of #59. Facts below were read from HalfBROT `develop` @ `68faea3` and the
 consumers' working trees on 2026-10-12 (MONETS `develop` @ `5bebeb3`, MONETN `develop` @ `5f94f89`, MONETcommon
 `develop` @ `38b5896`, BROTLib `develop` @ `6d6035d`), plus the Beckhoff Infosys pages and the installed
 `Tc2_Utilities` 3.9.2.0 named below.
