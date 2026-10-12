@@ -103,31 +103,11 @@ IF inDiagnostic < 16#D012 AND inDiagnostic > 16#D014 THEN
 	nErrorID := inDiagnostic;
 END_IF
 
-fbAxisCalibration(
-	Axis 		:= axisRef,
-	Execute 	:= bGetLastPosition AND fLastPosition>=0.0 AND NOT bCalibrated,
-	Position 	:= fLastPosition);
+// perform a recalibration on the last known position
+_RestoreLastPosition();
 
-IF fbAxisCalibration.Done THEN
-	bGetLastPosition := FALSE;
-END_IF
-
-IF bCalibrated THEN
-	fLastPosition := fActualPosition;
-END_IF
-
-IF bSoEReset THEN
-	fLastPosition := -1.0;
-	fbSoEReset(
-		Axis := axisRef,
-		Execute := TRUE,
-		Timeout := DEFAULT_ADS_TIMEOUT);
- 	IF NOT fbSoEReset.Busy THEN
-		fbSoEReset(Axis := axisRef, Execute := FALSE);
-		bSoEReset := FALSE;
-		bReset := TRUE;
-	END_IF
-END_IF 
+// diagnostic reset of the drive on bSoEReset
+_SoEReset(sAxis := 'Elevation');
 
 tonReadyDelay(IN :=  fbBrake.BrakeOpen, PT := T#6000MS, Q=> bReady);
 

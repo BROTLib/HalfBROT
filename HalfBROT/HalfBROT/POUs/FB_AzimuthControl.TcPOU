@@ -44,18 +44,7 @@ IF homeDelay.Q THEN
 END_IF
 
 // perform a recalibration on the last known position
-fbAxisCalibration(
-	Axis 		:= axisRef,
-	Execute 	:= bGetLastPosition AND fLastPosition>=0.0 AND NOT bCalibrated,
-	Position 	:= fLastPosition);
-
-IF fbAxisCalibration.Done THEN
-	bGetLastPosition := FALSE;
-END_IF
-
-IF bCalibrated THEN
-	fLastPosition := fActualPosition;
-END_IF
+_RestoreLastPosition();
 
 // enable the azimuth if not moved by the power chain. Sorry for the hack
 tonRestTimer(IN := bBrakeOpen AND (ABS(axisRef.NcToPlc.ActVelo) < 0.01), PT := T#2S);
@@ -87,19 +76,8 @@ fbAxis(
 	ErrorID 		=> nErrorID,
 	AxisRef 		:= axisRef);
 
-IF bSoEReset THEN
-	fLastPosition := -1.0;
-	fbSoEReset(
-		Axis 	:= axisRef,
-		Execute := TRUE,
-		Timeout := DEFAULT_ADS_TIMEOUT);
- 	IF fbSoEReset.Busy THEN
-		fbSoEReset(Axis := axisRef, Execute := FALSE);
-	ELSE
-		bSoEReset := FALSE;
-		bReset := TRUE;
-	END_IF
-END_IF 
+// diagnostic reset of the drive on bSoEReset
+_SoEReset(sAxis := 'Azimuth');
 
 IF fbAxis.MoveDone THEN
 	bMoveAxis := FALSE;
