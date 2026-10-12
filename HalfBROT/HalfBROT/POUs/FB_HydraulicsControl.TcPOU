@@ -70,7 +70,6 @@ VAR
 	srErrorState			: SR;				// error state (set dominant)
 	srSuctionTrigger		: SR;				// trigger for suction pump
 	tonHydraulicsOffTimer	: TON  := (PT := T#300S);	// timer to shut off hydraulics after break was closed
-	fbOffTrigger			: F_TRIG;
 	fOilLevel			: REAL;
 	fLastOilLevel		: REAL;
 	hydraulicsLog,
@@ -178,7 +177,6 @@ END_IF
 
 // turn off the hydraulics if the brake is closed and the pump is still running
 tonHydraulicsOffTimer(IN := bBrakeClosed AND bEnable );
-fbOffTrigger(CLK := tonHydraulicsOffTimer.Q);
 IF tonHydraulicsOffTimer.Q THEN
 	bEnable := FALSE;
 END_IF

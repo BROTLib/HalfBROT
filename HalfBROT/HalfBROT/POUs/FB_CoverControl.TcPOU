@@ -14,7 +14,6 @@ VAR_OUTPUT
 	bAllOpen			: BOOL;		// all covers are open
 	bAllClosed			: BOOL;		// all covers are closed
 	bError				: BOOL;		// any cover-driver reports an error
-	bWarning			: BOOL;		// warning state of the DC drives
 END_VAR
 VAR
 	fbComm				: I_Comm;
@@ -43,7 +42,6 @@ VAR
 	fbCoversOpenedEvent		: FB_EventLog; // log if covers are open
 	fbCoversClosedEvent		: FB_EventLog; // log if covers are closed
 	fbCoversErrorEvent		: FB_EventLog; // Event log for a generic drive error
-	fbCoversWarningEvent	: FB_EventLog; // Event log for a generic drive warning
 	
 	i	: UINT;
 END_VAR
@@ -133,11 +131,6 @@ END_IF
 fbCoversErrorEvent(
 	Trigger 	:= bError, 
    	Level   	:= ADSLOG_MSGTYPE_ERROR, 
-	comm 		:= fbComm);
-
-fbCoversWarningEvent(
-	Trigger 	:= bWarning, 
-	Level   	:= ADSLOG_MSGTYPE_WARN, 
 	comm 		:= fbComm);
 
 // raise an error, if both opened and closed signals are activated

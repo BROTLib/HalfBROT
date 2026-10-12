@@ -148,8 +148,6 @@ END_IF
 
 IF bError THEN
 	fLastPosition := -1.0;
-	//focusAxis.calibrated := FALSE;
-	bCalibrated := FALSE;
 END_IF
 
 bCalibrated := fbAxis.calibrated;

@@ -9,7 +9,6 @@ VAR_OUTPUT
 END_VAR
 VAR
 	tonReadyDelay		: TON;		// delay until commutator angle is measured
-	homeDelay			: FB_TONTP;
 	tonTorqueError		: TON := (PT := T#3S);
 	tonRestTimer			: TON;
 	bAtRest				: BOOL;
@@ -36,11 +35,6 @@ END_IF
 	
 IF bHomeAxis THEN
 	fPosition := fCalibPosition;
-END_IF
-
-IF homeDelay.Q THEN
-	fPosition := fCalibPosition;
-	THIS^.MoveAxis := TRUE;
 END_IF
 
 // perform a recalibration on the last known position
