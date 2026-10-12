@@ -55,7 +55,6 @@ HalfBROT/
 | `FB_CoverControl` | Three mirror covers, sequenced open/close |
 | `FB_HydraulicsControl` | Hydraulic pump/brake system, oil monitoring, watchdog timers |
 | `FB_PendantControl` | Manual hand pendant (BCD selector, 15 functions) |
-| `FB_TelescopeAuxiliary` | Mirror temperature sensors (BT9/BT10) |
 
 ### Axis control
 
