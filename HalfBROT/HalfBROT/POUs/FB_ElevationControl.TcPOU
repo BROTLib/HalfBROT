@@ -53,7 +53,9 @@ IF enableTrigger.Q AND bConnected THEN
 	fbBrake.CloseBrake();
 END_IF
 
-IF fbAxis.Calibrated OR bError THEN
+// keep the homing overrides (AcceptBlockedDriveSignal, positive limit) until the homing has finished: the NC sets
+// Homed (Calibrated, HomeDone) before the homing procedure is done, and switching them off then restarts it
+IF (fbAxis.Calibrated AND NOT fbAxis.HomeActive) OR bError THEN
 	bHomeAxis := FALSE;
 END_IF
 
@@ -97,7 +99,7 @@ IF fbAxis.MoveDone THEN
 	bMoveAxis := FALSE;
 END_IF
 
-IF fbAxis.HomeDone THEN
+IF fbAxis.HomeDone AND NOT fbAxis.HomeActive THEN
 	bHomeAxis := FALSE;
 END_IF
 	
