@@ -33,7 +33,8 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
 - [2026-10-12-drive-diagnostic-check.md](2026-10-12-drive-diagnostic-check.md): #2, drive diagnostic check once in
   `FB_AxisControl._CheckDiagnostic`: AX5000 F errors -> ERROR event and `nErrorID`, E warnings (not ECD0/ECD1) -> WARN
   event only; derotator SoE reset on a reset at most once per drive error (the old line would loop). MONET/S derotator
-  diagnostic is linked to the other (apparently unused) drive channel. **proposed**, Q1/Q2 recommendations for Tim.
+  diagnostic is linked to the other (apparently unused) drive channel. **implemented** (PR open, not merged; Q1/Q2
+  as recommended, decided 2026-10-12), CI build only, release waits for MONETS #19.
 - [2026-10-12-cover-control-single-copy.md](2026-10-12-cover-control-single-copy.md): #4/#29, one cover block:
   `FB_CoverControl` keeps its name and gets MONETcommon's `FB_MonetCoverControl` logic 1:1 (sequence by limit switches,
   timeout as input `tMoveTimeout`, 1 s reversal dead time, error stops all) plus `Stop()`; MONETcommon drops its copy,

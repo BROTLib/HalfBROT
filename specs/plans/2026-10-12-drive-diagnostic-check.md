@@ -1,6 +1,6 @@
 # Drive diagnostic check: one method, errors and warnings, SoE reset on reset once per error (#2)
 
-**Status: proposed.** Read from HalfBROT `develop` at `86bfee6` (BROTLib `6d6035d`, MONETcommon `origin/develop`
+**Status: implemented in the PR linked from #2 (CI build only), not merged; the release waits for MONETS #19 and the checks below.** Read from HalfBROT `develop` at `86bfee6` (BROTLib `6d6035d`, MONETcommon `origin/develop`
 `38b5896`, MONETS `origin/develop` `67e683d`, MONETN `origin/develop` `5f94f89`). Nothing implemented, nothing
 run on a PLC or a telescope. Q1 and Q2 below are recommendations for Tim to decide.
 
