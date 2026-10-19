@@ -151,7 +151,8 @@ IF fbAxis.MoveDone THEN
 	bMoveAxis := FALSE;
 END_IF
 
-IF fbAxis.HomeDone THEN
+// only when the homing has finished: the NC sets Homed (HomeDone) before the homing procedure is done
+IF fbAxis.HomeDone AND NOT fbAxis.HomeActive THEN
 	bHomeAxis := FALSE;
 	bEnable := FALSE;
 	fLastPosition := fPosition;
@@ -162,7 +163,7 @@ IF fbAxis.ResetDone THEN
 	bReset := FALSE;
 END_IF
 
-IF fbAxis.calibrated OR bError THEN
+IF (fbAxis.calibrated AND NOT fbAxis.HomeActive) OR bError THEN
 	bHomeAxis := FALSE;
 END_IF
 
