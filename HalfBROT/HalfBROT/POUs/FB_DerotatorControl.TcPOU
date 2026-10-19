@@ -91,12 +91,8 @@ IF fbAxis.StopDone THEN
 	bStopAxis := FALSE;
 END_IF
 
-bDiagnosticError := FALSE;
-IF inDiagnostic < 16#D012 AND inDiagnostic > 16#D014 THEN
-	bDiagnosticError := TRUE;
-	nErrorID := inDiagnostic;
-	bSoeReset := bReset;
-END_IF
+// drive diagnostic (#2); a reset while the drive shows an error also resets the drive (SoE), once per error
+_CheckDiagnostic(sAxis := 'Derotator', bSoEResetOnReset := TRUE);
 
 bReady := fbAxis.Ready;
 
@@ -124,13 +120,6 @@ axisEvent(
 	OnMessage 		:= NCError_TO_STRING(nErrorID),
 	OffMEssage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
-	Comm			:= fbComm);
-	
-diagnosticEvent(	
-	Trigger 		:= bDiagnosticError, 
-	Level 			:= ADSLOG_MSGTYPE_ERROR,
-	FormatString	:= 'Derotator Axis Diagnostic Error: %s',
-	OnMessage 		:= NCError_TO_STRING(inDiagnostic),
 	Comm			:= fbComm);
 	
 TorqueWarning(	

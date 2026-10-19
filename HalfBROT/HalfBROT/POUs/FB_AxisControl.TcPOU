@@ -26,6 +26,17 @@ VAR
 	
 	bDiagnosticError		: BOOL;
 	
+	// drive diagnostic (AX5000 S-0-0390 "Diagnostic number" in InDiagnostic), see _CheckDiagnostic (#2)
+	nDiagnosticCode			: UDINT;		// InDiagnostic AND 16#FFFF: 16#Fxxx error, 16#Exxx warning, 16#Dxxx information
+	bDiagnosticWarning		: BOOL;			// drive warning (16#Exxx), except the limit switch warnings ECD0/ECD1
+	sDiagnosticText			: STRING(255);	// code and text for the events, e.g. 'F324: Excessive position command value deviation'
+	nDiagnosticTextCode		: UDINT;		// code that sDiagnosticText was built for
+	tonDiagnosticWarning	: TON;			// a warning must stand 2 s before it is logged
+	diagnosticWarningEvent	: FB_EventLog;
+	resetTrigger			: R_TRIG;		// rising edge of a reset request (automatic SoE reset)
+	tonDiagnosticClear		: TON;			// drive free of errors for 10 s: re-arms the automatic SoE reset
+	bAutoSoEResetArmed		: BOOL := TRUE;	// one automatic SoE reset per drive error
+	
 	fbReadParameter		: MC_ReadParameter;
 	
 	calibrationEvent		: FB_EventLog;
@@ -42,6 +53,71 @@ END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
+    <Method Name="_CheckDiagnostic" Id="{97428712-b82f-4bd2-9913-b20b307cda8e}">
+      <Declaration><![CDATA[// Drive diagnostic (AX5000 S-0-0390 in InDiagnostic), call every cycle after fbAxis(...) and before axisEvent (#2).
+// F (error): bDiagnosticError, nErrorID := code, ERROR event; the code overrides fbAxis's ErrorID while it lasts.
+// E (warning, except the limit switch warnings ECD0/ECD1): WARN event after 2 s, nErrorID untouched.
+// D (information, incl. D012..D015) and 0 (drive not up yet): nothing.
+// bSoEResetOnReset: a reset request (rising bReset) while the drive shows an error also resets the drive (SoE,
+// via bSoEReset/_SoEReset), at most once per drive error; re-armed after 10 s without a drive error, so the
+// bReset that _SoEReset sets after the drive reset cannot start another one.
+METHOD PROTECTED _CheckDiagnostic
+VAR_INPUT
+	sAxis				: STRING;	// axis name for the event log
+	bSoEResetOnReset	: BOOL;		// derotator: SoE reset on a reset while the drive shows an error
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nDiagnosticCode := InDiagnostic AND 16#FFFF;
+bDiagnosticError := nDiagnosticCode >= 16#F000;
+bDiagnosticWarning := nDiagnosticCode >= 16#E000 AND nDiagnosticCode < 16#F000
+	AND nDiagnosticCode <> 16#ECD0 AND nDiagnosticCode <> 16#ECD1;
+tonDiagnosticWarning(IN := bDiagnosticWarning, PT := T#2S);
+
+IF bDiagnosticError THEN
+	nErrorID := nDiagnosticCode;
+END_IF
+
+// event text, rebuilt only when the code changes: 'F324: Excessive position command value deviation', or only
+// 'F415' when NCError_TO_STRING does not know the number (it returns the hex code then)
+IF (bDiagnosticError OR bDiagnosticWarning) AND nDiagnosticCode <> nDiagnosticTextCode THEN
+	sDiagnosticText := DWORD_TO_HEXSTR(nDiagnosticCode, 4, FALSE);
+	IF NCError_TO_STRING(nDiagnosticCode) <> sDiagnosticText THEN
+		sDiagnosticText := CONCAT(CONCAT(sDiagnosticText, ': '), NCError_TO_STRING(nDiagnosticCode));
+	END_IF
+	nDiagnosticTextCode := nDiagnosticCode;
+END_IF
+
+// automatic SoE reset. ResetDone covers an MC_Reset that finished in the cycle bReset rose (bReset is already
+// FALSE again here then).
+resetTrigger(CLK := bReset OR fbAxis.ResetDone);
+tonDiagnosticClear(IN := NOT bDiagnosticError, PT := T#10S);
+IF tonDiagnosticClear.Q THEN
+	bAutoSoEResetArmed := TRUE;
+END_IF
+IF bSoEResetOnReset AND bDiagnosticError AND resetTrigger.Q AND bAutoSoEResetArmed AND nSoEResetStep = 0 THEN
+	bSoEReset := TRUE;
+	bAutoSoEResetArmed := FALSE;
+END_IF
+
+diagnosticEvent(
+	Trigger 		:= bDiagnosticError,
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	FormatString 	:= CONCAT(sAxis, ' drive error: %s'),
+	OnMessage 		:= sDiagnosticText,
+	OffMessage 		:= 'cleared',
+	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
+	Comm 			:= fbComm);
+
+diagnosticWarningEvent(
+	Trigger 		:= tonDiagnosticWarning.Q,
+	Level 			:= ADSLOG_MSGTYPE_WARN,
+	FormatString 	:= CONCAT(sAxis, ' drive warning: %s'),
+	OnMessage 		:= sDiagnosticText,
+	Comm 			:= fbComm);
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="_SoEReset" Id="{cd368f17-00a6-4e0c-8d56-6282f98096bc}">
       <Declaration><![CDATA[// Diagnostic (SoE) reset of the drive, requested with bSoEReset; call every cycle (#14).
 // FB_SoEReset has no Done: the reset worked when Busy was TRUE and dropped without Error. On success the
