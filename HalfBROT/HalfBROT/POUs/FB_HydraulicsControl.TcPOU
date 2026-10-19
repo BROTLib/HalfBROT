@@ -8,13 +8,15 @@ VAR_INPUT
 	bManualSuction		: BOOL;				// manual override to start the suction pump
 	bManualPumpStop		: BOOL;				// manual override to stop the pump
 	bBrakeClearing		: BOOL;				// external clearing for brakes
-	bAzimutLimitSwitch	: BOOL;				// external signal for azimuth limit switch
+	bAzimuthLimitSwitch	: BOOL;				// external signal for azimuth limit switch
 	nMinPanLevel		: INT := 0;			// minimum oil level from sensor
 	nMaxPanLevel		: INT := 16383;		// maximum oil level from sensor
 	fMinPanPercent		: REAL := 0;		// oil level percentage to be seen as empty
 	fMaxPanPercent		: REAL := 90;		// oil level percentage to be seen as full
 	bOpenBrake			: BOOL := FALSE;	// command to open the brake
-	bCloseBrake			: BOOL;				// command to open the brake
+	bCloseBrake			: BOOL;				// command to close the brake
+	fTelemetryInterval	: TIME := T#5S;		// publish at least this often, also without a change (#19)
+	tHydraulicsWatchdog	: TIME := T#140S;	// main pump running this long without the suction pump running = bHydraulicsFailure (#10)
 END_VAR
 VAR_OUTPUT
 	bBrakeOpen			: BOOL;				// status of the brake: is the brake open?
@@ -70,9 +72,13 @@ VAR
 	srErrorState			: SR;				// error state (set dominant)
 	srSuctionTrigger		: SR;				// trigger for suction pump
 	tonHydraulicsOffTimer	: TON  := (PT := T#300S);	// timer to shut off hydraulics after break was closed
-	fbOffTrigger			: F_TRIG;
 	fOilLevel			: REAL;
-	fLastOilLevel		: REAL;
+	fLastOilLevel		: REAL;				// oil level of the last publish
+	rtHydraulicsFailure	: R_TRIG;			// builds the failure message once, when the watchdog trips (#10)
+	sHydraulicsFailureMessage	: STRING(255) := 'FAILURE';
+	tonComm				: TON;				// time since the last publish, periodic publish (#19)
+	tonPublishHoldoff	: TON;				// at most one publish per second (#19)
+	bPublishPending		: BOOL;				// a publish is requested but not sent yet
 	hydraulicsLog,
 	pumpLog,
 	reserveLog,
@@ -161,7 +167,7 @@ tonBrakeOpenDelay(
 		
 rsBrakeState(
 	SET    := tonBrakeOpenDelay.Q AND bOpenBrake AND bBrakeClearing,
-	RESET1 := bAzimutLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR tonPressureLossDelay.Q OR NOT bBrakeClearing,
+	RESET1 := bAzimuthLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR tonPressureLossDelay.Q OR NOT bBrakeClearing,
 	Q1     => ObBrakeAzEl);
 
 // signal that the brake is open after one second
@@ -178,7 +184,6 @@ END_IF
 
 // turn off the hydraulics if the brake is closed and the pump is still running
 tonHydraulicsOffTimer(IN := bBrakeClosed AND bEnable );
-fbOffTrigger(CLK := tonHydraulicsOffTimer.Q);
 IF tonHydraulicsOffTimer.Q THEN
 	bEnable := FALSE;
 END_IF
@@ -199,10 +204,10 @@ tonPressureWatchdog(
 	PT := T#30S,
 	Q  => bPressureFailure);
 // inherited unchanged from the STELLA1 control, purpose not documented (see #10): error if the main pump
-// runs for 140 s without the suction pump running
+// runs for tHydraulicsWatchdog (140 s by default) without the suction pump running
 tonHydraulicsWatchdog(
 	IN := bPumpRunning AND NOT bSuctionRunning,
-	PT := T#140S,
+	PT := tHydraulicsWatchdog,
 	Q  => bHydraulicsFailure);
 
 tonMainPumpWatchdog(
@@ -224,15 +229,22 @@ statusWord.10 := bSuctionRunning;
 statusWord.11 := bOilPanMaximum;
 statusWord.12 := ObOilPumpEnable;
 statusWord.13 := ObOilSuctionEnable;
-IF ABS(fLastOilLevel - fOilLevel) > 5 THEN
-	statusWord.15 := TRUE;
-	fLastOilLevel := fOilLevel;
-ELSE
-	statusWord.15 := FALSE;
+
+// Publish is not retried (FB_Comm_MQTT_Influx, bQueue FALSE), so publish on a change AND every
+// fTelemetryInterval: a dropped message recovers within the interval. At most once per second, so contact
+// bounce or level noise does not send a burst per cycle (#19). No comm assigned: nothing to publish to (#16).
+tonComm(IN := TRUE, PT := fTelemetryInterval);
+tonPublishHoldoff(IN := TRUE, PT := T#1S);
+IF statusWord <> LastStatus OR ABS(fLastOilLevel - fOilLevel) > 5 OR tonComm.Q THEN
+	bPublishPending := TRUE;
 END_IF
 
-IF statusWord<>LastStatus THEN // publish new payload every second
+IF bPublishPending AND tonPublishHoldoff.Q AND fbComm <> 0 THEN
+	bPublishPending := FALSE;
 	LastStatus := statusWord;
+	fLastOilLevel := fOilLevel;
+	tonComm(IN := FALSE);
+	tonPublishHoldoff(IN := FALSE);
 	fbComm.Publish('hydraulics', 'base', 'OilLow',		BOOL_TO_STRING(bOilLow));
 	fbComm.Publish('hydraulics', 'base', 'OilHigh',		BOOL_TO_STRING(bOilHigh));
 	fbComm.Publish('hydraulics', 'base', 'OilMaximum',	BOOL_TO_STRING(bOilPanMaximum));
@@ -325,11 +337,17 @@ suctionLog(
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
 	comm 			:= fbComm);
 
+// the message carries the oil level and the max switch at the moment of the trip, to tell a pan that never filled
+// from a suction that was never requested although it was full (#10)
+rtHydraulicsFailure(CLK := bHydraulicsFailure);
+IF rtHydraulicsFailure.Q THEN
+	sHydraulicsFailureMessage := CONCAT(CONCAT(CONCAT('FAILURE (oil level ', LREAL_TO_FMTSTR(fOilLevel, 1, TRUE)), CONCAT(' %, max switch ', BOOL_TO_STRING(bOilPanMaximum))), ')');
+END_IF
 hydraulicsFailureLog(
 	Trigger 		:= bHydraulicsFailure,
 	Level 			:= ADSLOG_MSGTYPE_ERROR,
 	FormatString 	:= 'suction pump while running main pump: %s',
-	OnMessage 		:= 'FAILURE',
+	OnMessage 		:= sHydraulicsFailureMessage,
 	OffMessage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
 	comm 			:= fbComm);

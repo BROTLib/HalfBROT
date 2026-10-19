@@ -13,6 +13,9 @@ VAR_INPUT
 	fTelemetryInterval		: TIME := T#5S;
 	ptFocusDelay			: TIME := T#500MS;
 	ptBrakeDelay			: TIME := T#4S;	
+
+	// ADS port of the PLC runtime whose persistent data are written (#8), 851 = first PLC runtime
+	nPersistentAdsPort		: UINT := 851;
 END_VAR
 VAR_OUTPUT
 	bFocusUnlocked		: BOOL;
@@ -28,11 +31,27 @@ VAR
 	fbAxisEvent			: FB_EventLog;
 	fbCalibrationEvent	: FB_EventLog;
 	eHomingMode			: MC_HOMINGMODE := MC_DefaultHoming;
-	fbSetPosition		: MC_SetPosition;
 	
 	IbLimitNear    AT%I*: BOOL;	// DIN29 3.4
 	IbLimitFar     AT%I*: BOOL;	// DIN30 3.5
 	refAxis			: AXIS_REF;
+END_VAR
+	// write of fLastPosition to disk while running, see _WritePersistentPosition (#8)
+	fbWritePersistent		: FB_WritePersistentData;
+	nPersistStep			: INT;		// 0 idle, 1 started, 2 running, 10 finished
+	bPersistInit			: BOOL;		// fSavedPosition taken in the first cycle
+	fSavedPosition			: LREAL;	// fLastPosition at the last successful write (or as restored)
+	fWritePosition			: LREAL;	// fLastPosition when the running write started
+	bSaveRequested			: BOOL;		// write once after HomeDone
+	tonPersistInterval		: TON;		// rate limit since the last write start
+	tonPersistWatchdog		: TON;		// ends the sequence if BUSY never drops
+	bPersistWriteFailed		: BOOL;		// last write failed (cleared by the next successful one)
+	sPersistWriteMessage	: STRING(255);
+	persistWriteEvent		: FB_EventLog;
+END_VAR
+VAR CONSTANT
+	tPersistMinInterval		: TIME := T#60S;	// at most one write per minute
+	tPersistRetryInterval	: TIME := T#10M;	// after a failed write
 END_VAR
 VAR PERSISTENT
 	fLastPosition		: LREAL := -1.0;
@@ -94,23 +113,23 @@ IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 	END_IF
 END_IF
 
+// The encoder is incremental (reference mark). With a stored position, MC_Direct sets that position and the
+// calibrated flag in one step, without motion; HomeDone only after both. Otherwise cam homing to fHomingPosition.
+// (#18: MC_ForceCalibration only sets the flag, the position came from a parallel MC_SetPosition nobody checked.)
+// fPosition is overwritten so the automatic positioning does not move after homing: a target set before
+// calibration is lost, the caller sets it again once Calibrated.
 IF bHomeAxis THEN
 	IF fLastPosition > 0.0 THEN
-		eHomingMode := MC_ForceCalibration; // MC_Direct
+		eHomingMode := MC_Direct;
 		fPosition := fLastPosition;
-		fbSetPosition.Execute := TRUE;
 	ELSE
 		eHomingMode := MC_DefaultHoming;
 		fPosition := fHomingPosition;
-		fbSetPosition.Execute := FALSE;
 	END_IF
-ELSE
-	fbSetPosition.Execute := FALSE;	
 END_IF
 
 // deactivate limit switches on homing
 MC_SetAcceptBlockedDriveSignal(Axis := refAxis, enable := bHomeAxis);
-fbSetPosition(Axis := refAxis, Position := fLastPosition);
 		
 fbAxis(	
 	enable 			:= bFocusUnlocked,
@@ -132,32 +151,36 @@ IF fbAxis.MoveDone THEN
 	bMoveAxis := FALSE;
 END_IF
 
-IF fbAxis.HomeDone THEN
+// only when the homing has finished: the NC sets Homed (HomeDone) before the homing procedure is done
+IF fbAxis.HomeDone AND NOT fbAxis.HomeActive THEN
 	bHomeAxis := FALSE;
 	bEnable := FALSE;
 	fLastPosition := fPosition;
+	bSaveRequested := TRUE;	// write the new position to disk once (#8)
 END_IF
 	
 IF fbAxis.ResetDone THEN
 	bReset := FALSE;
 END_IF
 
-IF fbAxis.calibrated OR bError THEN
+IF (fbAxis.calibrated AND NOT fbAxis.HomeActive) OR bError THEN
 	bHomeAxis := FALSE;
 END_IF
 
 IF bError THEN
 	fLastPosition := -1.0;
-	//focusAxis.calibrated := FALSE;
-	bCalibrated := FALSE;
 END_IF
 
 bCalibrated := fbAxis.calibrated;
 bReady := fbAxis.Ready AND fbAxis.StandStill OR NOT ObFocusUnlock;
 
+// all writes to fLastPosition of this cycle are done: store it on disk when it changed (#8)
+_WritePersistentPosition();
+
 // send telemetry
-tonComm(IN:=TRUE);
-IF tonComm.Q THEN // publish new payload every 5 seconds
+// PT set in the call: the declaration's initial value is evaluated only once, at init (#19)
+tonComm(IN:=TRUE, PT:=fTelemetryInterval);
+IF tonComm.Q THEN // publish new payload every fTelemetryInterval
 	tonComm(IN:=FALSE);
 	THIS^.SendTelemetry();	
 END_IF
@@ -165,7 +188,7 @@ END_IF
 HandleEvents();]]></ST>
     </Implementation>
     <Method Name="_StartHoming" Id="{d763a0dd-f5c6-4dbb-a6cd-b9a5c12596fe}">
-      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_ForceCalibration to the stored last position if there is one, else cam homing to fHomingPosition (the same choice as eHomingMode in the body).
+      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_Direct to the stored last position if there is one, else cam homing to fHomingPosition (the same choice as eHomingMode in the body).
 METHOD _StartHoming : BOOL
 VAR
 	fReference	: LREAL;	// Home() needs a variable (VAR_IN_OUT CONSTANT)
@@ -190,6 +213,87 @@ METHOD PRIVATE _MigrateLastPosition : BOOL
 	fLastPposition := -1.0;
 	_MigrateLastPosition := TRUE;
 END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_WritePersistentPosition" Id="{7ff5396a-4b4e-4414-9cdc-3e90d704cf61}">
+      <Declaration><![CDATA[// Persistent data are only written on a controlled TwinCAT shutdown, so after an unclean power-off fLastPosition would
+// be many moves old and MC_Direct would calibrate the incremental encoder to it (#8). Write the persistent data
+// (FB_WritePersistentData writes the whole persistent area of the PLC runtime) when fLastPosition changed and the
+// focus is at rest, at most once per tPersistMinInterval. A failed write never affects the focus: one error event,
+// retry after tPersistRetryInterval. State in the FB's VAR (a method's VAR is re-created per call).
+METHOD PRIVATE _WritePersistentPosition : BOOL
+VAR
+	bChanged	: BOOL;
+	bFailed		: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// the restored value is taken as saved, so restoring it does not trigger a write
+IF NOT bPersistInit THEN
+	bPersistInit := TRUE;
+	fSavedPosition := fLastPosition;
+END_IF
+
+tonPersistWatchdog(IN := nPersistStep <> 0, PT := T#15S);
+bFailed := FALSE;
+
+CASE nPersistStep OF
+0:	// idle
+	tonPersistInterval(IN := TRUE, PT := SEL(bPersistWriteFailed, tPersistMinInterval, tPersistRetryInterval));
+	// a change below the positioning tolerance does not matter; the valid/-1 change covers the error case
+	bChanged := ABS(fLastPosition - fSavedPosition) > fTolerance
+		OR ((fLastPosition > 0.0) <> (fSavedPosition > 0.0))
+		OR bSaveRequested;
+	IF bChanged AND NOT ObFocusUnlock AND NOT bHomeAxis AND NOT fbAxis.Busy AND tonPersistInterval.Q THEN
+		fWritePosition := fLastPosition;
+		fbWritePersistent(START := FALSE);	// the next call is a rising edge
+		tonPersistInterval(IN := FALSE);
+		nPersistStep := 1;
+	END_IF
+
+1, 2:	// started, running
+	fbWritePersistent(
+		NETID := '',
+		PORT := nPersistentAdsPort,
+		START := TRUE,
+		TMOUT := DEFAULT_ADS_TIMEOUT,
+		MODE := E_PersistentMode.SPDM_2PASS);
+	IF fbWritePersistent.ERR THEN
+		sPersistWriteMessage := CONCAT(CONCAT('Focus: writing persistent data failed (ADS error ', UDINT_TO_STRING(fbWritePersistent.ERRID)), ')');
+		bFailed := TRUE;
+	ELSIF tonPersistWatchdog.Q THEN
+		sPersistWriteMessage := 'Focus: writing persistent data timed out';
+		bFailed := TRUE;
+	ELSIF fbWritePersistent.BUSY THEN
+		nPersistStep := 2;
+	ELSIF nPersistStep = 2 THEN
+		nPersistStep := 10;
+	END_IF
+
+10:	// finished
+	fbWritePersistent(START := FALSE);
+	fSavedPosition := fWritePosition;
+	bSaveRequested := FALSE;
+	bPersistWriteFailed := FALSE;
+	nPersistStep := 0;
+END_CASE
+
+IF bFailed THEN
+	// fSavedPosition and bSaveRequested stay: the write is tried again, but only after tPersistRetryInterval
+	fbWritePersistent(START := FALSE);
+	bPersistWriteFailed := TRUE;
+	nPersistStep := 0;
+END_IF
+
+persistWriteEvent(
+	Trigger 		:= bPersistWriteFailed,
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	FormatString 	:= '%s',
+	OnMessage 		:= sPersistWriteMessage,
+	OffMessage 		:= 'Focus: persistent data written again',
+	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
+	Comm 			:= fbComm);
 ]]></ST>
       </Implementation>
     </Method>
@@ -244,9 +348,14 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[// > FOCUS
+        <ST><![CDATA[// no comm assigned in FB_Init: nothing to publish to (#16)
+IF fbComm = 0 THEN
+	RETURN;
+END_IF
+// > FOCUS
 // POWER_STATE
-// for now we always return that it's powered on
+// always '1.0': the drive is switched off at rest to engage the brake (tonBrakeDelay), which is not
+// "powered off" for pyobs (#19)
 //IF THIS^.Enable THEN
 fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.POWER_STATE', '1.0');
 //ELSE

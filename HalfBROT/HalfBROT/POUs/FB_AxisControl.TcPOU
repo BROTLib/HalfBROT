@@ -8,7 +8,8 @@ VAR_INPUT
 	bStopAxis				: BOOL;		// stop the Axis
 	fMinPosition			: REAL := 0;
 	fMaxPosition			: REAL := 450.0;
-	fCalibPosition			: LREAL := 45.0; // // current position of the calibration cam
+	fCalibPosition			: LREAL := 45.0; // position of the calibration cam, used by cam homing (elevation, azimuth): set it per telescope.
+											 // Ignored by the derotator (MC_ForceCalibration, absolute encoder) (#17)
 END_VAR
 VAR_OUTPUT
 END_VAR
@@ -17,10 +18,8 @@ VAR
 
 	InDigitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
 	InDiagnostic	  AT%I*	: UDINT;	// diagnostic number
-	InTorque	 	  AT%I*	: INT;		// derotator torque feedback
-	IbSTO		  	  AT%I*	: BOOL;		// STO
-
-	fbAxisCalibration		: MC_SetPosition;
+	InTorque	 	  AT%I*	: INT;		// torque feedback of the drive in 0.1 % (fTorque = InTorque / 10)
+	IbSTO		  	  AT%I*	: BOOL;		// STO state of the drive: linked and shown in the Safety visualisation of MONETS/MONETN, not used by the axis logic
 
 	axisEvent			: FB_EventLog;
 	diagnosticEvent		: FB_EventLog;
@@ -28,18 +27,84 @@ VAR
 	bDiagnosticError		: BOOL;
 	
 	fbReadParameter		: MC_ReadParameter;
-	bGetLastPosition		: BOOL := TRUE;
 	
-	calibrationEvent		: FB_Eventlog;
+	calibrationEvent		: FB_EventLog;
 	fTorque			: REAL;	// percentage of the derotator torque
 	torqueWarning			: FB_EventLog;	
-END_VAR
-VAR PERSISTENT
-	fLastPosition			: LREAL := -1.0;
+
+	// SoE reset sequence, see _SoEReset (#14)
+	nSoEResetStep			: INT;		// 0 idle, 1 started, 2 running, 10 finished
+	tonSoEResetWatchdog		: TON;		// fails the sequence if FB_SoEReset never starts or never ends
+	bSoEResetFailed			: BOOL;		// last SoE reset failed (cleared when the next one starts)
+	sSoEResetMessage		: STRING(255);
+	soeResetEvent			: FB_EventLog;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
+    <Method Name="_SoEReset" Id="{cd368f17-00a6-4e0c-8d56-6282f98096bc}">
+      <Declaration><![CDATA[// Diagnostic (SoE) reset of the drive, requested with bSoEReset; call every cycle (#14).
+// FB_SoEReset has no Done: the reset worked when Busy was TRUE and dropped without Error. On success the
+// axis is reset (bReset) and has to home again; on failure an error is logged and the axis is not reset.
+// The state is in the FB's VAR (nSoEResetStep, ...), because a method's VAR is re-created on every call.
+METHOD PROTECTED _SoEReset
+VAR_INPUT
+	sAxis	: STRING;	// axis name for the event log
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// longer than the Timeout passed to FB_SoEReset, so it only fires if the block never starts or never ends
+tonSoEResetWatchdog(IN := nSoEResetStep <> 0, PT := T#15S);
+
+CASE nSoEResetStep OF
+0:	// idle
+	IF bSoEReset THEN
+		bSoEResetFailed := FALSE;
+		fbSoEReset(Axis := axisRef, Execute := FALSE);	// the next call is a rising edge
+		nSoEResetStep := 1;
+	END_IF
+
+1, 2:	// 1: started, waiting for Busy; 2: running, waiting for Busy to drop
+	fbSoEReset(
+		Axis 	:= axisRef,
+		Execute := TRUE,
+		Timeout := DEFAULT_ADS_TIMEOUT);
+	IF fbSoEReset.Error THEN
+		bSoEResetFailed := TRUE;
+		sSoEResetMessage := CONCAT(sAxis, ': SoE reset failed (ADS error ');
+		sSoEResetMessage := CONCAT(sSoEResetMessage, UINT_TO_STRING(fbSoEReset.AdsErrId));
+		sSoEResetMessage := CONCAT(sSoEResetMessage, ', SERCOS error ');
+		sSoEResetMessage := CONCAT(sSoEResetMessage, UINT_TO_STRING(fbSoEReset.SercosErrId));
+		sSoEResetMessage := CONCAT(sSoEResetMessage, ')');
+		nSoEResetStep := 10;
+	ELSIF tonSoEResetWatchdog.Q THEN
+		bSoEResetFailed := TRUE;
+		sSoEResetMessage := CONCAT(sAxis, ': SoE reset timed out');
+		nSoEResetStep := 10;
+	ELSIF fbSoEReset.Busy THEN
+		nSoEResetStep := 2;
+	ELSIF nSoEResetStep = 2 THEN
+		nSoEResetStep := 10;	// Busy dropped without Error: done
+	END_IF
+END_CASE
+
+IF nSoEResetStep = 10 THEN
+	fbSoEReset(Axis := axisRef, Execute := FALSE);
+	bSoEReset := FALSE;
+	IF NOT bSoEResetFailed THEN
+		bReset := TRUE;		// reset the axis after the drive reset, as before
+	END_IF
+	nSoEResetStep := 0;
+END_IF
+
+soeResetEvent(
+	Trigger 		:= bSoEResetFailed,
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	FormatString 	:= '%s',
+	OnMessage 		:= sSoEResetMessage,
+	Comm 			:= fbComm);]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="isTracking" Id="{d14d4ed7-aa44-40b8-a06b-dbd9bb4bc398}">
       <Declaration><![CDATA[PROPERTY isTracking : BOOL]]></Declaration>
       <Get Name="Get" Id="{d8cce5f4-c21e-4d9a-87e8-69b1f87cb648}">

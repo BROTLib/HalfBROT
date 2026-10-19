@@ -8,6 +8,8 @@ VAR_OUTPUT
 END_VAR
 VAR
 	tonTorqueError		: TON := (PT := T#3S);	// trigger for the torque error
+	bOutOfRange			: BOOL;		// ActualPosition outside fMinPosition..fMaxPosition
+	outOfRangeTrigger	: R_TRIG;	// stop once when leaving the range (#20)
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -30,16 +32,29 @@ IF bEnable AND NOT fbAxis.Calibrated THEN
 END_IF
 
 IF fbAxis.Calibrated THEN
-	bHomeAxis := FALSE;
 	bCalibrated := fbAxis.Calibrated;
+	// not while the homing runs: the NC sets Homed before the homing procedure has finished
+	IF NOT fbAxis.HomeActive THEN
+		bHomeAxis := FALSE;
+	END_IF
 END_IF
 	
 IF bHomeAxis THEN
 	fPosition := fCalibPosition;
 END_IF
 
-IF fbAxis.ActualPosition > fMaxPosition OR fbAxis.ActualPosition < fMinPosition THEN
+// Software limits: stop once when the axis leaves the range (#20). Stopping every cycle would also cancel every
+// MoveTo()/Home() (fbAxis.Stop(), BROTLib #63), so the axis could not be moved back, and with the absolute
+// encoder a derotator outside the range at start-up would never be homed. Further outward motion is blocked by
+// Enable_Positive/Negative below, and fPosition is clamped to the range, so every move leads back in.
+bOutOfRange := fbAxis.ActualPosition > fMaxPosition OR fbAxis.ActualPosition < fMinPosition;
+outOfRangeTrigger(CLK := bOutOfRange);
+IF outOfRangeTrigger.Q THEN
 	THIS^.StopAxis := TRUE;
+	// Stop() drops pending/running MoveTo() and Home(): clear the request flags so they can be requested again
+	// (homing is re-requested next cycle while not calibrated)
+	bMoveAxis := FALSE;
+	bHomeAxis := FALSE;
 END_IF
 
 fbAxis(
@@ -64,7 +79,7 @@ IF fbAxis.MoveDone OR bReset OR bError THEN
 	bMoveAxis := FALSE;
 END_IF
 
-IF fbAxis.HomeDone OR bReset OR bError THEN
+IF (fbAxis.HomeDone AND NOT fbAxis.HomeActive) OR bReset OR bError THEN
 	bHomeAxis := FALSE;
 END_IF
 	
@@ -95,17 +110,8 @@ IF fbReadParameter.Valid THEN
 	fSlewTime := fbReadParameter.Value;
 END_IF
 
-IF bSoEReset THEN
-	fbSoEReset(
-		Axis 	:= axisRef,
-		Execute := TRUE,
-		Timeout := DEFAULT_ADS_TIMEOUT);
- 	IF NOT fbSoEReset.Busy THEN
-		fbSoEReset(Axis := axisRef, Execute := FALSE);
-		bSoEReset := FALSE;
-		bReset := TRUE;
-	END_IF
-END_IF
+// diagnostic reset of the drive on bSoEReset
+_SoEReset(sAxis := 'Derotator');
 
 fTorque := inTorque / 10.0;
 // nominal torque is 3%, max is 25%
@@ -142,7 +148,7 @@ CalibrationEvent(
 	]]></ST>
     </Implementation>
     <Method Name="_StartHoming" Id="{2319eae6-c8f8-4699-9437-36645660ec26}">
-      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_ForceCalibration: fCalibPosition becomes the current position.
+      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_ForceCalibration only sets the calibrated flag, it does not move the axis or change its position: the position comes from the absolute encoder and fCalibPosition is ignored (#17).
 METHOD _StartHoming : BOOL
 ]]></Declaration>
       <Implementation>
@@ -158,7 +164,9 @@ _StartHoming := TRUE;
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[InNegLimit := inDigitalInputs.1;]]></ST>
+          <ST><![CDATA[// hardware limit input of the drive (TRUE = at the limit); used only by the pendant, the axis logic uses the
+// software limits fMinPosition/fMaxPosition (#20)
+InNegLimit := inDigitalInputs.1;]]></ST>
         </Implementation>
       </Get>
     </Property>
@@ -169,7 +177,9 @@ END_VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[InPosLimit := inDigitalInputs.0;]]></ST>
+          <ST><![CDATA[// hardware limit input of the drive (TRUE = at the limit); used only by the pendant, the axis logic uses the
+// software limits fMinPosition/fMaxPosition (#20)
+InPosLimit := inDigitalInputs.0;]]></ST>
         </Implementation>
       </Get>
     </Property>

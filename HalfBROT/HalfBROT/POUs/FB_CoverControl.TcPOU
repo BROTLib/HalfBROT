@@ -14,7 +14,6 @@ VAR_OUTPUT
 	bAllOpen			: BOOL;		// all covers are open
 	bAllClosed			: BOOL;		// all covers are closed
 	bError				: BOOL;		// any cover-driver reports an error
-	bWarning			: BOOL;		// warning state of the DC drives
 END_VAR
 VAR
 	fbComm				: I_Comm;
@@ -43,7 +42,6 @@ VAR
 	fbCoversOpenedEvent		: FB_EventLog; // log if covers are open
 	fbCoversClosedEvent		: FB_EventLog; // log if covers are closed
 	fbCoversErrorEvent		: FB_EventLog; // Event log for a generic drive error
-	fbCoversWarningEvent	: FB_EventLog; // Event log for a generic drive warning
 	
 	i	: UINT;
 END_VAR
@@ -124,8 +122,9 @@ IF bError THEN
 END_IF
 
 // send telemetry
-tonComm(IN:=TRUE);
-IF tonComm.Q THEN // publish new payload every second
+// PT set in the call: the declaration's initial value is evaluated only once, at init (#19)
+tonComm(IN:=TRUE, PT:=fTelemetryInterval);
+IF tonComm.Q THEN // publish new payload every fTelemetryInterval
 	tonComm(IN:=FALSE);
 	THIS^._SendTelemetry();	
 END_IF
@@ -133,11 +132,6 @@ END_IF
 fbCoversErrorEvent(
 	Trigger 	:= bError, 
    	Level   	:= ADSLOG_MSGTYPE_ERROR, 
-	comm 		:= fbComm);
-
-fbCoversWarningEvent(
-	Trigger 	:= bWarning, 
-	Level   	:= ADSLOG_MSGTYPE_WARN, 
 	comm 		:= fbComm);
 
 // raise an error, if both opened and closed signals are activated
@@ -199,7 +193,11 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[IF bAllClosed THEN
+        <ST><![CDATA[// no comm assigned in FB_Init: nothing to publish to (#16)
+IF fbComm = 0 THEN
+	RETURN;
+END_IF
+IF bAllClosed THEN
 	fbComm.Publish('telescope', 'dome', 'AUXILIARY.COVER.REALPOS', '0.0');
 ELSIF bAllOpen THEN
 	fbComm.Publish('telescope', 'dome', 'AUXILIARY.COVER.REALPOS', '1.0');

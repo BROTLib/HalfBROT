@@ -12,18 +12,30 @@ END_VAR
 VAR
 	tonReadyDelay			: TON;	// delay until commutator angle is measured
 	enableTrigger			: F_TRIG;	// disable trigger for hydraulics
-	brakeEvent				: FB_Eventlog;
-	highElevationEvent		: FB_Eventlog;
-	lowElevationEvent		: FB_Eventlog;
+	brakeEvent				: FB_EventLog;
+	highElevationEvent		: FB_EventLog;
+	lowElevationEvent		: FB_EventLog;
 	tonTorqueTimer				: TON;		// timer to trigger a warning if torque is high
+	bConnected				: BOOL;		// fbCovers and fbBrake are assigned (#16)
+	bBrakeOpen				: BOOL;		// fbBrake.BrakeOpen, FALSE while fbBrake is not assigned
+	notConnectedEvent		: FB_EventLog;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[// limit the position input to a sane value
-fPosition := LIMIT(0.0, fPosition, 90.0);
+// fMinPosition/fMaxPosition narrow the range (#17), 0-90 deg stays the hard limit
+fPosition := LIMIT(MAX(0.0, fMinPosition), fPosition, MIN(90.0, fMaxPosition));
+
+// covers and brake are interfaces: calling an unassigned one stops the PLC task (#16).
+// Without both the brake state is unknown, so the axis stays disabled.
+bConnected := fbCovers <> 0 AND fbBrake <> 0;
+bBrakeOpen := FALSE;
+IF bConnected THEN
+	bBrakeOpen := fbBrake.BrakeOpen;
+END_IF
 
 //if we enable the axis, we have to open the brake first
-IF bEnable THEN
+IF bEnable AND bConnected THEN
 	IF NOT bCalibrated THEN
 		fbCovers.Open();
 		IF fbCovers.Opened THEN
@@ -37,11 +49,13 @@ END_IF
 
 enableTrigger(CLK := bEnable);
 // close the brake on the falling edge of the enable signal
-IF enableTrigger.Q THEN
+IF enableTrigger.Q AND bConnected THEN
 	fbBrake.CloseBrake();
 END_IF
 
-IF fbAxis.Calibrated OR bError THEN
+// keep the homing overrides (AcceptBlockedDriveSignal, positive limit) until the homing has finished: the NC sets
+// Homed (Calibrated, HomeDone) before the homing procedure is done, and switching them off then restarts it
+IF (fbAxis.Calibrated AND NOT fbAxis.HomeActive) OR bError THEN
 	bHomeAxis := FALSE;
 END_IF
 
@@ -57,7 +71,7 @@ IF bMoveAxis THEN
 	bTracking := FALSE;
 END_IF
 
-// if NOT Enabled and ActVelo>1 then issue a warning
+// if NOT Enabled and ActVelo>2.0 then issue a warning
 bWarning := NOT bEnable AND axisRef.NcToPlc.ActVelo>2.0;
 
 // deactivate limit switches on homing
@@ -66,7 +80,7 @@ MC_SetAcceptBlockedDriveSignal(
 	Enable := bHomeAxis);
 	
 fbAxis(
-	Enable 			:= bEnable AND fbBrake.BrakeOpen,
+	Enable 			:= bEnable AND bBrakeOpen,
 	Reset 			:= bReset,
 	Tracking 		:= bTracking,
 	Position 		:= fPosition, 
@@ -85,7 +99,7 @@ IF fbAxis.MoveDone THEN
 	bMoveAxis := FALSE;
 END_IF
 
-IF fbAxis.HomeDone THEN
+IF fbAxis.HomeDone AND NOT fbAxis.HomeActive THEN
 	bHomeAxis := FALSE;
 END_IF
 	
@@ -103,33 +117,10 @@ IF inDiagnostic < 16#D012 AND inDiagnostic > 16#D014 THEN
 	nErrorID := inDiagnostic;
 END_IF
 
-fbAxisCalibration(
-	Axis 		:= axisRef,
-	Execute 	:= bGetLastPosition AND fLastPosition>=0.0 AND NOT bCalibrated,
-	Position 	:= fLastPosition);
+// diagnostic reset of the drive on bSoEReset
+_SoEReset(sAxis := 'Elevation');
 
-IF fbAxisCalibration.Done THEN
-	bGetLastPosition := FALSE;
-END_IF
-
-IF bCalibrated THEN
-	fLastPosition := fActualPosition;
-END_IF
-
-IF bSoEReset THEN
-	fLastPosition := -1.0;
-	fbSoEReset(
-		Axis := axisRef,
-		Execute := TRUE,
-		Timeout := DEFAULT_ADS_TIMEOUT);
- 	IF NOT fbSoEReset.Busy THEN
-		fbSoEReset(Axis := axisRef, Execute := FALSE);
-		bSoEReset := FALSE;
-		bReset := TRUE;
-	END_IF
-END_IF 
-
-tonReadyDelay(IN :=  fbBrake.BrakeOpen, PT := T#6000MS, Q=> bReady);
+tonReadyDelay(IN :=  bBrakeOpen, PT := T#6000MS, Q=> bReady);
 
 fbReadParameter(	
 	Axis 			:= axisRef, 
@@ -173,7 +164,7 @@ lowElevationEvent(
 	comm 			:= fbComm);
 				
 brakeEvent( 
-	Trigger 		:= NOT bEnable AND fbBrake.BrakeOpen, 
+	Trigger 		:= NOT bEnable AND bBrakeOpen, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Brake was opened without elevation axis enabled!', 
@@ -190,6 +181,13 @@ calibrationEvent(
 	Trigger 		:= bCalibrated,
 	Level 			:= ADSLOG_MSGTYPE_HINT,
 	OnMessage 		:= 'Elevation is calibrated.', 
+	comm 			:= fbComm);
+
+notConnectedEvent(
+	Trigger 		:= NOT bConnected,
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	FormatString 	:= '%s',
+	OnMessage 		:= 'Elevation: covers or brake not connected, axis stays disabled.', 
 	comm 			:= fbComm);]]></ST>
     </Implementation>
     <Method Name="_StartHoming" Id="{aac1270b-136b-490c-ab35-c16095c8f240}">
