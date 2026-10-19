@@ -43,6 +43,7 @@ VAR
 	fSavedPosition			: LREAL;	// fLastPosition at the last successful write (or as restored)
 	fWritePosition			: LREAL;	// fLastPosition when the running write started
 	bSaveRequested			: BOOL;		// write once after HomeDone
+	rtHomed					: R_TRIG;		// rising edge of 'homed and the homing procedure finished' (#80)
 	tonPersistInterval		: TON;		// rate limit since the last write start
 	tonPersistWatchdog		: TON;		// ends the sequence if BUSY never drops
 	bPersistWriteFailed		: BOOL;		// last write failed (cleared by the next successful one)
@@ -152,10 +153,14 @@ IF fbAxis.MoveDone THEN
 END_IF
 
 // only when the homing has finished: the NC sets Homed (HomeDone) before the homing procedure is done
+// HomeDone is a level (TRUE while the axis is homed), so only the first cycle after the homing is done is acted on (#80)
+rtHomed(CLK := fbAxis.HomeDone AND NOT fbAxis.HomeActive);
 IF fbAxis.HomeDone AND NOT fbAxis.HomeActive THEN
 	bHomeAxis := FALSE;
+END_IF
+IF rtHomed.Q THEN
 	bEnable := FALSE;
-	fLastPosition := fPosition;
+	fLastPosition := fActualPosition;	// the position reached, not the target
 	bSaveRequested := TRUE;	// write the new position to disk once (#8)
 END_IF
 	
