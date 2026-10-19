@@ -28,7 +28,9 @@ fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
 // conduct the calibrated signal
 bCalibrated := fbAxis.Calibrated;
 
-IF bCalibrated OR bError THEN
+// keep the homing overrides (AcceptBlockedDriveSignal, positive limit) until the homing has finished: the NC sets
+// Homed (Calibrated, HomeDone) before the homing procedure is done, and switching them off then restarts it
+IF (bCalibrated AND NOT fbAxis.HomeActive) OR bError THEN
 	bHomeAxis := FALSE;
 END_IF
 	
@@ -73,7 +75,7 @@ IF fbAxis.MoveDone THEN
 	bMoveAxis := FALSE;
 END_IF
 
-IF fbAxis.HomeDone THEN
+IF fbAxis.HomeDone AND NOT fbAxis.HomeActive THEN
 	bHomeAxis := FALSE;
 END_IF
 	

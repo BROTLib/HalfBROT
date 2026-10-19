@@ -86,8 +86,9 @@ risk of a silently lost link is covered by checking all links in XAE before acti
 
 - Per block an `ST_<Block>Inputs` / `ST_<Block>Outputs` passed as `VAR_IN_OUT` (see open question 3); the
   `AT` declarations move to an I/O GVL in each application (e.g. `GVL_IO.stHydraulicsIn`), linked there.
-- Re-linking: MONETS and MONETN only (hydraulics 16, focus 3, axes 4 variables; cover/pendant are not linked
-  there, so moving them costs nothing). A script rewrites the `VarA` symbol paths of the `<Link>` entries in
+- Re-linking: MONETS and MONETN only (hydraulics 16, focus 3, axes 4 variables; HalfBROT's pendant is not linked there. **The covers are linked** (12 links
+  per telescope, `MAIN.CoverControl.*`) once MONETS/MONETN use HalfBROT's `FB_CoverControl`, see
+  `2026-10-12-cover-control-single-copy.md`: correction of 2026-10-12, they cost a re-link in step 2). A script rewrites the `VarA` symbol paths of the `<Link>` entries in
   `MONETS.tsproj`/`MONETN.tsproj` (`PlcTask Inputs^MAIN.HydraulicsControl.IbOilLow` → new path) and checks
   that the link count per block is unchanged.
 - Before activation: Tim checks in XAE that every new I/O variable is linked and nothing is left unlinked.
