@@ -17,6 +17,8 @@ VAR_INPUT
 	bCloseBrake			: BOOL;				// command to close the brake
 	fTelemetryInterval	: TIME := T#5S;		// publish at least this often, also without a change (#19)
 	tHydraulicsWatchdog	: TIME := T#140S;	// main pump running this long without the suction pump running = bHydraulicsFailure (#10)
+	nMinValidPanLevel	: INT := -32768;	// raw oil level below this is a sensor fault (wire break); the default accepts every value, no guard (MONETS#32)
+	nMaxValidPanLevel	: INT := 32767;		// raw oil level above this is a sensor fault (over-range); the default accepts every value, no guard
 END_VAR
 VAR_OUTPUT
 	bBrakeOpen			: BOOL;				// status of the brake: is the brake open?
@@ -36,6 +38,7 @@ VAR_OUTPUT
 	bPumpRunning		: BOOL;				// main pump is running
 	bSuctionRunning 	: BOOL := FALSE;	// suction pump is running
 	bError				: BOOL;				// error condition
+	bOilLevelInvalid	: BOOL;				// raw oil level outside the valid range: warning only, not published, suction on the float switch only (MONETS#32)
 END_VAR
 VAR
 	fbComm				: I_Comm;
@@ -70,7 +73,10 @@ VAR
 	tonPressureLossDelay	: TON;				// debounce for loss of oil pressure, which closes the brake
 
 	srErrorState			: SR;				// error state (set dominant)
-	srSuctionTrigger		: SR;				// trigger for suction pump
+	bSuctionLatched		: BOOL;				// trigger for suction pump, see F_OilSuctionLatch
+	bOilLevelValid		: BOOL;				// raw oil level inside nMinValidPanLevel..nMaxValidPanLevel
+	rtOilLevelInvalid	: R_TRIG;			// builds the log message once, with the raw value
+	sOilLevelInvalidMessage	: STRING(255) := 'INVALID';
 	tonHydraulicsOffTimer	: TON  := (PT := T#300S);	// timer to shut off hydraulics after break was closed
 	fOilLevel			: REAL;
 	fLastOilLevel		: REAL;				// oil level of the last publish
@@ -85,6 +91,7 @@ VAR
 	oilLowLog,
 	filterLog,
 	oilMaxLog,
+	oilLevelInvalidLog,
 	overTemperatureLog,
 	underTemperatureLog,
 	suctionLog,
@@ -103,6 +110,8 @@ Main control Logic for the Hydraulics system
 * start main pump if main control is ready (button pressed or remote)
 * start suction pump if maximum in pan is reached
 * suction pump runs until the oil level is below fMinPanPercent
+* a raw oil level outside nMinValidPanLevel..nMaxValidPanLevel is a sensor fault (MONETS#32): the level is not
+  published and does not start or stop the suction pump, only the float switch starts it; warning, no error
 * stop main pump if oil is low
 * stop main pump if pressure fails for 30 seconds
 *)
@@ -117,6 +126,8 @@ bOilCold 		:= NOT IbOilCold;
 bOilHot 		:= IbOilHot;
 //oil_level 			:= F_YREAL(in_oil_level, 0, 16383, 0.0, 5.0);
 fOilLevel		:= F_YREAL(inOilLevel, nMinPanLevel, nMaxPanLevel, 0, 100, cut := FALSE); 
+bOilLevelValid	:= F_OilLevelValid(nRaw := InOilLevel, nMinValid := nMinValidPanLevel, nMaxValid := nMaxValidPanLevel);
+bOilLevelInvalid := NOT bOilLevelValid;
 bOilPanMaximum	:= IbOilpanMaximum;
 bPumpRunning 	:= IbPumpRunning;
 bSuctionRunning := IbSuctionRunning;
@@ -190,10 +201,16 @@ END_IF
 
 (* This is the end of the brake control section *)
 
-srSuctionTrigger(
-	SET1  := bOilPanMaximum OR fOilLevel>fMaxPanPercent,
-	RESET := fOilLevel<fMinPanPercent);
-ObOilSuctionEnable := srSuctionTrigger.Q1 OR bManualSuction;					
+// same as the old SR (set dominant) while the level is valid; an invalid level neither starts nor stops the suction (MONETS#32)
+bSuctionLatched := F_OilSuctionLatch(
+	bLatched := bSuctionLatched,
+	bLevelValid := bOilLevelValid,
+	fLevel := fOilLevel,
+	fMinPercent := fMinPanPercent,
+	fMaxPercent := fMaxPanPercent,
+	bPanMaximum := bOilPanMaximum,
+	bMainPumpEnabled := ObOilPumpEnable);
+ObOilSuctionEnable := bSuctionLatched OR bManualSuction;					
 tonSuctionWatchdog(
 	IN := ObOilSuctionEnable AND NOT bSuctionRunning,
 	PT := T#15S,
@@ -229,20 +246,23 @@ statusWord.10 := bSuctionRunning;
 statusWord.11 := bOilPanMaximum;
 statusWord.12 := ObOilPumpEnable;
 statusWord.13 := ObOilSuctionEnable;
+statusWord.14 := bOilLevelInvalid;
 
 // Publish is not retried (FB_Comm_MQTT_Influx, bQueue FALSE), so publish on a change AND every
 // fTelemetryInterval: a dropped message recovers within the interval. At most once per second, so contact
 // bounce or level noise does not send a burst per cycle (#19). No comm assigned: nothing to publish to (#16).
 tonComm(IN := TRUE, PT := fTelemetryInterval);
 tonPublishHoldoff(IN := TRUE, PT := T#1S);
-IF statusWord <> LastStatus OR ABS(fLastOilLevel - fOilLevel) > 5 OR tonComm.Q THEN
+IF statusWord <> LastStatus OR (bOilLevelValid AND ABS(fLastOilLevel - fOilLevel) > 5) OR tonComm.Q THEN
 	bPublishPending := TRUE;
 END_IF
 
 IF bPublishPending AND tonPublishHoldoff.Q AND fbComm <> 0 THEN
 	bPublishPending := FALSE;
 	LastStatus := statusWord;
-	fLastOilLevel := fOilLevel;
+	IF bOilLevelValid THEN
+		fLastOilLevel := fOilLevel;
+	END_IF
 	tonComm(IN := FALSE);
 	tonPublishHoldoff(IN := FALSE);
 	fbComm.Publish('hydraulics', 'base', 'OilLow',		BOOL_TO_STRING(bOilLow));
@@ -257,7 +277,9 @@ IF bPublishPending AND tonPublishHoldoff.Q AND fbComm <> 0 THEN
 	fbComm.Publish('hydraulics', 'base', 'BrakeClearing',	BOOL_TO_STRING(bBrakeClearing));
 	fbComm.Publish('hydraulics', 'base', 'PumpRunning',	BOOL_TO_STRING(bPumpRunning));
 	fbComm.Publish('hydraulics', 'base', 'SuctionRunning',BOOL_TO_STRING(bSuctionRunning));
-	fbComm.Publish('hydraulics', 'base', 'OilLevel',		REAL_TO_STRING(fOilLevel));
+	IF bOilLevelValid THEN	// an invalid level is not published as a normal value (MONETS#32)
+		fbComm.Publish('hydraulics', 'base', 'OilLevel',		REAL_TO_STRING(fOilLevel));
+	END_IF
 	fbComm.Publish('hydraulics', 'base', 'StatusWord',	UDINT_TO_STRING(statusWord));
 END_IF
 
@@ -296,6 +318,19 @@ oilLowLog(
 	OnMessage 		:= 'LOW',
 	OffMessage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
+	comm 			:= fbComm);
+
+rtOilLevelInvalid(CLK := bOilLevelInvalid);
+IF rtOilLevelInvalid.Q THEN
+	sOilLevelInvalidMessage := CONCAT(CONCAT('INVALID (raw ', INT_TO_STRING(InOilLevel)), '), OilLevel not published, suction on the float switch only');
+END_IF
+oilLevelInvalidLog(
+	Trigger 		:= bOilLevelInvalid,
+	Level 			:= ADSLOG_MSGTYPE_WARN,
+	FormatString 	:= 'oil level sensor: %s',
+	OnMessage 		:= sOilLevelInvalidMessage,
+	OffMessage 		:= 'OK',
+	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
 	comm 			:= fbComm);
 
 oilMaxLog(
@@ -341,7 +376,11 @@ suctionLog(
 // from a suction that was never requested although it was full (#10)
 rtHydraulicsFailure(CLK := bHydraulicsFailure);
 IF rtHydraulicsFailure.Q THEN
-	sHydraulicsFailureMessage := CONCAT(CONCAT(CONCAT('FAILURE (oil level ', LREAL_TO_FMTSTR(fOilLevel, 1, TRUE)), CONCAT(' %, max switch ', BOOL_TO_STRING(bOilPanMaximum))), ')');
+	IF bOilLevelValid THEN
+		sHydraulicsFailureMessage := CONCAT(CONCAT(CONCAT('FAILURE (oil level ', LREAL_TO_FMTSTR(fOilLevel, 1, TRUE)), CONCAT(' %, max switch ', BOOL_TO_STRING(bOilPanMaximum))), ')');
+	ELSE
+		sHydraulicsFailureMessage := CONCAT(CONCAT(CONCAT('FAILURE (oil level invalid, raw ', INT_TO_STRING(InOilLevel)), ', max switch '), CONCAT(BOOL_TO_STRING(bOilPanMaximum), ')'));
+	END_IF
 END_IF
 hydraulicsFailureLog(
 	Trigger 		:= bHydraulicsFailure,

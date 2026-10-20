@@ -97,7 +97,10 @@ implements the `I_Axis` interface. Common features:
 - `FB_HydraulicsControl` — oil pump + suction pump + the hydraulic brake for
   azimuth and elevation, with oil pressure/level/filter monitoring and four
   watchdog timers (suction 15 s, pressure 30 s, main pump 10 s, hydraulics
-  140 s); 16-bit `statusWord` telemetry.
+  140 s); 16-bit `statusWord` telemetry. A raw oil level outside `nMinValidPanLevel`..`nMaxValidPanLevel` (inputs, default:
+  no limit) is a sensor fault (wire break, over-range; MONETS#32): `bOilLevelInvalid`, `statusWord` bit 14, one WARN
+  log entry, `OilLevel` is not published, and the level neither starts nor stops the suction pump (only the float
+  switch starts it; a running suction is released when the main pump is switched off). No error.
 - `FB_PendantControl` — BCD-selector manual hand pendant with 15 functions
   (covers, focus, derotator, elevation, azimuth, dome, filter wheel, torque
   display, manual telescope control, horn (not wired), hydraulics, ...).
