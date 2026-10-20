@@ -40,3 +40,4 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   timeout as input `tMoveTimeout`, 1 s reversal dead time, error stops all) plus `Stop()`; MONETcommon drops its copy,
   MONETS/MONETN `MAIN` use `HalfBROT.FB_CoverControl` (I/O links unchanged); pendants hold-to-run of the whole sequence
   (option B); new `HalfBROTTests`. **proposed**, nine questions for Tim, on-site check T15.
+- [2026-10-20-oil-level-guard-monets-32.md](2026-10-20-oil-level-guard-monets-32.md): MONETS#32, a raw oil level outside a configurable range (wire break, over-range) is not published and does not start/stop the suction by level (`F_OilLevelValid`, `F_OilSuctionLatch`, `statusWord` bit 14). **Implemented in HalfBROT, not compiled or hardware-tested;** tests and the MONETS/MONETN `MAIN` settings follow.

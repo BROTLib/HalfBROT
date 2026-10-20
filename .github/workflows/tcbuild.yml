@@ -19,12 +19,66 @@ concurrency:
 jobs:
   build:
     runs-on: [self-hosted, twincat, windows]
+    # A healthy build takes 1-8 minutes. Without a limit a hung TcXaeShell blocks the single runner (and the
+    # CI of every repo) for the default 6 hours. On a timeout the job is cancelled and the `always()` cleanup
+    # step below still runs.
+    timeout-minutes: 20
     permissions:
       contents: read
       statuses: write   # the commit status below
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
+      # TcBuild starts TcXaeShell through COM (parent svchost, in the session of the runner service). A hung or
+      # cancelled build leaves it behind and it can break the next build. Stop what runs in this job's own
+      # session: a TcXaeShell someone opened interactively runs in another session and is left alone.
+      - name: Stop leftover TwinCAT build processes
+        if: always()
+        shell: powershell
+        run: |
+          $session = (Get-Process -Id $PID).SessionId
+          Get-Process -Name TcXaeShell, TcBuild -ErrorAction SilentlyContinue |
+            Where-Object { $_.SessionId -eq $session } |
+            ForEach-Object { Write-Host "stopping $($_.ProcessName) $($_.Id)"; Stop-Process -Id $_.Id -Force }
+
+      # A cold XAE start can outlast TcBuild's own COM retry window, which then fails with exit 3 (busy) on every
+      # retry below. Starting and quitting one XAE first leaves the following starts fast. Best effort: never
+      # fails the job, and only touches the XAE instance started here.
+      - name: Warm up XAE
+        shell: powershell
+        run: |
+          $before = @(Get-Process TcXaeShell -ErrorAction SilentlyContinue | ForEach-Object Id)
+          $dte = $null
+          $own = @()
+          try {
+            $dte = New-Object -ComObject 'TcXaeShell.DTE.15.0'
+            $own = @(Get-Process TcXaeShell -ErrorAction SilentlyContinue | Where-Object { $before -notcontains $_.Id } | ForEach-Object Id)
+            for ($n = 0; $n -lt 120; $n++) {
+              try { if ($null -ne $dte.Solution) { break } } catch { }
+              Start-Sleep -Seconds 1
+            }
+            Start-Sleep -Seconds 10
+            Write-Host "XAE ready after about $n s"
+          }
+          catch { Write-Host "::warning::XAE warm-up failed: $($_.Exception.Message)" }
+          finally {
+            if ($dte -and $own.Count -gt 0) { try { $dte.Quit() } catch { } }
+            Start-Sleep -Seconds 3
+            Get-Process TcXaeShell -ErrorAction SilentlyContinue | Where-Object { $own -contains $_.Id } | ForEach-Object { Stop-Process -Id $_.Id -Force }
+          }
+          exit 0
+
+      # The org libraries this repo pins in its .plcproj files are reinstalled from their GitHub release before the
+      # build. A `*` reference picks the highest version in the shared library repository, and a branch build of
+      # that library overwrites its version slot, so the result depended on what ran last.
+      - name: Install pinned libraries
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .\tools\Install-PinnedLibraries.ps1
+
+      # TcBuild drives XAE over COM and is sometimes busy (RPC_E_SERVERCALL_RETRYLATER, exit 3): retry.
+      # Exit 1 = built with compile warnings, still a success (see tcbuild.yml).
       - name: Build HalfBROT.sln
         shell: powershell
         run: |
@@ -52,3 +106,13 @@ jobs:
           gh api "repos/${{ github.repository }}/statuses/${{ github.sha }}" `
             -f state="$env:STATE" -f context=build -f description="TcBuild (dispatched run)" -f target_url="$env:RUN_URL"
           if ($LASTEXITCODE -ne 0) { throw "posting the commit status failed with exit code $LASTEXITCODE" }
+
+      # Same cleanup after the build, so a hung or timed-out build does not leave TcXaeShell behind.
+      - name: Stop leftover TwinCAT build processes (after the build)
+        if: always()
+        shell: powershell
+        run: |
+          $session = (Get-Process -Id $PID).SessionId
+          Get-Process -Name TcXaeShell, TcBuild -ErrorAction SilentlyContinue |
+            Where-Object { $_.SessionId -eq $session } |
+            ForEach-Object { Write-Host "stopping $($_.ProcessName) $($_.Id)"; Stop-Process -Id $_.Id -Force }
