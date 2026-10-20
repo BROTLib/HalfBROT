@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="F_OilLevelValid" Id="{4d096f85-e575-4170-ac6a-1156ddbb0725}" SpecialFunc="None">
+    <Declaration><![CDATA[// TRUE while the raw oil level (the INT of the analog input) is inside [nMinValid, nMaxValid], both inclusive (MONETS#32).
+// The level sensor is a 0..10 V input without a live zero, so a cut wire reads about 0 and an over-range reads far above the
+// float switch; neither may be published or used as an oil level. The limits are set per telescope in MAIN, in raw counts.
+FUNCTION F_OilLevelValid : BOOL
+VAR_INPUT
+	nRaw		: INT;		// raw analog value
+	nMinValid	: INT;		// lowest accepted value
+	nMaxValid	: INT;		// highest accepted value
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[F_OilLevelValid := nRaw >= nMinValid AND nRaw <= nMaxValid;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

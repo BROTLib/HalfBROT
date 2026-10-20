@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="F_OilSuctionLatch" Id="{725b9350-981c-4967-9660-d2a140527bb7}" SpecialFunc="None">
+    <Declaration><![CDATA[// Next state of the suction pump trigger (MONETS#32). While the level is valid this is the old SR with the float switch
+// and the level above fMaxPercent as set (dominant) and the level below fMinPercent as reset. While it is not valid, the
+// level neither starts nor stops the suction: only the float switch starts it, a running suction is kept as long as the
+// main pump is enabled (without the main pump the pan does not fill) and released when the main pump is switched off.
+FUNCTION F_OilSuctionLatch : BOOL
+VAR_INPUT
+	bLatched			: BOOL;		// previous state of the trigger
+	bLevelValid			: BOOL;		// from F_OilLevelValid
+	fLevel				: REAL;		// oil level in percent
+	fMinPercent			: REAL;		// stop below this level
+	fMaxPercent			: REAL;		// start above this level
+	bPanMaximum			: BOOL;		// float switch of the pan
+	bMainPumpEnabled	: BOOL;		// ObOilPumpEnable of this scan
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bPanMaximum THEN
+	F_OilSuctionLatch := TRUE;
+ELSIF bLevelValid THEN
+	F_OilSuctionLatch := fLevel > fMaxPercent OR (bLatched AND NOT (fLevel < fMinPercent));
+ELSE
+	F_OilSuctionLatch := bLatched AND bMainPumpEnabled;
+END_IF
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

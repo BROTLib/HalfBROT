@@ -47,6 +47,12 @@
     <Compile Include="POUs\FB_FocusControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\F_OilLevelValid.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\F_OilSuctionLatch.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\FB_HydraulicsControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
