@@ -10,10 +10,10 @@ VAR_GLOBAL CONSTANT
 	stLibVersion_HalfBROT : ST_LibVersion := (
 		iMajor := 0,
 		iMinor := 5,
-		iBuild := 6,
+		iBuild := 7,
 		iRevision := 0,
 		nFlags := 1,
-		sVersion := '0.5.6'
+		sVersion := '0.5.7'
 	);
 END_VAR]]></Declaration>
   </GVL>
