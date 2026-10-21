@@ -99,7 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <PlaceholderReference Include="BROTLib">
-      <DefaultResolution>BROTLib, 0.9.0 (BROT)</DefaultResolution>
+      <DefaultResolution>BROTLib, 0.10.0 (BROT)</DefaultResolution>
       <Namespace>BROTLib</Namespace>
     </PlaceholderReference>
     <PlaceholderReference Include="System_VisuElemEventTable">
