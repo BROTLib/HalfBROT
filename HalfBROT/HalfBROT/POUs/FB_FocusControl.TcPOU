@@ -21,7 +21,8 @@ VAR_OUTPUT
 	bFocusUnlocked		: BOOL;
 END_VAR
 VAR
-	bMoveAxis			: BOOL;		// move the axis to new position
+	fbFollower			: BROTLib.FB_MoveFollower;	// starts, re-targets and holds the move to fPosition (MONETcommon#122)
+	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
 	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
 	tonFocusDelay		: TON;
 	tonBrakeDelay		: TON;
@@ -85,19 +86,41 @@ tonFocusDelay(IN := ObFocusUnlock, PT := ptFocusDelay, Q => bFocusUnlocked);
 // wait for brake until we are at rest
 tonBrakeDelay(IN := NOT fbAxis.Busy AND fbAxis.StandStill, PT := ptBrakeDelay);
 
+// a new target during a move restarts it, MoveDone, abort, error and stop end it (MONETcommon#122); the inputs are
+// what fbAxis reported in its last call
+fbFollower(
+	fTarget		:= fPosition,
+	fActual		:= fActualPosition,
+	fTolerance	:= fTolerance,
+	bActive		:= eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock AND fbAxis.calibrated,
+	bReady		:= fbAxis.Ready,
+	bMoveDone	:= fbAxis.MoveDone,
+	bAborted	:= fbAxis.CommandAborted,
+	bError		:= bError,
+	bStopDone	:= fbAxis.StopDone);
+
+// Stop(): hold the position reached when the stop is done
+IF bHoldOnStop AND (fbAxis.StopDone OR fbAxis.StandStill) THEN
+	bHoldOnStop := FALSE;
+	IF fbAxis.calibrated THEN
+		fPosition := fActualPosition;
+	END_IF
+END_IF
+
+// after an error a reset must not resume the old move by itself
+IF bError AND fbAxis.calibrated THEN
+	fPosition := fActualPosition;
+END_IF
+
 // if we are on automatic mode then position the focus
 IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 	IF fbAxis.calibrated THEN
-		IF ABS(fPosition - fActualPosition) > fTolerance THEN
-			IF fbAxis.Ready THEN
-				// start a move on FALSE -> TRUE (BROTLib #63); bMoveAxis is cleared on MoveDone
-				IF NOT bMoveAxis THEN
-					fbAxis.MoveTo();
-				END_IF
-				bMoveAxis := TRUE;
-			ELSE
-				bEnable := TRUE;
-			END_IF
+		// MoveTo() starts the move, and again when the target changed during the move
+		IF fbFollower.bStartMove THEN
+			fbAxis.MoveTo();
+		END_IF
+		IF fbFollower.bNeedEnable THEN
+			bEnable := TRUE;
 		END_IF
 		// disable the drive and lock the brake, if we stand for more than n seconds
 		IF tonBrakeDelay.Q THEN
@@ -147,10 +170,6 @@ fbAxis(
 	Error 			=> bError,
 	ErrorID 		=> nErrorID,
 	axisRef 		:= refAxis);	
-
-IF fbAxis.MoveDone THEN
-	bMoveAxis := FALSE;
-END_IF
 
 // only when the homing has finished: the NC sets Homed (HomeDone) before the homing procedure is done
 // HomeDone is a level (TRUE while the axis is homed), so only the first cycle after the homing is done is acted on (#80)
@@ -302,6 +321,47 @@ persistWriteEvent(
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="Stop" Id="{afb66802-078c-4672-893d-9d18ed5b7993}">
+      <Declaration><![CDATA[// Stop a running focus move (MC_Stop) and hold the position reached: the target becomes the actual position at
+// StopDone, so the automatic positioning does not restart the move. A new Position afterwards moves again.
+// Returns TRUE when an MC_Stop was requested. A drive that is not enabled has nothing to stop: only the pending
+// target is dropped, as a stop pending on a disabled axis would run after the next enable. MONETcommon#122.
+METHOD Stop : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbFollower.Stop();
+fbAxis.CancelMove();
+IF fbAxis.Ready AND NOT fbAxis.StandStill THEN
+	Stop := fbAxis.Stop();
+	bHoldOnStop := TRUE;
+ELSIF fbAxis.calibrated THEN
+	fPosition := fActualPosition;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="MinPosition" Id="{1dd00a08-1707-4edd-8ffd-4ab5236e324c}">
+      <Declaration><![CDATA[PROPERTY PUBLIC MinPosition : LREAL]]></Declaration>
+      <Get Name="Get" Id="{d9ce3523-3c41-4511-b25d-da518d4c4f9b}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MinPosition := fMinPosition;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="MaxPosition" Id="{e3d2f38f-23ed-461f-ad03-31ba3e34706b}">
+      <Declaration><![CDATA[PROPERTY PUBLIC MaxPosition : LREAL]]></Declaration>
+      <Get Name="Get" Id="{384aaca3-379b-467d-9f43-e4c4c2f34d8c}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MaxPosition := fMaxPosition;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="HandleEvents" Id="{375f50c9-e6ea-4fcd-9fab-a26147b70ce8}">
       <Declaration><![CDATA[METHOD PROTECTED HandleEvents : BOOL
 VAR_INPUT
