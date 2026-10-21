@@ -11,6 +11,7 @@ VAR_OUTPUT
 END_VAR
 VAR
 	tonReadyDelay			: TON;	// delay until commutator angle is measured
+	tonBrakeWarning			: TON;	// the brake stays open with the axis disabled (MONETcommon#121)
 	enableTrigger			: F_TRIG;	// disable trigger for hydraulics
 	brakeEvent				: FB_EventLog;
 	highElevationEvent		: FB_EventLog;
@@ -117,7 +118,9 @@ _CheckDiagnostic(sAxis := 'Elevation', bSoEResetOnReset := FALSE);
 // diagnostic reset of the drive on bSoEReset
 _SoEReset(sAxis := 'Elevation');
 
-tonReadyDelay(IN :=  bBrakeOpen, PT := T#6000MS, Q=> bReady);
+// MONETcommon#121: ready only while the axis is enabled, like fbAxis.Enable and the azimuth. Not bCalibrated: the power-on
+// homes an axis that is Ready and not yet calibrated.
+tonReadyDelay(IN := bEnable AND bBrakeOpen, PT := T#6000MS, Q=> bReady);
 
 fbReadParameter(	
 	Axis 			:= axisRef, 
@@ -153,8 +156,10 @@ lowElevationEvent(
 	OnMessage 		:= LREAL_TO_FMTSTR(fActualPosition, 2, TRUE), 
 	comm 			:= fbComm);
 				
+// a normal disable overlaps the open brake for one scan (the hydraulics close it in the next one), so debounce (MONETcommon#121)
+tonBrakeWarning(IN := NOT bEnable AND bBrakeOpen, PT := T#500MS);
 brakeEvent( 
-	Trigger 		:= NOT bEnable AND bBrakeOpen, 
+	Trigger 		:= tonBrakeWarning.Q, 
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Brake was opened without elevation axis enabled!', 
