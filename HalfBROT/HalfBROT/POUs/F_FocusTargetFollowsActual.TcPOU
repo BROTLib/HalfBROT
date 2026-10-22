@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="F_FocusTargetFollowsActual" Id="{356c98db-bb52-4965-b63d-b30593a5da97}" SpecialFunc="None">
+    <Declaration><![CDATA[// TRUE while the target of the focus follows its actual position: outside automatic positioning (manual or off mode,
+// manual unlock) or while a jog runs, the pendant or a hand moves the focus, so back in automatic the follower
+// (FB_MoveFollower) has nothing to do. Only a calibrated focus, never during a homing (the homing owns fPosition).
+FUNCTION F_FocusTargetFollowsActual : BOOL
+VAR_INPUT
+	bAutomatic		: BOOL;		// eTelescopeMode = automatic
+	bManualUnlock	: BOOL;
+	bJogging		: BOOL;		// FB_FocusJogLatch.bJogging
+	bCalibrated		: BOOL;		// fbAxis.calibrated
+	bHoming			: BOOL;		// bHomeAxis
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[F_FocusTargetFollowsActual := (NOT bAutomatic OR bManualUnlock OR bJogging) AND bCalibrated AND NOT bHoming;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

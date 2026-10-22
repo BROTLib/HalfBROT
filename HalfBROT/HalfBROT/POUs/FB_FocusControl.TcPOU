@@ -28,6 +28,7 @@ END_VAR
 VAR
 	fbFollower			: BROTLib.FB_MoveFollower;	// starts, re-targets and holds the move to fPosition (MONETcommon#122)
 	fbManualHome		: FB_FocusManualHome;		// decides and follows a manual re-home (bManualHome)
+	fbJogLatch			: FB_FocusJogLatch;			// a jog is running until standstill, see F_FocusTargetFollowsActual
 	eManualHome			: E_FocusManualHome;		// result of the last bManualHome request
 	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
 	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
@@ -93,13 +94,17 @@ tonFocusDelay(IN := ObFocusUnlock, PT := ptFocusDelay, Q => bFocusUnlocked);
 // wait for brake until we are at rest
 tonBrakeDelay(IN := NOT fbAxis.Busy AND fbAxis.StandStill, PT := ptBrakeDelay);
 
+// a jog runs until standstill (the inputs are what fbAxis reported in its last call)
+fbJogLatch(bJogCommand := (bMovePos OR bMoveNeg) AND bFocusUnlocked, bStandStill := fbAxis.StandStill);
+
 // a new target during a move restarts it, MoveDone, abort, error and stop end it (MONETcommon#122); the inputs are
 // what fbAxis reported in its last call
 fbFollower(
 	fTarget		:= fPosition,
 	fActual		:= fActualPosition,
 	fTolerance	:= fTolerance,
-	bActive		:= eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock AND fbAxis.calibrated AND NOT bHomeAxis,
+	bActive		:= eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock AND NOT fbJogLatch.bJogging
+					AND fbAxis.calibrated AND NOT bHomeAxis,
 	bReady		:= fbAxis.Ready,
 	bMoveDone	:= fbAxis.MoveDone,
 	bAborted	:= fbAxis.CommandAborted,
@@ -119,6 +124,17 @@ IF bError AND fbAxis.calibrated THEN
 	fPosition := fActualPosition;
 END_IF
 
+// outside automatic positioning or while jogging the focus is moved by hand: the target follows it, so the follower
+// does not drive back to the old target when the mode returns to automatic
+IF F_FocusTargetFollowsActual(
+	bAutomatic		:= eTelescopeMode = E_TelescopeMode.automatic,
+	bManualUnlock	:= bManualUnlock,
+	bJogging		:= fbJogLatch.bJogging,
+	bCalibrated		:= fbAxis.calibrated,
+	bHoming			:= bHomeAxis) THEN
+	fPosition := fActualPosition;
+END_IF
+
 // if we are on automatic mode then position the focus
 IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 	IF fbAxis.calibrated THEN
@@ -133,16 +149,23 @@ IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 		IF tonBrakeDelay.Q AND NOT bHomeAxis THEN
 			bEnable := FALSE;
 		END_IF
-		// store actual position, if we are calibrated and locked
-		IF NOT ObFocusUnlock AND NOT bHomeAxis THEN
-			fLastPosition := fActualPosition;
-		END_IF
 	ELSE // not calibrated
 		// not after an aborted manual re-home: a stop must not be undone by the automatic homing
 		IF fbAxis.Ready AND NOT fbManualHome.bBlockAutoHome THEN
 			THIS^.HomeAxis := TRUE;
 		END_IF
 	END_IF
+END_IF
+
+// store the actual position when the focus is calibrated, locked and not homing, in every mode: a focus jogged in
+// manual mode must not be restored to its pre-jog position by MC_Direct after a restart (#66)
+IF F_FocusTrackStoredPosition(bCalibrated := fbAxis.calibrated, bLocked := NOT ObFocusUnlock, bHoming := bHomeAxis) THEN
+	fLastPosition := fActualPosition;
+END_IF
+
+// a jog before calibration moves the focus away from the stored position: home on the cam next time (#66)
+IF NOT fbAxis.calibrated AND NOT bHomeAxis AND fbJogLatch.bJogging THEN
+	fLastPosition := -1.0;
 END_IF
 
 // Manual re-home of a calibrated focus (bManualHome). After the automatic block: the stored position is dropped, so
