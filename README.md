@@ -147,4 +147,4 @@ cut by `.github/workflows/release.yml` (version bump on `develop`, release PR to
 `main`, tag `vX.Y.Z`); each GitHub release carries the compiled
 `HalfBROT_vX.Y.Z.library`.
 
-**CI.** `.github/workflows/tcbuild.yml` builds `HalfBROT.sln` with TcBuild on every push (self-hosted runner, never on pull requests). A green run means the project compiles; TcBuild exit code 1 (built with warnings) counts as success. It only compiles; no tests run in CI.
+**CI.** `.github/workflows/tcbuild.yml` builds `HalfBROT.sln` with [`tctool`](https://github.com/BROTLib/TcTool) on every push (self-hosted runner, never on pull requests). A green run means the project compiles; `tctool` exit code 1 (built with warnings) counts as success. It only compiles; no tests run in CI.
