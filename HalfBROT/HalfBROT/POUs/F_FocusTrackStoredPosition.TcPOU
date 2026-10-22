@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="F_FocusTrackStoredPosition" Id="{a906087a-5f70-46d1-86eb-61b82d0d43b8}" SpecialFunc="None">
+    <Declaration><![CDATA[// TRUE when the stored focus position (fLastPosition) takes the actual position: calibrated, at rest with the brake
+// locked (drive off) and no homing running. Independent of the telescope mode (#66).
+FUNCTION F_FocusTrackStoredPosition : BOOL
+VAR_INPUT
+	bCalibrated		: BOOL;		// fbAxis.calibrated
+	bLocked			: BOOL;		// NOT ObFocusUnlock
+	bHoming			: BOOL;		// bHomeAxis
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[F_FocusTrackStoredPosition := bCalibrated AND bLocked AND NOT bHoming;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
