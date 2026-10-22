@@ -44,6 +44,15 @@
     <Compile Include="POUs\FB_ElevationControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DUTs\E_FocusManualHome.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\F_FocusHomeRelease.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\FB_FocusManualHome.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\FB_FocusControl.TcPOU">
       <SubType>Code</SubType>
     </Compile>

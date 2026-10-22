@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="E_FocusManualHome" Id="{a77ab252-d5df-4727-82c1-9790be8b2241}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+// Result of a manual focus re-home request (FB_FocusManualHome.Request).
+TYPE E_FocusManualHome :
+(
+	Accepted := 0,
+	NotAutomatic := 1,
+	ManualUnlock := 2,
+	AxisError := 3,
+	NotCalibrated := 4,
+	Homing := 5,
+	Moving := 6
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
