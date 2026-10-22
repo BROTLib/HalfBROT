@@ -64,6 +64,8 @@ jobs:
           if ($LASTEXITCODE -gt 1) { throw "tctool failed with exit code $LASTEXITCODE" }
           if (-not (Test-Path $file)) { throw "tctool did not write $file" }
           "LIBRARY_FILE=$file" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          # exit 1 (warnings) was handled above; without this the step would end with tctool's exit code
+          exit 0
 
       - name: Attach to GitHub Release
         shell: powershell
