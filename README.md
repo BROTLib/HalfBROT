@@ -77,6 +77,11 @@ implements the `I_Axis` interface. Common features:
   disk (`FB_WritePersistentData`, port `nPersistentAdsPort` = 851) after it changed, at rest, at most once a
   minute, so an unclean power-off restores the last position written, not the one of the last clean shutdown (#8). After an SoE reset the axis
   must fully re-home.
+- **Manual focus jog** — the stored position is tracked in every mode (calibrated, brake locked, not homing), so a focus
+  jogged with the pendant in manual mode is restored at its new position after a restart (#66). Outside automatic
+  mode and while a jog runs, the target `fPosition` follows the actual position, so the focus does not drive back to
+  its old target when the telescope returns to automatic. A jog of an uncalibrated focus drops the stored position
+  (cam homing next time).
 - **Manual focus re-home** — `FB_FocusControl.bManualHome` (set TRUE online in XAE, by ADS or from a program; the block
   clears it) homes a calibrated focus again on its cam at `fHomingPosition`, e.g. when the stored position is in
   doubt. The stored position is dropped first, so the `MC_Direct` shortcut is not taken. It is accepted in automatic

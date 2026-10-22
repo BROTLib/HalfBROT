@@ -41,3 +41,9 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   MONETS/MONETN `MAIN` use `HalfBROT.FB_CoverControl` (I/O links unchanged); pendants hold-to-run of the whole sequence
   (option B); new `HalfBROTTests`. **proposed**, nine questions for Tim, on-site check T15.
 - [2026-10-20-oil-level-guard-monets-32.md](2026-10-20-oil-level-guard-monets-32.md): MONETS#32, a raw oil level outside a configurable range (wire break, over-range) is not published and does not start/stop the suction by level (`F_OilLevelValid`, `F_OilSuctionLatch`, `statusWord` bit 14). **Implemented in HalfBROT, not compiled or hardware-tested;** tests and the MONETS/MONETN `MAIN` settings follow.
+- [2026-10-22-focus-manual-jog-target-and-stored-position-66.md](2026-10-22-focus-manual-jog-target-and-stored-position-66.md):
+  focus after a pendant jog in manual mode: (A, no issue yet) the target follows the actual position outside automatic
+  and during a jog, so the follower does not drive back to the pre-jog target on the switch to automatic; (B, #66)
+  `fLastPosition` is tracked in every mode, so `MC_Direct` does not restore the pre-jog position after a restart.
+  One plan for both (same block, release, tests and on-site session). Pure-logic POUs tested in MONETcommonTests,
+  HalfBROT 0.7.2 plus MONETcommon/MONETS/MONETN pins. **Implemented in HalfBROT, not compiled or hardware-tested;** tests in MONETcommonTests and the pins follow.

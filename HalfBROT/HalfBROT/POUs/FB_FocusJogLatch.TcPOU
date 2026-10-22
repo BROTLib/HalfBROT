@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_FocusJogLatch" Id="{4132c614-8480-49c4-9655-96e8491fa3d6}" SpecialFunc="None">
+    <Declaration><![CDATA[// A jog is running from the jog command until the axis is at standstill again (the ramp down after the button is
+// released is part of it). Call once per cycle before the follower.
+FUNCTION_BLOCK FB_FocusJogLatch
+VAR_INPUT
+	bJogCommand		: BOOL;		// (bMovePos OR bMoveNeg) AND bFocusUnlocked, what goes to Jog_Forward/Jog_Backwards
+	bStandStill		: BOOL;		// fbAxis.StandStill from its last call
+END_VAR
+VAR_OUTPUT
+	bJogging		: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[bJogging := bJogCommand OR (bJogging AND NOT bStandStill);
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
