@@ -77,6 +77,15 @@ implements the `I_Axis` interface. Common features:
   disk (`FB_WritePersistentData`, port `nPersistentAdsPort` = 851) after it changed, at rest, at most once a
   minute, so an unclean power-off restores the last position written, not the one of the last clean shutdown (#8). After an SoE reset the axis
   must fully re-home.
+- **Manual focus re-home** — `FB_FocusControl.bManualHome` (set TRUE online in XAE, by ADS or from a program; the block
+  clears it) homes a calibrated focus again on its cam at `fHomingPosition`, e.g. when the stored position is in
+  doubt. The stored position is dropped first, so the `MC_Direct` shortcut is not taken. It is accepted in automatic
+  mode, calibrated, at rest, without `bManualUnlock` or error and with no homing running; otherwise a warning with the
+  reason (`E_FocusManualHome`) is logged and nothing happens. Use it with the telescope idle: the re-home takes
+  minutes, `Busy` holds back goto/slew/track/park, and if the NC drops `Homed` while homing, the telescope shows
+  READY_STATE -2 until it is done (unverified on the telescope). Afterwards the focus returns to the target it had
+  before. `Stop()` aborts a re-home; if that leaves the focus uncalibrated, the automatic homing stays off until the
+  next `bManualHome` or another homing request.
 - **No position restore** — azimuth and elevation home on their cam at every start. A restore with
   `MC_SetPosition` was removed (#7): it most likely never set `Calibrated`, and a mount moved while switched off
   must not trust an old position. Only the focus restores its last position (`MC_Direct`, see Homing).

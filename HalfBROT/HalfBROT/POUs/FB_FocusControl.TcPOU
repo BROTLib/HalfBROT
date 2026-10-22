@@ -16,12 +16,19 @@ VAR_INPUT
 
 	// ADS port of the PLC runtime whose persistent data are written (#8), 851 = first PLC runtime
 	nPersistentAdsPort		: UINT := 851;
+
+	// Set TRUE (online in XAE, by ADS or from a program) to home a calibrated focus again on its cam, e.g. when the stored
+	// position is in doubt. Cleared by the block; a request that is not accepted is logged. Not for the MAIN call, which
+	// would overwrite every online write.
+	bManualHome				: BOOL;
 END_VAR
 VAR_OUTPUT
 	bFocusUnlocked		: BOOL;
 END_VAR
 VAR
 	fbFollower			: BROTLib.FB_MoveFollower;	// starts, re-targets and holds the move to fPosition (MONETcommon#122)
+	fbManualHome		: FB_FocusManualHome;		// decides and follows a manual re-home (bManualHome)
+	eManualHome			: E_FocusManualHome;		// result of the last bManualHome request
 	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
 	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
 	tonFocusDelay		: TON;
@@ -92,7 +99,7 @@ fbFollower(
 	fTarget		:= fPosition,
 	fActual		:= fActualPosition,
 	fTolerance	:= fTolerance,
-	bActive		:= eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock AND fbAxis.calibrated,
+	bActive		:= eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock AND fbAxis.calibrated AND NOT bHomeAxis,
 	bReady		:= fbAxis.Ready,
 	bMoveDone	:= fbAxis.MoveDone,
 	bAborted	:= fbAxis.CommandAborted,
@@ -123,17 +130,45 @@ IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 			bEnable := TRUE;
 		END_IF
 		// disable the drive and lock the brake, if we stand for more than n seconds
-		IF tonBrakeDelay.Q THEN
+		IF tonBrakeDelay.Q AND NOT bHomeAxis THEN
 			bEnable := FALSE;
 		END_IF
 		// store actual position, if we are calibrated and locked
-		IF NOT ObFocusUnlock THEN
+		IF NOT ObFocusUnlock AND NOT bHomeAxis THEN
 			fLastPosition := fActualPosition;
 		END_IF
 	ELSE // not calibrated
-		IF fbAxis.Ready THEN
+		// not after an aborted manual re-home: a stop must not be undone by the automatic homing
+		IF fbAxis.Ready AND NOT fbManualHome.bBlockAutoHome THEN
 			THIS^.HomeAxis := TRUE;
 		END_IF
+	END_IF
+END_IF
+
+// Manual re-home of a calibrated focus (bManualHome). After the automatic block: the stored position is dropped, so
+// the cam homing runs and the position that is in doubt is not used again (it is not written back while bHomeAxis).
+IF bHomeAxis AND NOT fbManualHome.bRunning THEN
+	fbManualHome.ClearBlock();	// somebody else requested a homing
+END_IF
+IF bManualHome THEN
+	bManualHome := FALSE;
+	eManualHome := fbManualHome.Request(
+		bAutomatic		:= eTelescopeMode = E_TelescopeMode.automatic,
+		bManualUnlock	:= bManualUnlock,
+		bError			:= bError,
+		bCalibrated		:= fbAxis.calibrated,
+		bHoming			:= bHomeAxis OR fbAxis.HomeActive OR fbAxis.HomePending,
+		bMoving			:= fbAxis.Busy OR fbFollower.bMoving,
+		fTarget			:= fPosition);
+	IF eManualHome = E_FocusManualHome.Accepted THEN
+		fLastPosition := -1.0;
+		bEnable := TRUE;
+		THIS^.HomeAxis := TRUE;		// _StartHoming: cam homing to fHomingPosition
+		ADSLOGSTR(ADSLOG_MSGTYPE_HINT OR ADSLOG_MSGTYPE_LOG, 'Focus: manual re-home started at %s mm',
+			LREAL_TO_STRING(fActualPosition));
+	ELSE
+		ADSLOGSTR(ADSLOG_MSGTYPE_WARN OR ADSLOG_MSGTYPE_LOG, 'Focus: manual re-home rejected (reason %s)',
+			UDINT_TO_STRING(eManualHome));
 	END_IF
 END_IF
 
@@ -142,14 +177,9 @@ END_IF
 // (#18: MC_ForceCalibration only sets the flag, the position came from a parallel MC_SetPosition nobody checked.)
 // fPosition is overwritten so the automatic positioning does not move after homing: a target set before
 // calibration is lost, the caller sets it again once Calibrated.
+// The mode was chosen once in _StartHoming, together with the reference.
 IF bHomeAxis THEN
-	IF fLastPosition > 0.0 THEN
-		eHomingMode := MC_Direct;
-		fPosition := fLastPosition;
-	ELSE
-		eHomingMode := MC_DefaultHoming;
-		fPosition := fHomingPosition;
-	END_IF
+	fPosition := SEL(eHomingMode = MC_Direct, fHomingPosition, fLastPosition);
 END_IF
 
 // deactivate limit switches on homing
@@ -174,9 +204,6 @@ fbAxis(
 // only when the homing has finished: the NC sets Homed (HomeDone) before the homing procedure is done
 // HomeDone is a level (TRUE while the axis is homed), so only the first cycle after the homing is done is acted on (#80)
 rtHomed(CLK := fbAxis.HomeDone AND NOT fbAxis.HomeActive);
-IF fbAxis.HomeDone AND NOT fbAxis.HomeActive THEN
-	bHomeAxis := FALSE;
-END_IF
 IF rtHomed.Q THEN
 	bEnable := FALSE;
 	fLastPosition := fActualPosition;	// the position reached, not the target
@@ -187,8 +214,29 @@ IF fbAxis.ResetDone THEN
 	bReset := FALSE;
 END_IF
 
-IF (fbAxis.calibrated AND NOT fbAxis.HomeActive) OR bError THEN
+// HomeDone is the calibrated level (HomePending: a manual re-home starts on a calibrated axis)
+IF F_FocusHomeRelease(bCalibrated := fbAxis.calibrated, bHomeActive := fbAxis.HomeActive, bHomePending := fbAxis.HomePending, bError := bError) THEN
 	bHomeAxis := FALSE;
+END_IF
+
+// follow a manual re-home to its end
+fbManualHome(
+	bHomeActive		:= fbAxis.HomeActive,
+	bHomePending	:= fbAxis.HomePending,
+	bCalibrated		:= fbAxis.calibrated,
+	bAbortPulse		:= fbAxis.CommandAborted OR fbAxis.StopDone OR bError);
+IF fbManualHome.bDone THEN
+	// back to the focus the observer had, now in the corrected calibration
+	fPosition := LIMIT(fMinPosition, fbManualHome.fRestoreTarget, fMaxPosition);
+	ADSLOGSTR(ADSLOG_MSGTYPE_HINT OR ADSLOG_MSGTYPE_LOG, 'Focus: manual re-home done, position %s mm',
+		LREAL_TO_STRING(fActualPosition));
+ELSIF fbManualHome.bAborted THEN
+	THIS^.HomeAxis := FALSE;	// releases the far switch bypass of an aborted homing
+	IF NOT fbAxis.calibrated THEN
+		bEnable := FALSE;
+	END_IF
+	ADSLOGSTR(ADSLOG_MSGTYPE_WARN OR ADSLOG_MSGTYPE_LOG, 'Focus: manual re-home aborted, calibrated: %s',
+		BOOL_TO_STRING(fbAxis.calibrated));
 END_IF
 
 IF bError THEN
@@ -212,7 +260,7 @@ END_IF
 HandleEvents();]]></ST>
     </Implementation>
     <Method Name="_StartHoming" Id="{d763a0dd-f5c6-4dbb-a6cd-b9a5c12596fe}">
-      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_Direct to the stored last position if there is one, else cam homing to fHomingPosition (the same choice as eHomingMode in the body).
+      <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_Direct to the stored last position if there is one, else cam homing to fHomingPosition (the choice is stored in eHomingMode, which the body uses).
 METHOD _StartHoming : BOOL
 VAR
 	fReference	: LREAL;	// Home() needs a variable (VAR_IN_OUT CONSTANT)
@@ -220,7 +268,13 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[_MigrateLastPosition();	// HomeAxis may be set before the body has run once
-fReference := SEL(fLastPosition > 0.0, fHomingPosition, fLastPosition);
+IF fLastPosition > 0.0 THEN
+	eHomingMode := MC_Direct;
+	fReference := fLastPosition;
+ELSE
+	eHomingMode := MC_DefaultHoming;
+	fReference := fHomingPosition;
+END_IF
 fbAxis.Home(fReference := fReference);
 _StartHoming := TRUE;
 ]]></ST>
@@ -331,6 +385,9 @@ METHOD Stop : BOOL
       <Implementation>
         <ST><![CDATA[fbFollower.Stop();
 fbAxis.CancelMove();
+IF fbManualHome.bRunning THEN
+	fbAxis.CancelHome();	// a re-home that waits for the drive must not start after the stop
+END_IF
 IF fbAxis.Ready AND NOT fbAxis.StandStill THEN
 	Stop := fbAxis.Stop();
 	bHoldOnStop := TRUE;
