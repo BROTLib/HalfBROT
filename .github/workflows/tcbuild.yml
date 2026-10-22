@@ -53,6 +53,12 @@ jobs:
             Where-Object { $_.SessionId -eq $session } |
             ForEach-Object { Write-Host "stopping $($_.ProcessName) $($_.Id)"; Stop-Process -Id $_.Id -Force }
 
+      - name: Get tctool
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ secrets.TCTOOL_TOKEN }}
+        run: .\tools\Get-TcTool.ps1
+
       # The org libraries this repo pins in its .plcproj files are reinstalled from their GitHub release before the
       # build. A `*` reference picks the highest version in the shared library repository, and a branch build of
       # that library overwrites its version slot, so the result depended on what ran last.
@@ -63,15 +69,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: .\tools\Install-PinnedLibraries.ps1
 
-      # tools/Invoke-XaeBuild.ps1 builds through the XAE automation interface and replaces TcBuild.exe: a cold XAE
-      # start (about 20 s of CPU on the runner) outlasts TcBuild's own COM retry window of about 17 s, so TcBuild
-      # failed with exit 3 (busy) on try after try, each restarting XAE. The script waits for XAE (up to 120 s).
-      # Same exit codes as TcBuild; exit 1 = built with compile warnings, still a success.
+      # tctool (BROTLib/TcTool) drives XAE through its automation interface, waits for a cold XAE start and bounds
+      # every phase with a deadline. Exit 1 = built with compile warnings, still a success.
       - name: Build HalfBROT.sln
         if: steps.same.outputs.same != 'true'
         shell: powershell
         run: |
-          & "$env:GITHUB_WORKSPACE\tools\Invoke-XaeBuild.ps1" build HalfBROT.sln
+          tctool HalfBROT.sln build
           if ($LASTEXITCODE -gt 1) { exit $LASTEXITCODE }
           exit 0
 
