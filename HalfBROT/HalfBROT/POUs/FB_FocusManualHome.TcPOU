@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_FocusManualHome" Id="{5bd5e2c0-b882-4f8e-b385-019e45c8a5c0}" SpecialFunc="None">
+    <Declaration><![CDATA[// Manual re-home of a calibrated focus (FB_FocusControl.bManualHome): decides a request, then follows the homing to its end.
+// No NC access, the caller does the axis calls (like FB_MoveFollower). Call it once per cycle after the axis block.
+// A re-home ends when no homing is active or pending any more: done if it was seen active, nothing aborted it and the
+// axis is calibrated, else aborted. An aborted re-home that leaves the axis uncalibrated blocks the automatic homing
+// (bBlockAutoHome), so a stop is not undone by it; the next request or any other homing request (ClearBlock) lifts that.
+FUNCTION_BLOCK FB_FocusManualHome
+VAR_INPUT
+	bHomeActive		: BOOL;		// fbAxis.HomeActive
+	bHomePending	: BOOL;		// fbAxis.HomePending
+	bCalibrated		: BOOL;		// fbAxis.calibrated
+	bAbortPulse		: BOOL;		// fbAxis.CommandAborted OR fbAxis.StopDone OR bError
+END_VAR
+VAR_OUTPUT
+	bRunning		: BOOL;		// a request was accepted and has not ended
+	bDone			: BOOL;		// one cycle: ended calibrated, was seen active, no abort seen
+	bAborted		: BOOL;		// one cycle: ended otherwise
+	bBlockAutoHome	: BOOL;		// ended uncalibrated: keep the automatic homing off
+	fRestoreTarget	: LREAL;	// the target at the request
+END_VAR
+VAR
+	bActiveSeen		: BOOL;
+	bAbortSeen		: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[bDone := FALSE;
+bAborted := FALSE;
+
+IF bRunning THEN
+	bActiveSeen := bActiveSeen OR bHomeActive;
+	bAbortSeen := bAbortSeen OR bAbortPulse;
+	IF NOT bHomeActive AND NOT bHomePending THEN
+		bRunning := FALSE;
+		IF bActiveSeen AND NOT bAbortSeen AND bCalibrated THEN
+			bDone := TRUE;
+		ELSE
+			bAborted := TRUE;
+			bBlockAutoHome := NOT bCalibrated;
+		END_IF
+	END_IF
+END_IF
+]]></ST>
+    </Implementation>
+    <Method Name="Request" Id="{aab99738-82f2-4818-a18c-90a456227694}">
+      <Declaration><![CDATA[// Decide a request. Accepted: running, the target is kept for the end, the automatic homing is released again.
+// An uncalibrated axis is only accepted while the automatic homing is blocked by an aborted re-home.
+METHOD Request : E_FocusManualHome
+VAR_INPUT
+	bAutomatic		: BOOL;		// telescope mode is automatic
+	bManualUnlock	: BOOL;
+	bError			: BOOL;
+	bCalibrated		: BOOL;
+	bHoming			: BOOL;		// bHomeAxis OR HomeActive OR HomePending
+	bMoving			: BOOL;		// fbAxis.Busy OR the follower is moving
+	fTarget			: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT bAutomatic THEN
+	Request := E_FocusManualHome.NotAutomatic;
+ELSIF bManualUnlock THEN
+	Request := E_FocusManualHome.ManualUnlock;
+ELSIF bError THEN
+	Request := E_FocusManualHome.AxisError;
+ELSIF bRunning OR bHoming THEN
+	Request := E_FocusManualHome.Homing;
+ELSIF NOT bCalibrated AND NOT bBlockAutoHome THEN
+	Request := E_FocusManualHome.NotCalibrated;
+ELSIF bMoving THEN
+	Request := E_FocusManualHome.Moving;
+ELSE
+	Request := E_FocusManualHome.Accepted;
+	bRunning := TRUE;
+	bActiveSeen := FALSE;
+	bAbortSeen := FALSE;
+	bBlockAutoHome := FALSE;
+	fRestoreTarget := fTarget;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ClearBlock" Id="{632e5480-8205-427e-9323-5ae2ee500521}">
+      <Declaration><![CDATA[// Someone else requested a homing: the automatic homing may run again.
+METHOD ClearBlock
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bBlockAutoHome := FALSE;
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

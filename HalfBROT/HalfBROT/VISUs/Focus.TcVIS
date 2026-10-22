@@ -1723,7 +1723,7 @@
                         </o>
                         <o>
                           <v n="Id">743958181L</v>
-                          <v n="Value">"MAIN.FocusControl.bHomeAxis"</v>
+                          <v n="Value">"MAIN.FocusControl.bManualHome"</v>
                         </o>
                       </l>
                     </o>

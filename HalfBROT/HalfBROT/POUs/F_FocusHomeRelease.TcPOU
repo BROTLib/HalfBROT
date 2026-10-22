@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="F_FocusHomeRelease" Id="{cb7d2542-8217-49a8-bf69-2ca2b4883b00}" SpecialFunc="None">
+    <Declaration><![CDATA[// TRUE when the homing request (bHomeAxis) of the focus ends: on an axis error, or when the axis is calibrated and no
+// homing is running or waiting to start. HomePending matters for a manual re-home: the axis is already calibrated
+// (HomeDone is a level) while the Home() waits for the drive, so without it the request would end in the first cycle.
+FUNCTION F_FocusHomeRelease : BOOL
+VAR_INPUT
+	bCalibrated		: BOOL;
+	bHomeActive		: BOOL;
+	bHomePending	: BOOL;
+	bError			: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[F_FocusHomeRelease := bError OR (bCalibrated AND NOT bHomeActive AND NOT bHomePending);
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
