@@ -168,7 +168,7 @@ IF bManualHome THEN
 			LREAL_TO_STRING(fActualPosition));
 	ELSE
 		ADSLOGSTR(ADSLOG_MSGTYPE_WARN OR ADSLOG_MSGTYPE_LOG, 'Focus: manual re-home rejected (reason %s)',
-			UDINT_TO_STRING(eManualHome));
+			INT_TO_STRING(TO_INT(eManualHome)));
 	END_IF
 END_IF
 
