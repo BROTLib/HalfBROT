@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="F_FocusHomingReference" Id="{c749fe85-6194-414b-a29f-d0ab083051f7}" SpecialFunc="None">
+    <Declaration><![CDATA[// How the focus homing starts (#115): TRUE = MC_Direct to the stored position, FALSE = cam homing to fHomingPosition.
+// fReference is the position passed to Home(). Called once when the homing starts; the result is kept for the whole
+// homing, so a later write of fLastPosition (-1 from an error, a jog or a re-home) cannot change the target.
+FUNCTION F_FocusHomingReference : BOOL
+VAR_INPUT
+	fLastPosition		: LREAL;	// stored position, -1 when there is none
+	fHomingPosition		: LREAL;	// reference position of the cam
+END_VAR
+VAR_OUTPUT
+	fReference			: LREAL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[F_FocusHomingReference := fLastPosition > 0.0;
+fReference := SEL(F_FocusHomingReference, fHomingPosition, fLastPosition);
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

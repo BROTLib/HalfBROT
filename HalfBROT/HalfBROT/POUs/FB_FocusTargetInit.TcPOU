@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_FocusTargetInit" Id="{c9394aec-b039-4a74-b5b3-60838444bac9}" SpecialFunc="None">
+    <Declaration><![CDATA[// The target of the focus (fPosition) takes the actual position once, when the axis is calibrated without a homing
+// having set the target (#115): after a PLC or TwinCAT restart the NC keeps the calibration, the target still has its
+// initial 0 and the clamp would make it fMinPosition. Call once per cycle before the clamp and the follower.
+FUNCTION_BLOCK FB_FocusTargetInit
+VAR_INPUT
+	bCalibrated		: BOOL;		// fbAxis.calibrated from its last call
+	bHoming			: BOOL;		// bHomeAxis, a homing owns the target
+END_VAR
+VAR_OUTPUT
+	bSync			: BOOL;		// TRUE for one cycle: the target takes the actual position
+END_VAR
+VAR
+	bKnown			: BOOL;		// the target of this calibration is settled
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT bCalibrated THEN
+	bKnown := FALSE;
+	bSync := FALSE;
+ELSIF bKnown THEN
+	bSync := FALSE;
+ELSE
+	bKnown := TRUE;
+	bSync := NOT bHoming;	// a calibration during a homing is settled by the homing
+END_IF
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
