@@ -110,7 +110,8 @@ MONETS/MONETN pins as for any HalfBROT patch (no `MAIN` change).
 | Calibration during a homing (MC_Direct, cam) | `bHoming` TRUE: no sync, and `bKnown` is set so the end of the homing does not sync either |
 | Manual re-home of a calibrated axis | already known: no sync; `fbManualHome.fRestoreTarget` restores the target as now |
 | Error, reset, calibrated again | `bKnown` cleared by the loss, then sync (same value as `:124`) |
-| TwinCAT restart, NC reset | uncalibrated at start: homing path |
+| TwinCAT restart (NC too), calibrated before | the NC restores the calibration and the position itself, calibrated at the start, no homing (D3): same as the PLC restart, the sync applies |
+| Activation (download), NC reset | uncalibrated at start, position 0: homing path, `:205` owns the target (forced D4: right target with a valid `fLastPosition`) |
 | Online change | state of `FB_FocusTargetInit` is kept |
 
 ## 4. Tests
