@@ -1,6 +1,6 @@
 # Focus target after a PLC restart: first calibration takes the actual position (#115)
 
-**Status: proposed, Q1-Q4 decided (section 6). Nothing implemented, compiled or run on a PLC for the fix.** The restart case is reproduced on
+**Status: proposed, Q1-Q5 decided (section 6). Nothing implemented, compiled or run on a PLC for the fix.** The restart case is reproduced on
 hardware (D1, below); the power-on case (second #115 comment) is not explained yet and is not part of the code change
 proposed here. Facts read on 2026-10-25 from HalfBROT `develop` @ `4627b62` (0.7.2), BROTLib `develop`, MONETcommon
 working tree and MONETS `develop`. Line numbers are `FB_FocusControl.TcPOU` at that commit.
@@ -32,14 +32,14 @@ Consequences seen in the issue: the focus drives 35 mm towards the low end witho
 not help in time, the running move is not reversed by a new target (#103, not fixed here), and `bEnable := FALSE` as the
 only way to stop it raised 0x4260 and set `fLastPosition` to -1 (`:266`), so the stored position was lost.
 
-### 1.2 Power-on that calibrates from a stored position (hypothesis, not fixed here)
+### 1.2 Power-on that calibrates from a stored position (H-205 confirmed by D6, fix proposed in 2.4)
 
 Second #115 comment: the target was 0.5 at the end of a power-on. From reading the code: no outside writer (power-on
 stages, park stage 0 = `focusPark` 36.0, MQTT range check). Forced run D4 with a valid `fLastPosition` in MC_Direct
 mode: no 0.5. The remaining hypothesis is H-205: `:205` sets `fPosition := fLastPosition` every cycle while `bHomeAxis`
 is TRUE in MC_Direct mode; with `fLastPosition` -1 (hand write, `:168`, `:187`, `:266`) the target is -1 and the clamp
-makes it 0.5. Unconfirmed, and why the focus calibrated from the stored value after -1 was written is open (stale
-`fLastPposition`, or -1 written after `_StartHoming`). Decision after D6 (section 4).
+makes it 0.5. Confirmed by D6 (below). Still open: why the focus calibrated from the stored value after -1 was written is open (stale
+`fLastPposition`, or -1 written after `_StartHoming`). D6 (2026-10-25, 0.7.2, MONET/S, ADS 2.9 ms per read, telescope unpowered): uncalibrated focus, `fLastPposition` -1 read before, `fLastPosition := 36.27`, `power=1` lifted the block; with `bHomeAxis` TRUE and `eHomingMode` 4 (MC_Direct) `fLastPosition := -1` was written. 0 ms: `fPosition` -1; 141 ms: `calibrated` TRUE at 36.27, `fPosition` still -1; 161 ms: homing over (`rtHomed` set `fLastPosition` back to the actual position), `fPosition` 0.500 and it stays. The move to 0.5 then sat queued with a locked drive (#111/#108) and would have run with the next enable; it was re-targeted by hand. H-205 is confirmed with a forced -1; which writer produced -1 in occurrence 2 (`:168`, `:187`, `:266`, a stale-name restore) is still not known.
 
 ## 2. Change (HalfBROT, one PR to `develop`)
 
@@ -98,6 +98,23 @@ Not changed: `:205`, the `rtHomed` block, `F_FocusTargetFollowsActual`, the foll
 
 HalfBROT 0.7.3 or a patch of its own, Q1. No interface change (`FB_FocusTargetInit` is additive). MONETcommon and
 MONETS/MONETN pins as for any HalfBROT patch (no `MAIN` change).
+
+### 2.4 Part B (proposed, Q5): the homing target is fixed when the homing starts
+
+Cause (D6): `:205` re-reads `fLastPosition` every cycle of the homing, but `_StartHoming` decided the mode and the reference once.
+Proposal: `_StartHoming` stores the reference it passed to `fbAxis.Home()` in a new non-persistent `fHomingReference : LREAL`, and
+`:205` becomes `fPosition := fHomingReference;` (cam mode: `fHomingPosition` as now, MC_Direct: the `fLastPosition` of the start).
+No later write of `fLastPosition` (hand, `:168`, `:187`, `:266`) can then reach the target; the homing result (`rtHomed`,
+the other branch) sets the target after the homing. The pick of the mode and the reference moves into a pure function
+`F_FocusHomingReference(fLastPosition, fHomingPosition, bDirect => , fReference => )` (`fLastPosition > 0` as now), tested in
+MONETcommonTests: valid value gives direct + value, -1 and 0 give cam + `fHomingPosition`.
+
+Why not "take `fActualPosition` when `fLastPosition` is invalid" (the guard in the first draft of Q3): during an `MC_Direct`
+homing the axis is still uncalibrated and `fActualPosition` is the NC placeholder (40.907 mm in the forced D4, 0 after an
+activation), so the guard could give 0 and the clamp 0.5 again.
+
+What the unit tests cannot show: the block keeps the reference while `fLastPosition` changes (needs the NC). Hardware: repeat
+D6 on the fixed build, expected `fPosition` 36.27 during and after the homing, no 0.5, no queued move.
 
 ## 3. Edge cases
 
@@ -172,10 +189,14 @@ questions follows as asked.
    to touch the first-scan value.
 2. **Calibrated outside 0.5..91.5 after a restart:** keep the clamp (the focus moves into the range, at most about 0.5
    mm from a switch), or skip the clamp for the first sync? Recommended: keep (MONETcommon#122).
-3. **Power-on / H-205:** wait for D6 before deciding, or add now a guard in `:205` (no `fLastPosition` below the minimum:
+3. **Power-on / H-205 (decided: wait for D6; D6 is done, see 1.2 and Q5):** wait for D6 before deciding, or add now a guard in `:205` (no `fLastPosition` below the minimum:
    take `fActualPosition`)? Recommended: wait for D6.
 4. **Test build for the hardware runs:** `fMinPosition` about 35 in the MONETS `MAIN` until D1 passes on the fixed build?
    Recommended: yes.
+
+5. **Part B (new after D6; decided: same 0.7.3, as recommended):** fix the homing target when the homing starts (2.4: `fHomingReference` and
+   `F_FocusHomingReference`, in the same PR as the first-calibration sync) or leave `:205` alone and only add the sync?
+   Recommended: Part B in the same 0.7.3 (the same hardware risk, a small change, unit tests for the pure function).
 
 ## 7. Not in this plan
 
