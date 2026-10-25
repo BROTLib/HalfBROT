@@ -29,6 +29,8 @@ VAR
 	fbFollower			: BROTLib.FB_MoveFollower;	// starts, re-targets and holds the move to fPosition (MONETcommon#122)
 	fbManualHome		: FB_FocusManualHome;		// decides and follows a manual re-home (bManualHome)
 	fbJogLatch			: FB_FocusJogLatch;			// a jog is running until standstill, see F_FocusTargetFollowsActual
+	fbTargetInit		: FB_FocusTargetInit;		// the first calibration without a homing takes the actual position (#115)
+	fHomingReference	: LREAL;	// reference of the running homing, fixed in _StartHoming (#115); 0 = not set
 	eManualHome			: E_FocusManualHome;		// result of the last bManualHome request
 	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
 	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
@@ -82,6 +84,14 @@ Focus is locked by default
 *)
 
 _MigrateLastPosition();
+
+// the NC keeps the calibration over a PLC or TwinCAT restart while fPosition starts at 0, which the clamp below would turn
+// into fMinPosition and the follower would drive there (#115): the target takes the actual position once. Before the
+// clamp and the follower; fbAxis.calibrated and fActualPosition are those of the last call.
+fbTargetInit(bCalibrated := fbAxis.calibrated, bHoming := bHomeAxis);
+IF fbTargetInit.bSync THEN
+	fPosition := fActualPosition;
+END_IF
 
 // limit to sane positions
 fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
@@ -200,9 +210,11 @@ END_IF
 // (#18: MC_ForceCalibration only sets the flag, the position came from a parallel MC_SetPosition nobody checked.)
 // fPosition is overwritten so the automatic positioning does not move after homing: a target set before
 // calibration is lost, the caller sets it again once Calibrated.
-// The mode was chosen once in _StartHoming, together with the reference.
+// The mode and the reference were chosen once in _StartHoming (fHomingReference): fLastPosition is not read again, a -1
+// written during an MC_Direct homing would be clamped to fMinPosition (#115). 0 = _StartHoming did not run (bHomeAxis
+// written directly): the cam reference.
 IF bHomeAxis THEN
-	fPosition := SEL(eHomingMode = MC_Direct, fHomingPosition, fLastPosition);
+	fPosition := SEL(fHomingReference > 0.0, fHomingPosition, fHomingReference);
 END_IF
 
 // deactivate limit switches on homing
@@ -291,13 +303,12 @@ END_VAR
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[_MigrateLastPosition();	// HomeAxis may be set before the body has run once
-IF fLastPosition > 0.0 THEN
+IF F_FocusHomingReference(fLastPosition := fLastPosition, fHomingPosition := fHomingPosition, fReference => fReference) THEN
 	eHomingMode := MC_Direct;
-	fReference := fLastPosition;
 ELSE
 	eHomingMode := MC_DefaultHoming;
-	fReference := fHomingPosition;
 END_IF
+fHomingReference := fReference;	// the body keeps this as the target for the whole homing (#115)
 fbAxis.Home(fReference := fReference);
 _StartHoming := TRUE;
 ]]></ST>

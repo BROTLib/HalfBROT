@@ -50,6 +50,12 @@
     <Compile Include="POUs\F_FocusHomeRelease.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\F_FocusHomingReference.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\FB_FocusTargetInit.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\F_FocusTargetFollowsActual.TcPOU">
       <SubType>Code</SubType>
     </Compile>
