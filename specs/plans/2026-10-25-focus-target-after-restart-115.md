@@ -106,7 +106,7 @@ Proposal: `_StartHoming` stores the reference it passed to `fbAxis.Home()` in a 
 `:205` becomes `fPosition := fHomingReference;` (cam mode: `fHomingPosition` as now, MC_Direct: the `fLastPosition` of the start).
 No later write of `fLastPosition` (hand, `:168`, `:187`, `:266`) can then reach the target; the homing result (`rtHomed`,
 the other branch) sets the target after the homing. The pick of the mode and the reference moves into a pure function
-`F_FocusHomingReference(fLastPosition, fHomingPosition, bDirect => , fReference => )` (`fLastPosition > 0` as now), tested in
+`F_FocusHomingReference(fLastPosition, fHomingPosition, fReference => )` (returns TRUE for MC_Direct, `fLastPosition > 0` as now; implemented in PR #116), tested in
 MONETcommonTests: valid value gives direct + value, -1 and 0 give cam + `fHomingPosition`.
 
 Why not "take `fActualPosition` when `fLastPosition` is invalid" (the guard in the first draft of Q3): during an `MC_Direct`
