@@ -35,7 +35,7 @@ VAR
 	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
 	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
 	tonFocusDelay		: TON;
-	tonBrakeDelay		: TON;
+	fbDriveEnable		: FB_FocusDriveEnable;		// the only writer of bEnable in this block (#108, #110, #111, #114)
 	bManualUnlock		: BOOL;		// manual override to unlock the focus
 	tonComm 			: TON := (PT:=fTelemetryInterval);
 	//getlastposition:	BOOL := TRUE;
@@ -96,14 +96,6 @@ END_IF
 // limit to sane positions
 fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
 
-// focus is unlocked if enabled or manually unlocked and no eror
-ObFocusUnlock := (bManualUnlock OR bEnable) AND NOT bError;
-
-// wait until the focus is unlocked for n milliseconds
-tonFocusDelay(IN := ObFocusUnlock, PT := ptFocusDelay, Q => bFocusUnlocked);
-// wait for brake until we are at rest
-tonBrakeDelay(IN := NOT fbAxis.Busy AND fbAxis.StandStill, PT := ptBrakeDelay);
-
 // a jog runs until standstill (the inputs are what fbAxis reported in its last call)
 fbJogLatch(bJogCommand := (bMovePos OR bMoveNeg) AND bFocusUnlocked, bStandStill := fbAxis.StandStill);
 
@@ -152,13 +144,6 @@ IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 		IF fbFollower.bStartMove THEN
 			fbAxis.MoveTo();
 		END_IF
-		IF fbFollower.bNeedEnable THEN
-			bEnable := TRUE;
-		END_IF
-		// disable the drive and lock the brake, if we stand for more than n seconds
-		IF tonBrakeDelay.Q AND NOT bHomeAxis THEN
-			bEnable := FALSE;
-		END_IF
 	ELSE // not calibrated
 		// not after an aborted manual re-home: a stop must not be undone by the automatic homing
 		IF fbAxis.Ready AND NOT fbManualHome.bBlockAutoHome THEN
@@ -166,6 +151,28 @@ IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 		END_IF
 	END_IF
 END_IF
+
+// The drive is enabled while a move or a homing is wanted and locked, after the brake delay or on a lock request, only
+// when the axis is at rest: nothing else in this block writes bEnable (the pendant and the power-on write Enable).
+fbDriveEnable(
+	bAutomatic	:= eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock,
+	bCalibrated	:= fbAxis.calibrated,
+	bError		:= bError,
+	bMoveWanted	:= fbFollower.bNeedEnable OR fbFollower.bMoving OR fbAxis.MovePending,
+	bHomeWanted	:= bHomeAxis OR fbAxis.HomeActive OR fbAxis.HomePending,
+	bAtRest		:= fbAxis.StandStill AND NOT fbAxis.Busy,
+	tBrakeDelay	:= ptBrakeDelay);
+IF fbDriveEnable.bEnableOn THEN
+	bEnable := TRUE;
+ELSIF fbDriveEnable.bEnableOff THEN
+	bEnable := FALSE;
+END_IF
+
+// focus is unlocked if enabled or manually unlocked and no eror
+ObFocusUnlock := (bManualUnlock OR bEnable) AND NOT bError;
+
+// wait until the focus is unlocked for n milliseconds
+tonFocusDelay(IN := ObFocusUnlock, PT := ptFocusDelay, Q => bFocusUnlocked);
 
 // store the actual position when the focus is calibrated, locked and not homing, in every mode: a focus jogged in
 // manual mode must not be restored to its pre-jog position by MC_Direct after a restart (#66)
@@ -195,7 +202,6 @@ IF bManualHome THEN
 		fTarget			:= fPosition);
 	IF eManualHome = E_FocusManualHome.Accepted THEN
 		fLastPosition := -1.0;
-		bEnable := TRUE;
 		THIS^.HomeAxis := TRUE;		// _StartHoming: cam homing to fHomingPosition
 		ADSLOGSTR(ADSLOG_MSGTYPE_HINT OR ADSLOG_MSGTYPE_LOG, 'Focus: manual re-home started at %s mm',
 			LREAL_TO_STRING(fActualPosition));
@@ -240,7 +246,7 @@ fbAxis(
 // HomeDone is a level (TRUE while the axis is homed), so only the first cycle after the homing is done is acted on (#80)
 rtHomed(CLK := fbAxis.HomeDone AND NOT fbAxis.HomeActive);
 IF rtHomed.Q THEN
-	bEnable := FALSE;
+	fbDriveEnable.RequestLock();	// lock when the axis is at rest, unless a move is wanted (#111)
 	fLastPosition := fActualPosition;	// the position reached, not the target
 	bSaveRequested := TRUE;	// write the new position to disk once (#8)
 END_IF
@@ -268,7 +274,7 @@ IF fbManualHome.bDone THEN
 ELSIF fbManualHome.bAborted THEN
 	THIS^.HomeAxis := FALSE;	// releases the far switch bypass of an aborted homing
 	IF NOT fbAxis.calibrated THEN
-		bEnable := FALSE;
+		fbDriveEnable.RequestLock();
 	END_IF
 	ADSLOGSTR(ADSLOG_MSGTYPE_WARN OR ADSLOG_MSGTYPE_LOG, 'Focus: manual re-home aborted, calibrated: %s',
 		BOOL_TO_STRING(fbAxis.calibrated));

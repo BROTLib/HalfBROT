@@ -62,6 +62,9 @@
     <Compile Include="POUs\F_FocusTrackStoredPosition.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\FB_FocusDriveEnable.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\FB_FocusJogLatch.TcPOU">
       <SubType>Code</SubType>
     </Compile>
