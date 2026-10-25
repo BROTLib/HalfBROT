@@ -47,3 +47,16 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   `fLastPosition` is tracked in every mode, so `MC_Direct` does not restore the pre-jog position after a restart.
   One plan for both (same block, release, tests and on-site session). Pure-logic POUs tested in MONETcommonTests,
   HalfBROT 0.7.2 plus MONETcommon/MONETS/MONETN pins. **Implemented in HalfBROT, not compiled or hardware-tested;** tests in MONETcommonTests and the pins follow.
+- [2026-10-25-focus-enable-handling-108-110-111-114.md](2026-10-25-focus-enable-handling-108-110-111-114.md):
+  focus drive enable (#108, #110, #111, #114): one owner of `bEnable` (new pure-logic `FB_FocusDriveEnable`, decided
+  before `ObFocusUnlock`), no lock while a move or homing is wanted or the axis is not at rest, follower `bReady`
+  from the enable actually applied, stale `MovePending` cancelled, explicit target after a homing; BROTLib
+  `FB_MoveFollower` raises `bNeedEnable` for a pending move. #114 root cause partly a hypothesis (trace needed).
+  #103, #85, #102, MONETcommon#122, BROTLib#74 out of scope. Sim tests in MONETcommonTests, BROTLib then HalfBROT
+  0.7.3 then pins. **proposed**, nothing implemented, compiled or run on a PLC; eight open questions.
+- [2026-10-25-focus-target-after-restart-115.md](2026-10-25-focus-target-after-restart-115.md):
+  #115, after a PLC restart the calibrated focus has `fPosition` 0 (no initial value), the clamp makes it 0.5 and the
+  follower drives there (reproduced on MONET/S, D1). Fix: new pure-logic `FB_FocusTargetInit`, the first calibration
+  outside a homing takes the actual position (before the clamp and the follower). Power-on case (H-205, `:205` with
+  `fLastPosition` -1) not explained, decision after run D6. Sim tests in MONETcommonTests. **proposed**, nothing
+  implemented, compiled or run for the fix; four questions.

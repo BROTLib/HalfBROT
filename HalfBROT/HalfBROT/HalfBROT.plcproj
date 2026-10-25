@@ -22,7 +22,7 @@
     <AllowChecksForLibrary>false</AllowChecksForLibrary>
     <POUsForPropertyAccessIncluded>false</POUsForPropertyAccessIncluded>
     <GlobalVersionStructureIncluded>false</GlobalVersionStructureIncluded>
-    <ProjectVersion>0.7.2</ProjectVersion>
+    <ProjectVersion>0.7.3</ProjectVersion>
     <CompilerDefines>VISU_USEPROPERTYINFO</CompilerDefines>
   </PropertyGroup>
   <ItemGroup>
@@ -48,6 +48,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\F_FocusHomeRelease.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\F_FocusHomingReference.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\FB_FocusTargetInit.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\F_FocusTargetFollowsActual.TcPOU">
