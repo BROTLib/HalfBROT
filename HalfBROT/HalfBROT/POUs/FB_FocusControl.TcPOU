@@ -107,7 +107,7 @@ fbFollower(
 	fTolerance	:= fTolerance,
 	bActive		:= eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock AND NOT fbJogLatch.bJogging
 					AND fbAxis.calibrated AND NOT bHomeAxis,
-	bReady		:= fbAxis.Ready,
+	bReady		:= fbAxis.Ready AND bFocusUnlocked AND bEnable,	// the enable the last fbAxis call got, and not being dropped (#111)
 	bMoveDone	:= fbAxis.MoveDone,
 	bAborted	:= fbAxis.CommandAborted,
 	bError		:= bError,
@@ -150,6 +150,12 @@ IF eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock THEN
 			THIS^.HomeAxis := TRUE;
 		END_IF
 	END_IF
+END_IF
+
+// a pending MoveTo() exists only for a move the follower runs: a stale one must not start when the drive is enabled
+// for another reason (bManualUnlock, pendant, homing) or after a power cycle or error (#108)
+IF fbAxis.MovePending AND NOT fbFollower.bMoving THEN
+	fbAxis.CancelMove();
 END_IF
 
 // The drive is enabled while a move or a homing is wanted and locked, after the brake delay or on a lock request, only
