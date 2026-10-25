@@ -1,6 +1,6 @@
 # Focus target after a PLC restart: first calibration takes the actual position (#115)
 
-**Status: proposed. Nothing implemented, compiled or run on a PLC for the fix.** The restart case is reproduced on
+**Status: proposed, Q1-Q4 decided (section 6). Nothing implemented, compiled or run on a PLC for the fix.** The restart case is reproduced on
 hardware (D1, below); the power-on case (second #115 comment) is not explained yet and is not part of the code change
 proposed here. Facts read on 2026-10-25 from HalfBROT `develop` @ `4627b62` (0.7.2), BROTLib `develop`, MONETcommon
 working tree and MONETS `develop`. Line numbers are `FB_FocusControl.TcPOU` at that commit.
@@ -159,7 +159,11 @@ not proven). **D1 and D4 above were run on 0.7.2 on 2026-10-25.**
    runs write `fLastPosition := -1`. Expected if H-205 holds: `fPosition` -1 then 0.5 in the next cycle after the
    homing. Decides whether a second change is needed (Q3).
 
-## 6. Questions for Tim
+## 6. Decisions (Tim, 2026-10-25, all as recommended)
+
+Q1 decided: #115 alone first as a patch, the enable-handling branch after it. Q2 decided: keep the clamp. Q3 decided: wait for D6
+before touching `:205`. Q4 decided: test build with `fMinPosition` about 35 until D1 passes on the fixed build. The text of the
+questions follows as asked.
 
 1. **Release:** this plan alone as a patch (HalfBROT 0.7.3, the restart risk is a hardware risk) and the enable-handling
    branch after it (0.7.4 or 0.8.0), or both in one 0.7.3? Recommended: separate, #115 first; the two touch different
