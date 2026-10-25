@@ -524,7 +524,7 @@ IF fbComm = 0 THEN
 END_IF
 // > FOCUS
 // POWER_STATE
-// always '1.0': the drive is switched off at rest to engage the brake (tonBrakeDelay), which is not
+// always '1.0': the drive is switched off at rest to engage the brake (ptBrakeDelay), which is not
 // "powered off" for pyobs (#19)
 //IF THIS^.Enable THEN
 fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.POWER_STATE', '1.0');
