@@ -177,6 +177,46 @@ not proven). **D1 and D4 above were run on 0.7.2 on 2026-10-25.**
    runs write `fLastPosition := -1`. Expected if H-205 holds: `fPosition` -1 then 0.5 in the next cycle after the
    homing. Decides whether a second change is needed (Q3).
 
+### 5.2 Rollout and on-site session (proposed, 2026-10-25; not yet decided by Tim)
+
+**State, read on 2026-10-25 from GitHub (not from a PLC):**
+
+| What | State |
+|---|---|
+| HalfBROT 0.7.3 | PR #116 merged (`09de6be`), PR #118 merged to `main` (`86fd031`), tag and release `v0.7.3` published (asset `HalfBROT_v0.7.3.library`), release workflow green |
+| MONETcommon | PR #154 merged (`66e86b3`): 14 tests for the new POUs, pin of HalfBROT 0.7.3, TcBuild 37 suites / 213 cases all passed. Version files still 0.9.10: no 0.9.11 release |
+| MONETS | PR #57 merged 14:39 UTC (pins HalfBROT 0.7.3, MONETcommon 0.9.10); `ProjectVersion` 1.4.5, no 1.4.6 |
+| MONETN | PR #43 merged 14:39 UTC (same pins); no 1.4.6 |
+| Activated on a telescope | nothing. Both PR descriptions say: XAE build by Tim, activation only with the on-site check |
+| #115 | open. D1 and D6 on the fixed build not run |
+
+**Order (MONET/S first, then MONET/N, the same session if possible):**
+
+1. **Test build (not prepared):** `fMinPosition` about 35 for the focus in the MONETS `MAIN`, so a wrong target moves about 1 mm. The
+   instance of the focus block and where `fMinPosition` is set was not found in the sources read for this plan (MONETS `MAIN.TcPOU`
+   holds `focusPark := 36.0`); look there first. A local change for the test, not a commit to `develop`. XAE build and activation by Tim.
+2. **Record:** TwinCAT Scope by symbol address, from before the event, with the variables of plan section 5.1.
+3. **Runs on the test build, in this order:**
+   D1 (PLC stop/start, automatic) - D2 (from manual mode) - step 3 of section 5 (`focus=40`, `focus=36`) - step 4 (restart outside the range)
+   - step 6 (D6, `fLastPosition := -1` during an `MC_Direct` homing) - step 5 (regression: cam homing, `bManualHome`, jog).
+   Keep `bEnable := FALSE` ready to write for D1 and D6 (a failed run drives, and that raises 0x4260 and resets `fLastPosition` to -1;
+   write the stored position back by a homing or `fLastPosition` before the next run).
+4. **If all pass:** build the normal `MAIN` (no `fMinPosition` override) on the same HalfBROT 0.7.3 and repeat D1 once; leave it activated.
+5. **MONET/N:** the same D1, D2 and D6 (D6 only if an uncalibrated axis can be made there as in the MONET/S run: `bManualHome`, drive disabled during the homing). `focusPark` is 53.8 on MONET/N, the focus range is
+   the same block; check `fMinPosition` and `fHomingPosition` first (D5 values were read on MONET/S only).
+6. **Close #115** when D1 (automatic restart: no move, `bEnable` stays FALSE) and D6 (`fPosition` stays at the reference, no queued move)
+   pass on MONET/S and D1 passes on MONET/N. Comment with the numbers; mention that which writer produced the -1 in occurrence 2 is
+   unexplained (made harmless for the homing target by `fHomingReference`).
+7. **Releases (Tim's call, after the checks):** MONETS and MONETN 1.4.6 as the release PRs #55 / #41 of 2026-10-22; MONETcommon 0.9.11 only if
+   another consumer needs the 0.7.3 pin. None of these is needed to run the test.
+
+**Fail handling:** D1 moves: stop with `bEnable := FALSE`, keep the trace, do not activate the normal build, reopen the analysis (order of the sync
+against the first scan, `fbAxis.calibrated` timing). D6 still gives 0.5: `fHomingReference` is not the only source, look at `fPosition` writers
+in the cycle with the trace (`:253`, the `bError` branch).
+
+**Recording sheet (one row per run):** run, date/time, build (test or normal), start position, `fPosition` in the first calibrated cycle,
+`bEnable`/`ObFocusUnlock` in the first cycles, `eHomingMode`, `fLastPosition` before/after, motion yes/no, result, remark.
+
 ## 6. Decisions (Tim, 2026-10-25, all as recommended)
 
 Q1 decided: #115 alone first as a patch, the enable-handling branch after it. Q2 decided: keep the clamp. Q3 decided: wait for D6

@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_FocusDriveEnable" Id="{140c5bbf-8bb1-4812-bf70-be1c84ced27e}" SpecialFunc="None">
+    <Declaration><![CDATA[// Decides the drive enable of the focus (FB_FocusControl.bEnable) in one place, once per cycle after the follower and
+// before ObFocusUnlock. On while a move or a homing is wanted (automatic positioning only). Off only when nothing is
+// wanted and the axis is at rest (StandStill, not Busy): after the brake delay in automatic positioning, or on a lock
+// request (end of a homing, aborted re-home), never while a move starts, waits or decelerates (HalfBROT#108, #110,
+// #111, #114). No NC access, the caller writes bEnable. Pure logic, tested without an NC axis.
+FUNCTION_BLOCK FB_FocusDriveEnable
+VAR_INPUT
+	bAutomatic		: BOOL;		// automatic positioning: eTelescopeMode = automatic AND NOT bManualUnlock
+	bCalibrated		: BOOL;		// fbAxis.calibrated
+	bError			: BOOL;
+	bMoveWanted		: BOOL;		// fbFollower.bNeedEnable OR fbFollower.bMoving OR fbAxis.MovePending (this cycle)
+	bHomeWanted		: BOOL;		// bHomeAxis OR fbAxis.HomeActive OR fbAxis.HomePending
+	bAtRest			: BOOL;		// fbAxis.StandStill AND NOT fbAxis.Busy, from its last call
+	tBrakeDelay		: TIME;		// ptBrakeDelay
+END_VAR
+VAR_OUTPUT
+	bEnableOn		: BOOL;		// this cycle: bEnable := TRUE
+	bEnableOff		: BOOL;		// this cycle: bEnable := FALSE
+	bLockPending	: BOOL;		// a lock request waits until the axis is at rest
+END_VAR
+VAR
+	tonRest			: TON;		// at rest with nothing wanted (the brake delay)
+	bWanted			: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[bWanted := bMoveWanted OR bHomeWanted;
+tonRest(IN := bAtRest AND NOT bWanted, PT := tBrakeDelay);
+IF bWanted THEN
+	bLockPending := FALSE;		// a move or homing takes over; the brake delay locks after it
+END_IF
+
+bEnableOn := bAutomatic AND NOT bError AND bWanted;
+bEnableOff := NOT bWanted AND (
+		(bLockPending AND (bAtRest OR bError))		// bError: the drive is already off (ObFocusUnlock)
+		OR (bAutomatic AND bCalibrated AND tonRest.Q));
+IF bEnableOff THEN
+	bLockPending := FALSE;
+END_IF
+]]></ST>
+    </Implementation>
+    <Method Name="RequestLock" Id="{081a4782-97b5-4511-8c4f-f0d78bbd99d1}">
+      <Declaration><![CDATA[// Lock the drive as soon as the axis is at rest and nothing is wanted: end of a homing, aborted re-home. Takes effect
+// in the next call of the block.
+METHOD RequestLock
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bLockPending := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>
