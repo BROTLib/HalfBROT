@@ -8,6 +8,10 @@ VAR_INPUT
 	eTelescopeMode		: E_TelescopeMode;
 	fHomingPosition		: LREAL := 92.02; // 104.02 - 12.00 	// reference position for homing
 	fTolerance			: LREAL := 0.005;
+	// a move that ends within fHoldBand of the target has arrived: no new move, the brake locks (HalfBROT#85). A miss beyond
+	// it is corrected nMaxRetries times (0 = no limit), then logged and left, see fbFollower.bTargetMissed
+	fHoldBand			: LREAL := 0.02;
+	nMaxRetries			: UINT := 2;
 	
 	// telemetry interval
 	fTelemetryInterval		: TIME := T#5S;
@@ -27,6 +31,7 @@ VAR_OUTPUT
 END_VAR
 VAR
 	fbFollower			: BROTLib.FB_MoveFollower;	// starts, re-targets and holds the move to fPosition (MONETcommon#122)
+	rtTargetMissed		: R_TRIG;					// the follower gave up correcting a miss (HalfBROT#85)
 	fbManualHome		: FB_FocusManualHome;		// decides and follows a manual re-home (bManualHome)
 	fbJogLatch			: FB_FocusJogLatch;			// a jog is running until standstill, see F_FocusTargetFollowsActual
 	fbTargetInit		: FB_FocusTargetInit;		// the first calibration without a homing takes the actual position (#115)
@@ -105,6 +110,8 @@ fbFollower(
 	fTarget		:= fPosition,
 	fActual		:= fActualPosition,
 	fTolerance	:= fTolerance,
+	fHoldBand	:= fHoldBand,
+	nMaxRetries	:= nMaxRetries,
 	bActive		:= eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock AND NOT fbJogLatch.bJogging
 					AND fbAxis.calibrated AND NOT bHomeAxis,
 	bReady		:= fbAxis.Ready AND bFocusUnlocked AND bEnable,	// the enable the last fbAxis call got, and not being dropped (#111)
@@ -112,6 +119,13 @@ fbFollower(
 	bAborted	:= fbAxis.CommandAborted,
 	bError		:= bError,
 	bStopDone	:= fbAxis.StopDone);
+
+// the focus stays beyond the hold band after the retries: the move is not started again, the brake can lock
+rtTargetMissed(CLK := fbFollower.bTargetMissed);
+IF rtTargetMissed.Q THEN
+	ADSLOGSTR(ADSLOG_MSGTYPE_WARN OR ADSLOG_MSGTYPE_LOG, 'Focus: target missed, %s mm',
+		CONCAT(CONCAT(LREAL_TO_STRING(fbFollower.fMoveTarget), ' wanted, stays at '), LREAL_TO_STRING(fActualPosition)));
+END_IF
 
 // Stop(): hold the position reached when the stop is done
 IF bHoldOnStop AND (fbAxis.StopDone OR fbAxis.StandStill) THEN
