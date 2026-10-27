@@ -52,7 +52,7 @@ HalfBROT/
 | `FB_ElevationControl` | Elevation axis: cover/brake coordination on enable, 0–90° limits |
 | `FB_DerotatorControl` | Field de-rotation axis with auto-homing |
 | `FB_FocusControl` | Focus unit (Faulhaber motor): auto-positioning, brake lock, homing |
-| `FB_CoverControl` | Three mirror covers, sequenced open/close |
+| `FB_CoverControl` | Three mirror covers, sequenced open 1-3-2 / close 2-3-1, timeout, reversal dead time |
 | `FB_HydraulicsControl` | Hydraulic pump/brake system, oil monitoring, watchdog timers |
 | `FB_PendantControl` | Manual hand pendant (BCD selector, 15 functions) |
 
@@ -100,14 +100,12 @@ implements the `I_Axis` interface. Common features:
 
 ### Covers, hydraulics and pendant
 
-- `FB_CoverControl` — three mirror covers, sequenced by limit switches. Opening:
-  covers 1 and 3 start together, cover 2 starts once cover 3 has left its closed
-  position (plus a delay). Closing: cover 2 starts, cover 3 once cover 2 has left
-  its open position (plus a delay), cover 1 once cover 3 is closed. A close
-  command clears a pending open. A cover is in error when both its open and
-  closed signals are active. Known gaps: outputs of the inactive direction are
-  not cleared, so both directions can be commanded, and there is no timeout
-  (#4). MONETS/MONETN use MONETcommon's `FB_MonetCoverControl` instead.
+- `FB_CoverControl` — three mirror covers, sequenced by limit switches: open 1->3->2, close 2->3->1, each cover
+  starts when the previous one is at its end switch. All six outputs are recomputed every cycle; close has
+  precedence over open; a cover in error (both switches active) or over `tMoveTimeout` (default 60 s, latched
+  until `Reset()`) stops all covers and drops the command; a reversal waits `tReversalDeadTime` (1 s). Commands
+  only through `Open()`, `Close()`, `Stop()`, `Reset()` (HalfBROT#4; the logic of MONETcommon's former
+  `FB_MonetCoverControl`).
 - `FB_HydraulicsControl` — oil pump + suction pump + the hydraulic brake for
   azimuth and elevation, with oil pressure/level/filter monitoring and four
   watchdog timers (suction 15 s, pressure 30 s, main pump 10 s, hydraulics
@@ -124,7 +122,8 @@ implements the `I_Axis` interface. Common features:
   Selection 0 (pendant disconnected) lights the error lamp, nothing else; the
   lamp otherwise shows the selected function's error. Selection 13 steps the
   pointing offsets by 10 arcsec per press in automatic mode and restarts
-  TwinCAT after reset is held 3 s in manual mode only. MONETS/MONETN use
+  TwinCAT after reset is held 3 s in manual mode only. Selection 1-3 with the key on: hold-to-run open/close of
+  all three covers (single covers can no longer be moved). MONETS/MONETN use
   MONETcommon's `FB_MonetPendantControl` instead.
   *Warning: some safety routines are disabled when the telescope is operated
   manually.*
