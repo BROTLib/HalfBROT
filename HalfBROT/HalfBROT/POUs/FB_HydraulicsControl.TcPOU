@@ -287,22 +287,22 @@ IF bPublishPending AND tonPublishHoldoff.Q AND fbComm <> 0 THEN
 	END_IF
 	tonComm(IN := FALSE);
 	tonPublishHoldoff(IN := FALSE);
-	fbComm.Publish('hydraulics', 'base', 'OilLow',		BOOL_TO_STRING(bOilLow));
-	fbComm.Publish('hydraulics', 'base', 'OilHigh',		BOOL_TO_STRING(bOilHigh));
-	fbComm.Publish('hydraulics', 'base', 'OilMaximum',	BOOL_TO_STRING(bOilPanMaximum));
-	fbComm.Publish('hydraulics', 'base', 'OilReserve',	BOOL_TO_STRING(bOilWarning));
-	fbComm.Publish('hydraulics', 'base', 'OilPressureOK', BOOL_TO_STRING(bOilPressureOK));
-	fbComm.Publish('hydraulics', 'base', 'OilFilterDirty',BOOL_TO_STRING(bOilFilterDirty));
-	fbComm.Publish('hydraulics', 'base', 'OilCold',		BOOL_TO_STRING(bOilCold));
-	fbComm.Publish('hydraulics', 'base', 'OilHot',		BOOL_TO_STRING(bOilHot));
-	fbComm.Publish('hydraulics', 'base', 'BrakeOpen',		BOOL_TO_STRING(bBrakeOpen));
-	fbComm.Publish('hydraulics', 'base', 'BrakeClearing',	BOOL_TO_STRING(bBrakeClearing));
-	fbComm.Publish('hydraulics', 'base', 'PumpRunning',	BOOL_TO_STRING(bPumpRunning));
-	fbComm.Publish('hydraulics', 'base', 'SuctionRunning',BOOL_TO_STRING(bSuctionRunning));
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilLow',		bOilLow);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilHigh',		bOilHigh);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilMaximum',	bOilPanMaximum);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilReserve',	bOilWarning);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilPressureOK', bOilPressureOK);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilFilterDirty',bOilFilterDirty);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilCold',		bOilCold);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilHot',		bOilHot);
+	fbComm.PublishBOOL('hydraulics', 'base', 'BrakeOpen',		bBrakeOpen);
+	fbComm.PublishBOOL('hydraulics', 'base', 'BrakeClearing',	bBrakeClearing);
+	fbComm.PublishBOOL('hydraulics', 'base', 'PumpRunning',	bPumpRunning);
+	fbComm.PublishBOOL('hydraulics', 'base', 'SuctionRunning',bSuctionRunning);
 	IF bOilLevelValid THEN	// an invalid level is not published as a normal value (MONETS#32)
-		fbComm.Publish('hydraulics', 'base', 'OilLevel',		REAL_TO_STRING(fOilLevel));
+		fbComm.PublishLREAL('hydraulics', 'base', 'OilLevel',		REAL_TO_LREAL(fOilLevel));
 	END_IF
-	fbComm.Publish('hydraulics', 'base', 'StatusWord',	UDINT_TO_STRING(statusWord));
+	fbComm.PublishINT('hydraulics', 'base', 'StatusWord',	statusWord);
 END_IF
 
 			  

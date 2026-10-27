@@ -541,33 +541,33 @@ END_IF
 // always '1.0': the drive is switched off at rest to engage the brake (ptBrakeDelay), which is not
 // "powered off" for pyobs (#19)
 //IF THIS^.Enable THEN
-fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.POWER_STATE', '1.0');
+fbComm.PublishLREAL('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.POWER_STATE', 1.0);
 //ELSE
 //	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.POWER_STATE', '0.0');
 //END_IF
 //REFERENCED
 IF THIS^.Calibrated THEN
-	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.REFERENCED', '1.0');
+	fbComm.PublishLREAL('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.REFERENCED', 1.0);
 ELSE
-	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.REFERENCED', '0.0');
+	fbComm.PublishLREAL('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.REFERENCED', 0.0);
 END_IF
 //ERROR_STATE
 IF THIS^.Error THEN
-	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.ERROR_STATE', UDINT_TO_STRING(THIS^.ErrorID));
+	fbComm.PublishINT('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.ERROR_STATE', THIS^.ErrorID);
 ELSE
-	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.ERROR_STATE', '0');
+	fbComm.PublishINT('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.ERROR_STATE', 0);
 END_IF
 //MOTION_STATE
 IF THIS^.Busy THEN
-	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.MOTION_STATE', '1');
+	fbComm.PublishINT('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.MOTION_STATE', 1);
 ELSE
-	fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.MOTION_STATE', '0');
+	fbComm.PublishINT('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.MOTION_STATE', 0);
 END_IF
-fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.CURRPOS', LREAL_TO_STRING(THIS^.ActualPosition));
-fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.REALPOS', LREAL_TO_STRING(THIS^.ActualPosition));
-fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.TARGETPOS', LREAL_TO_STRING(THIS^.Position));
-fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.TARGETDISTANCE', LREAL_TO_STRING(ABS(THIS^.ActualPosition-THIS^.Position)));
-fbComm.Publish('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.CURRSPEED', LREAL_TO_STRING(THIS^.Velocity));
+fbComm.PublishLREAL('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.CURRPOS', THIS^.ActualPosition);
+fbComm.PublishLREAL('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.REALPOS', THIS^.ActualPosition);
+fbComm.PublishLREAL('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.TARGETPOS', THIS^.Position);
+fbComm.PublishLREAL('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.TARGETDISTANCE', ABS(THIS^.ActualPosition-THIS^.Position));
+fbComm.PublishLREAL('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.CURRSPEED', THIS^.Velocity);
 ]]></ST>
       </Implementation>
     </Method>
