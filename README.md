@@ -111,7 +111,10 @@ implements the `I_Axis` interface. Common features:
 - `FB_HydraulicsControl` — oil pump + suction pump + the hydraulic brake for
   azimuth and elevation, with oil pressure/level/filter monitoring and four
   watchdog timers (suction 15 s, pressure 30 s, main pump 10 s, hydraulics
-  140 s); 16-bit `statusWord` telemetry. A raw oil level outside `nMinValidPanLevel`..`nMaxValidPanLevel` (inputs, default:
+  140 s); 16-bit `statusWord` telemetry. The pump starters get a reset pulse of `tPumpResetPulse` (default 1 s, `T#0S` =
+  old behaviour) on every reset, before the first pump start after a PLC start and before the first start after a main
+  pump failure (`FB_PumpResetPulse`, HalfBROT#120); the pump enable is held off during the pulse. ADS writes of the reset
+  outputs have no effect (written every cycle), only an XAE force does. A raw oil level outside `nMinValidPanLevel`..`nMaxValidPanLevel` (inputs, default:
   no limit) is a sensor fault (wire break, over-range; MONETS#32): `bOilLevelInvalid`, `statusWord` bit 14, one WARN
   log entry, `OilLevel` is not published, and the level neither starts nor stops the suction pump (only the float
   switch starts it; a running suction is released when the main pump is switched off). No error.

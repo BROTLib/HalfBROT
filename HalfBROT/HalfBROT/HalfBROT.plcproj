@@ -56,6 +56,9 @@
     <Compile Include="POUs\FB_FocusTargetInit.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\FB_PumpResetPulse.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\F_FocusTargetFollowsActual.TcPOU">
       <SubType>Code</SubType>
     </Compile>

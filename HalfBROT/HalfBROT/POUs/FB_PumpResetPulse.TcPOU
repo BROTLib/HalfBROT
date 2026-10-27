@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_PumpResetPulse" Id="{d97f0ff6-bf90-4ad6-a0ee-74da7e10eb25}" SpecialFunc="None">
+    <Declaration><![CDATA[// Reset pulse for the starters of the main oil pump and the suction pump (#120). A starter or its protection can need a
+// reset pulse of about 1 s; bReset alone is only 10 to 20 ms long and only while an error is latched. This block
+//  * stretches every reset request to tPulse,
+//  * sends one pulse before the first pump start after a PLC start and before the first start after a main pump failure,
+//  * holds the pump enable off during the pulse and one cycle longer, so the 10 s pump watchdog starts afterwards,
+//  * never resets or holds a pump that has run feedback.
+// tPulse = T#0S switches this off: the reset outputs follow bResetRequest, no hold, no automatic pulse.
+// Call once per cycle, after the pump request (rsOilPumpState) and before the outputs are written.
+FUNCTION_BLOCK FB_PumpResetPulse
+VAR_INPUT
+	bResetRequest	: BOOL;		// bReset of this cycle, before the error latch clears it
+	bPumpRequest	: BOOL;		// the pump enable is requested (before the hold)
+	bPumpFailure	: BOOL;		// main pump failure watchdog (no run feedback)
+	bPumpRunning	: BOOL;		// run feedback of the main pump
+	bSuctionRunning	: BOOL;		// run feedback of the suction pump
+	tPulse			: TIME;		// length of the reset pulse
+END_VAR
+VAR_OUTPUT
+	bResetPump		: BOOL;		// reset output of the main pump starter
+	bResetSuction	: BOOL;		// reset output of the suction pump starter
+	bHoldPump		: BOOL;		// keep the pump enable off
+	bActive			: BOOL;		// a reset pulse is running
+	sReason			: STRING(40);	// why the running pulse was sent
+END_VAR
+VAR
+	bNeeded			: BOOL := TRUE;	// a pulse is due before the next pump start; TRUE after every PLC start
+	sNeededReason	: STRING(40) := 'before first start';
+	rtRequest		: R_TRIG;
+	rtFailure		: R_TRIG;
+	ftPulse			: F_TRIG;
+	tpPulse			: TP;
+	bSettle			: BOOL;		// the cycle after the pulse, the pump enable is still held
+	bStart			: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[rtRequest(CLK := bResetRequest);
+rtFailure(CLK := bPumpFailure);
+
+IF tPulse <= T#0S THEN
+	bStart := FALSE;
+	bSettle := FALSE;
+	tpPulse(IN := FALSE, PT := T#1S);
+	bResetPump := bResetRequest;
+	bResetSuction := bResetRequest;
+	bHoldPump := FALSE;
+	bActive := FALSE;
+ELSE
+	IF rtFailure.Q THEN
+		bNeeded := TRUE;
+		sNeededReason := 'after pump failure';
+	END_IF
+
+	bStart := FALSE;
+	IF NOT (tpPulse.Q OR bSettle) THEN
+		IF rtRequest.Q THEN
+			bStart := TRUE;
+			sReason := 'requested';
+		ELSIF bNeeded AND bPumpRequest AND NOT bPumpRunning THEN
+			bStart := TRUE;
+			sReason := sNeededReason;
+		END_IF
+	END_IF
+	// a running pump needs no pulse, and a due pulse is dropped once the pump is requested
+	IF bStart OR (bNeeded AND bPumpRequest) THEN
+		bNeeded := FALSE;
+	END_IF
+
+	tpPulse(IN := bStart, PT := tPulse);
+	ftPulse(CLK := tpPulse.Q);
+	bSettle := ftPulse.Q;
+
+	bActive := tpPulse.Q;
+	bResetPump := tpPulse.Q AND NOT bPumpRunning;
+	bResetSuction := tpPulse.Q AND NOT bSuctionRunning;
+	bHoldPump := (tpPulse.Q OR bSettle) AND NOT bPumpRunning;
+END_IF
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
