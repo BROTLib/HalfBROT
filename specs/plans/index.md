@@ -39,7 +39,7 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   `FB_CoverControl` keeps its name and gets MONETcommon's `FB_MonetCoverControl` logic 1:1 (sequence by limit switches,
   timeout as input `tMoveTimeout`, 1 s reversal dead time, error stops all) plus `Stop()`; MONETcommon drops its copy,
   MONETS/MONETN `MAIN` use `HalfBROT.FB_CoverControl` (I/O links unchanged); pendants hold-to-run of the whole sequence
-  (option B); new `HalfBROTTests`. **proposed**, nine questions for Tim, on-site check T15.
+  (option B). **Step 1 merged** (PR #125, defaults as recommended; CI build only, no PLC run); steps 2, 3 are draft PRs (MONETcommon #162, MONETS #64, MONETN #46); step 0 (`HalfBROTTests`) open; on-site check T15.
 - [2026-10-20-oil-level-guard-monets-32.md](2026-10-20-oil-level-guard-monets-32.md): MONETS#32, a raw oil level outside a configurable range (wire break, over-range) is not published and does not start/stop the suction by level (`F_OilLevelValid`, `F_OilSuctionLatch`, `statusWord` bit 14). **Implemented in HalfBROT, not compiled or hardware-tested;** tests and the MONETS/MONETN `MAIN` settings follow.
 - [2026-10-22-focus-manual-jog-target-and-stored-position-66.md](2026-10-22-focus-manual-jog-target-and-stored-position-66.md):
   focus after a pendant jog in manual mode: (A, no issue yet) the target follows the actual position outside automatic
@@ -60,3 +60,9 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   outside a homing takes the actual position (before the clamp and the follower). Power-on case (H-205, `:205` with
   `fLastPosition` -1) not explained, decision after run D6. Sim tests in MONETcommonTests. **proposed**, nothing
   implemented, compiled or run for the fix; four questions.
+- [2026-10-27-pump-reset-pulse-120.md](2026-10-27-pump-reset-pulse-120.md):
+  #120, the main oil pump did not start after a PLC cold reset, only a forced 1 s pulse of the pump reset outputs helped
+  (MS-71). Fix: new pure-logic `FB_PumpResetPulse`, a stretched reset pulse (`tPumpResetPulse`, 1 s) on every reset, before
+  the first start after a PLC start and after a pump failure, the pump enable held off during the pulse, a log message that
+  names the starter. What the reset outputs switch is unknown. **implemented**, not compiled or run on a PLC; tests in
+  MONETcommonTests and the on-site check MS-75 follow.

@@ -19,6 +19,7 @@ VAR_INPUT
 	tHydraulicsWatchdog	: TIME := T#140S;	// main pump running this long without the suction pump running = bHydraulicsFailure (#10)
 	nMinValidPanLevel	: INT := -32768;	// raw oil level below this is a sensor fault (wire break); the default accepts every value, no guard (MONETS#32)
 	nMaxValidPanLevel	: INT := 32767;		// raw oil level above this is a sensor fault (over-range); the default accepts every value, no guard
+	tPumpResetPulse		: TIME := T#1S;		// length of the reset pulse for the pump starters, also sent once before the first pump start after a PLC start and after a main pump failure; T#0S = old behaviour, reset outputs follow bReset (#120)
 END_VAR
 VAR_OUTPUT
 	bBrakeOpen			: BOOL;				// status of the brake: is the brake open?
@@ -39,6 +40,7 @@ VAR_OUTPUT
 	bSuctionRunning 	: BOOL := FALSE;	// suction pump is running
 	bError				: BOOL;				// error condition
 	bOilLevelInvalid	: BOOL;				// raw oil level outside the valid range: warning only, not published, suction on the float switch only (MONETS#32)
+	bPumpResetActive	: BOOL;				// a starter reset pulse is running, the pump enable is held off (#120)
 END_VAR
 VAR
 	fbComm				: I_Comm;
@@ -82,6 +84,10 @@ VAR
 	fLastOilLevel		: REAL;				// oil level of the last publish
 	rtHydraulicsFailure	: R_TRIG;			// builds the failure message once, when the watchdog trips (#10)
 	sHydraulicsFailureMessage	: STRING(255) := 'FAILURE';
+	fbPumpReset			: FB_PumpResetPulse;	// starter reset pulse and pump enable hold (#120)
+	bResetRequested		: BOOL;				// bReset of this cycle, before the error latch clears it
+	bMainPumpFault		: BOOL;				// main pump failure, kept until the next reset, for the log (bMainPumpFailure is one cycle)
+	rtMainPumpFailure	: R_TRIG;
 	tonComm				: TON;				// time since the last publish, periodic publish (#19)
 	tonPublishHoldoff	: TON;				// at most one publish per second (#19)
 	bPublishPending		: BOOL;				// a publish is requested but not sent yet
@@ -96,6 +102,8 @@ VAR
 	underTemperatureLog,
 	suctionLog,
 	hydraulicsFailureLog,
+	mainPumpFaultLog,
+	pumpResetLog,
 	brakeClearingWarning,
 	brakeHydraulicsWarning,
 	brakeWarning: FB_EventLog;
@@ -114,6 +122,8 @@ Main control Logic for the Hydraulics system
   published and does not start or stop the suction pump, only the float switch starts it; warning, no error
 * stop main pump if oil is low
 * stop main pump if pressure fails for 30 seconds
+* the starters of both pumps get a reset pulse of tPumpResetPulse (1 s): on every reset, before the first pump start after
+  a PLC start and before the first start after a main pump failure; the pump enable is held off during the pulse (#120)
 *)
 
 // get values from sensors
@@ -132,9 +142,8 @@ bOilPanMaximum	:= IbOilpanMaximum;
 bPumpRunning 	:= IbPumpRunning;
 bSuctionRunning := IbSuctionRunning;
 
-// reset pumps
-ObResetOilPump     := bReset;
-ObResetSuctionPump := bReset;
+// the reset request is the bReset of this cycle: the pump resets are written below, after the pump request
+bResetRequested := bReset;
 
 // error state?
 srErrorState(
@@ -152,8 +161,21 @@ rsOilPumpState(
 	SET    := bEnable,
 	RESET1 := NOT bEnable OR bError OR bManualPumpStop OR IbOilpanMaximum);
 
+// reset the pump starters before the pump is enabled; the enable is held off during the pulse, so the 10 s pump watchdog
+// starts after it (#120)
+fbPumpReset(
+	bResetRequest   := bResetRequested,
+	bPumpRequest    := rsOilPumpState.Q1,
+	bPumpFailure    := bMainPumpFailure,
+	bPumpRunning    := bPumpRunning,
+	bSuctionRunning := bSuctionRunning,
+	tPulse          := tPumpResetPulse);
+ObResetOilPump     := fbPumpReset.bResetPump;
+ObResetSuctionPump := fbPumpReset.bResetSuction;
+bPumpResetActive   := fbPumpReset.bActive;
+
 // switch oil pump
-ObOilPumpEnable := rsOilPumpState.Q1;
+ObOilPumpEnable := rsOilPumpState.Q1 AND NOT fbPumpReset.bHoldPump;
 
 (* This section controls the hydraulic brake responsible for azimuth and elevation.
 The brake needs oil pressure to stay open. There is no brake feedback input, so the
@@ -265,22 +287,22 @@ IF bPublishPending AND tonPublishHoldoff.Q AND fbComm <> 0 THEN
 	END_IF
 	tonComm(IN := FALSE);
 	tonPublishHoldoff(IN := FALSE);
-	fbComm.Publish('hydraulics', 'base', 'OilLow',		BOOL_TO_STRING(bOilLow));
-	fbComm.Publish('hydraulics', 'base', 'OilHigh',		BOOL_TO_STRING(bOilHigh));
-	fbComm.Publish('hydraulics', 'base', 'OilMaximum',	BOOL_TO_STRING(bOilPanMaximum));
-	fbComm.Publish('hydraulics', 'base', 'OilReserve',	BOOL_TO_STRING(bOilWarning));
-	fbComm.Publish('hydraulics', 'base', 'OilPressureOK', BOOL_TO_STRING(bOilPressureOK));
-	fbComm.Publish('hydraulics', 'base', 'OilFilterDirty',BOOL_TO_STRING(bOilFilterDirty));
-	fbComm.Publish('hydraulics', 'base', 'OilCold',		BOOL_TO_STRING(bOilCold));
-	fbComm.Publish('hydraulics', 'base', 'OilHot',		BOOL_TO_STRING(bOilHot));
-	fbComm.Publish('hydraulics', 'base', 'BrakeOpen',		BOOL_TO_STRING(bBrakeOpen));
-	fbComm.Publish('hydraulics', 'base', 'BrakeClearing',	BOOL_TO_STRING(bBrakeClearing));
-	fbComm.Publish('hydraulics', 'base', 'PumpRunning',	BOOL_TO_STRING(bPumpRunning));
-	fbComm.Publish('hydraulics', 'base', 'SuctionRunning',BOOL_TO_STRING(bSuctionRunning));
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilLow',		bOilLow);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilHigh',		bOilHigh);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilMaximum',	bOilPanMaximum);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilReserve',	bOilWarning);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilPressureOK', bOilPressureOK);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilFilterDirty',bOilFilterDirty);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilCold',		bOilCold);
+	fbComm.PublishBOOL('hydraulics', 'base', 'OilHot',		bOilHot);
+	fbComm.PublishBOOL('hydraulics', 'base', 'BrakeOpen',		bBrakeOpen);
+	fbComm.PublishBOOL('hydraulics', 'base', 'BrakeClearing',	bBrakeClearing);
+	fbComm.PublishBOOL('hydraulics', 'base', 'PumpRunning',	bPumpRunning);
+	fbComm.PublishBOOL('hydraulics', 'base', 'SuctionRunning',bSuctionRunning);
 	IF bOilLevelValid THEN	// an invalid level is not published as a normal value (MONETS#32)
-		fbComm.Publish('hydraulics', 'base', 'OilLevel',		REAL_TO_STRING(fOilLevel));
+		fbComm.PublishLREAL('hydraulics', 'base', 'OilLevel',		REAL_TO_LREAL(fOilLevel));
 	END_IF
-	fbComm.Publish('hydraulics', 'base', 'StatusWord',	UDINT_TO_STRING(statusWord));
+	fbComm.PublishINT('hydraulics', 'base', 'StatusWord',	statusWord);
 END_IF
 
 			  
@@ -291,6 +313,30 @@ hydraulicsLog(
 	OnMessage 		:= 'FAILURE',
 	OffMessage 		:= 'OK',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT, 
+	comm 			:= fbComm);
+
+// names the starter and the reset, the failure above only says pump or pressure; kept until the next reset (#120)
+rtMainPumpFailure(CLK := bMainPumpFailure);
+IF rtMainPumpFailure.Q THEN
+	bMainPumpFault := TRUE;
+END_IF
+IF bResetRequested THEN
+	bMainPumpFault := FALSE;
+END_IF
+mainPumpFaultLog(
+	Trigger 		:= bMainPumpFault,
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	FormatString 	:= 'main pump: %s',
+	OnMessage 		:= 'no run feedback 10 s after the enable, check the starter, motor protection and phase monitor in the cabinet; a reset pulse is sent to the starters on the next reset',
+	OffMessage 		:= 'fault reset',
+	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
+	comm 			:= fbComm);
+
+pumpResetLog(
+	Trigger 		:= fbPumpReset.bActive,
+	Level 			:= ADSLOG_MSGTYPE_HINT,
+	FormatString 	:= 'pump starters: reset pulse (%s)',
+	OnMessage 		:= fbPumpReset.sReason,
 	comm 			:= fbComm);
 
 pumpLog(
