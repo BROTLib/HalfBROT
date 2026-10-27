@@ -1,6 +1,6 @@
 # Covers: one FB_CoverControl in HalfBROT, MONETcommon's logic, used by MONETS and MONETN (#4, #29)
 
-**Status: proposed.** Decided 2026-10-12 (Tim): "drop the HalfBROT version and move the MONETcommon version into
+**Status: step 1 implemented in HalfBROT (PR for #4); steps 0, 2, 3 not done.** Decided 2026-10-12 (Tim): "drop the HalfBROT version and move the MONETcommon version into
 HalfBROT". Nothing implemented, nothing run on a PLC or a telescope. Facts below were read on 2026-10-12 from
 HalfBROT `origin/develop` @ `2cfaaf5`, MONETcommon `origin/develop` @ `38b5896` (= v0.8.0), MONETS `origin/develop`
 @ `67e683d` (v1.4.0), MONETN `origin/develop` @ `5f94f89`, BROTLib `origin/develop` @ `6d6035d`, IAG @ `05dda82`.
@@ -15,9 +15,6 @@ HalfBROT. Changed since the first version of this plan:
 - Versions: HalfBROT is at 0.8.0 (not 0.5.x/0.6.0), MONETcommon at 0.9.10. Release numbers below are HalfBROT
   **v0.9.0** and MONETcommon **v0.10.0** (next free minors; check again when merging). Whether MONETcommon #68 is
   still open or released was **not rechecked**.
-- Paths: the POUs are one folder deeper than written first (`HalfBROT/HalfBROT/HalfBROT/POUs/`,
-  `MONETcommon/MONETcommon/MONETcommon/`); fixed below. The test project paths (`MONETcommonTests/...`) were not
-  rechecked.
 - HalfBROT's body already has the #19 telemetry fix `tonComm(IN:=TRUE, PT:=fTelemetryInterval);`; MONETcommon's
   copy still has `tonComm.PT := ...; tonComm(IN:=TRUE);`. The port keeps HalfBROT's form (see difference 5).
 - Line numbers into `MAIN` and the pendants moved (MONETS `MAIN`: `CoverControl.Reset()` l. 92, `CoverControl();`
@@ -32,7 +29,7 @@ Two copies of the same cover block exist, and the one the telescopes run is in t
 
 | | HalfBROT `FB_CoverControl` | MONETcommon `FB_MonetCoverControl` |
 |---|---|---|
-| File | `HalfBROT/HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU` | `MONETcommon/MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU` |
+| File | `HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU` | `MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU` |
 | POU Id | `{febe04fb-b0fe-4b52-a725-1c7655537933}` | **the same Id**, and the same method/property Ids (copies of one file) |
 | Used by | no IAG telescope; Potsdam (HalfBROT #29 comments) | MONETS and MONETN `MAIN` l. 22: `CoverControl : FB_MonetCoverControl(comm := fbComm);` |
 | Interface | `IMPLEMENTS I_MirrorCovers` | `IMPLEMENTS I_MirrorCovers` |
@@ -153,7 +150,7 @@ builds resolve `*` to it).
 
 ### HalfBROT step 1: new `FB_CoverControl` (own PR, closes #4)
 
-All edits in `HalfBROT/HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU` (UTF-8 with BOM, keep it). Keep the POU Id and the
+All edits in `HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU` (UTF-8 with BOM, keep it). Keep the POU Id and the
 Ids of `_SendTelemetry`, `Close`, `Closed`, `Error`, `FB_Init`, `Open`, `Opened`, `Reset` (they are already
 the same as MONETcommon's). New method `Stop` with a fresh GUID. The `<LineIds>` blocks are not edited by hand
 (XAE rewrites them on the next save, as in #57).
@@ -501,7 +498,7 @@ Branch from `fix/pendant-error-lamp` (draft PR #68, `9527380`) while #68 is open
 on the branch before any on-site install (MONETcommon #69 comment: a branch build with the released version
 number overwrites the release in the library repository).
 
-1. Delete `MONETcommon/MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU` and its `<Compile Include="FB_MonetCoverControl.TcPOU">`
+1. Delete `MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU` and its `<Compile Include="FB_MonetCoverControl.TcPOU">`
    (`MONETcommon.plcproj` l. 31-33).
 2. `FB_MonetPendantControl.TcPOU` l. 7: `fbCovers : REFERENCE TO HalfBROT.FB_CoverControl;`
 3. Pendant option B. Declarations, after `fbResetTrigger : R_TRIG;` (l. 26):
@@ -766,8 +763,8 @@ pendant) is not proposed.
 
 ```
 py=/c/Users/husser/AppData/Local/Programs/Python/Python313/python.exe
-git -C MONETcommon show v0.8.0:MONETcommon/MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU > old.TcPOU
-git -C HalfBROT show <branch>:HalfBROT/HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU > new.TcPOU
+git -C MONETcommon show v0.8.0:MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU > old.TcPOU
+git -C HalfBROT show <branch>:HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU > new.TcPOU
 for f in old new; do $py -I -c "import re,sys; s=open(sys.argv[1],encoding='utf-8-sig').read(); m=re.findall(r'<(Declaration|ST)><!\[CDATA\[(.*?)\]\]>',s,re.S); print(m[0][1]); print('=====BODY'); print(m[1][1])" $f.TcPOU > $f.st; done
 diff -u --strip-trailing-cr old.st new.st
 ```

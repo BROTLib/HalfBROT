@@ -39,7 +39,7 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   `FB_CoverControl` keeps its name and gets MONETcommon's `FB_MonetCoverControl` logic 1:1 (sequence by limit switches,
   timeout as input `tMoveTimeout`, 1 s reversal dead time, error stops all) plus `Stop()`; MONETcommon drops its copy,
   MONETS/MONETN `MAIN` use `HalfBROT.FB_CoverControl` (I/O links unchanged); pendants hold-to-run of the whole sequence
-  (option B); new `HalfBROTTests`. **proposed**, nine questions for Tim, on-site check T15.
+  (option B). **Step 1 implemented in HalfBROT** (this repo, defaults as recommended; CI build only, no PLC run); steps 0 (`HalfBROTTests`), 2, 3 (MONETcommon, MONETS/MONETN) still open; on-site check T15.
 - [2026-10-20-oil-level-guard-monets-32.md](2026-10-20-oil-level-guard-monets-32.md): MONETS#32, a raw oil level outside a configurable range (wire break, over-range) is not published and does not start/stop the suction by level (`F_OilLevelValid`, `F_OilSuctionLatch`, `statusWord` bit 14). **Implemented in HalfBROT, not compiled or hardware-tested;** tests and the MONETS/MONETN `MAIN` settings follow.
 - [2026-10-22-focus-manual-jog-target-and-stored-position-66.md](2026-10-22-focus-manual-jog-target-and-stored-position-66.md):
   focus after a pendant jog in manual mode: (A, no issue yet) the target follows the actual position outside automatic
