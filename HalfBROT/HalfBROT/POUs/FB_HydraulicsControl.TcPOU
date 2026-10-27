@@ -300,7 +300,7 @@ IF bPublishPending AND tonPublishHoldoff.Q AND fbComm <> 0 THEN
 	fbComm.PublishBOOL('hydraulics', 'base', 'PumpRunning',	bPumpRunning);
 	fbComm.PublishBOOL('hydraulics', 'base', 'SuctionRunning',bSuctionRunning);
 	IF bOilLevelValid THEN	// an invalid level is not published as a normal value (MONETS#32)
-		fbComm.Publish('hydraulics', 'base', 'OilLevel',		REAL_TO_STRING(fOilLevel));
+		fbComm.PublishLREAL('hydraulics', 'base', 'OilLevel',		REAL_TO_LREAL(fOilLevel));
 	END_IF
 	fbComm.PublishINT('hydraulics', 'base', 'StatusWord',	statusWord);
 END_IF
