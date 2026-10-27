@@ -6,6 +6,23 @@ HalfBROT `origin/develop` @ `2cfaaf5`, MONETcommon `origin/develop` @ `38b5896` 
 @ `67e683d` (v1.4.0), MONETN `origin/develop` @ `5f94f89`, BROTLib `origin/develop` @ `6d6035d`, IAG @ `05dda82`.
 Line numbers refer to those commits. Items marked **unverified** could not be checked from the code.
 
+**Refreshed 2026-10-27 against the local checkouts** (HalfBROT `develop` @ `07d0c49` = 0.8.0, MONETcommon `develop`
+= 0.9.10, MONETS/MONETN `MAIN` as local). Still true: the issue #4 findings in `FB_CoverControl.TcPOU`; MONETcommon's
+`FB_MonetCoverControl.TcPOU` and `FB_MonetPendantControl.TcPOU` unchanged since v0.8.0 (the port source is the same
+as described); `MAIN` l. 22 in MONETS and MONETN; both pendants as described; no test project or `tests.yml` in
+HalfBROT. Changed since the first version of this plan:
+
+- Versions: HalfBROT is at 0.8.0 (not 0.5.x/0.6.0), MONETcommon at 0.9.10. Release numbers below are HalfBROT
+  **v0.9.0** and MONETcommon **v0.10.0** (next free minors; check again when merging). Whether MONETcommon #68 is
+  still open or released was **not rechecked**.
+- Paths: the POUs are one folder deeper than written first (`HalfBROT/HalfBROT/HalfBROT/POUs/`,
+  `MONETcommon/MONETcommon/MONETcommon/`); fixed below. The test project paths (`MONETcommonTests/...`) were not
+  rechecked.
+- HalfBROT's body already has the #19 telemetry fix `tonComm(IN:=TRUE, PT:=fTelemetryInterval);`; MONETcommon's
+  copy still has `tonComm.PT := ...; tonComm(IN:=TRUE);`. The port keeps HalfBROT's form (see difference 5).
+- Line numbers into `MAIN` and the pendants moved (MONETS `MAIN`: `CoverControl.Reset()` l. 92, `CoverControl();`
+  l. 126, `Error` l. 213); re-read them when implementing.
+
 Repos: HalfBROT, MONETcommon, MONETS, MONETN (and the IAG fleet list). Issues: HalfBROT #4, #5 (cover part), #29,
 #32; MONETcommon #3 (cover part), #10, #27, #28, #36, #62; MONETN #15 check 5.
 
@@ -15,7 +32,7 @@ Two copies of the same cover block exist, and the one the telescopes run is in t
 
 | | HalfBROT `FB_CoverControl` | MONETcommon `FB_MonetCoverControl` |
 |---|---|---|
-| File | `HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU` | `MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU` |
+| File | `HalfBROT/HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU` | `MONETcommon/MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU` |
 | POU Id | `{febe04fb-b0fe-4b52-a725-1c7655537933}` | **the same Id**, and the same method/property Ids (copies of one file) |
 | Used by | no IAG telescope; Potsdam (HalfBROT #29 comments) | MONETS and MONETN `MAIN` l. 22: `CoverControl : FB_MonetCoverControl(comm := fbComm);` |
 | Interface | `IMPLEMENTS I_MirrorCovers` | `IMPLEMENTS I_MirrorCovers` |
@@ -136,7 +153,7 @@ builds resolve `*` to it).
 
 ### HalfBROT step 1: new `FB_CoverControl` (own PR, closes #4)
 
-All edits in `HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU` (UTF-8 with BOM, keep it). Keep the POU Id and the
+All edits in `HalfBROT/HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU` (UTF-8 with BOM, keep it). Keep the POU Id and the
 Ids of `_SendTelemetry`, `Close`, `Closed`, `Error`, `FB_Init`, `Open`, `Opened`, `Reset` (they are already
 the same as MONETcommon's). New method `Stop` with a fresh GUID. The `<LineIds>` blocks are not edited by hand
 (XAE rewrites them on the next save, as in #57).
@@ -211,7 +228,8 @@ The variable names `OabOpenCover`, `OabCloseCover`, `IabCoverOpen`, `IabCoverClo
 exactly (the `.tsproj` `<Var>` entries carry the comments; keeping them avoids a cosmetic `.tsproj` diff on save).
 `tonCover2OpenDelay`/`tonCover3CloseDelay` are gone.
 
-**Body (target): MONETcommon v0.8.0's body verbatim, with exactly two changes marked:**
+**Body (target): MONETcommon v0.8.0's body verbatim, with exactly two changes marked, plus the telemetry timer lines (HalfBROT keeps
+its #19 form, see difference 5):**
 
 ```
 (*
@@ -301,8 +319,8 @@ IF bError THEN
 END_IF
 
 // send telemetry
-tonComm.PT := fTelemetryInterval;	// M3: fTelemetryInterval was only applied at init otherwise
-tonComm(IN:=TRUE);
+// PT set in the call: the declaration's initial value is evaluated only once, at init (#19)      [CHANGED: HalfBROT's #19 form]
+tonComm(IN:=TRUE, PT:=fTelemetryInterval);
 IF tonComm.Q THEN // publish new payload every fTelemetryInterval                                  [CHANGED: comment, said "every second"]
 	tonComm(IN:=FALSE);
 	THIS^._SendTelemetry();	
@@ -313,7 +331,7 @@ END_IF
 ```
 
 The elided tail is copied unchanged (it is event logging only, about 50 lines); the implementer copies the whole
-MONETcommon body and then makes the two marked edits, rather than retyping it.
+MONETcommon body and then makes the marked edits (and keeps the #19 telemetry timer lines), rather than retyping it.
 
 **Methods and properties:**
 
@@ -342,7 +360,8 @@ Stop := TRUE;
    MONETcommon's pendant (changed below). The M3 comment on them is replaced.
 4. New `VAR_INPUT tMoveTimeout : TIME := T#60S;` and `PT := tMoveTimeout` instead of `PT := T#60S` (same value
    by default; comment of `atonMoveTimeout` adjusted).
-5. Telemetry comment "every second" -> "every fTelemetryInterval".
+5. Telemetry timer: keep HalfBROT's `tonComm(IN:=TRUE, PT:=fTelemetryInterval);` (#19) instead of MONETcommon's
+   `tonComm.PT := ...; tonComm(IN:=TRUE);` (same behaviour), and the comment "every second" -> "every fTelemetryInterval".
 6. `_SendTelemetry` guard (#16).
 7. New method `Stop()`.
 
@@ -415,7 +434,7 @@ The key-off branch (automatic mode, latched `Open()`/`Close()` while held) is un
 > starts when the previous one is at its end switch. All six outputs are recomputed every cycle; close has
 > precedence over open; a cover in error (both switches active) or over `tMoveTimeout` (default 60 s, latched
 > until `Reset()`) stops all covers and drops the command; a reversal waits `tReversalDeadTime` (1 s). Commands
-> only through `Open()`, `Close()`, `Stop()`, `Reset()`. Used by MONETS and MONETN (since MONETcommon v0.9.0,
+> only through `Open()`, `Close()`, `Stop()`, `Reset()`. Used by MONETS and MONETN (since MONETcommon v0.10.0,
 > which dropped its `FB_MonetCoverControl` copy).
 
 and in the `FB_PendantControl` bullet: "selection 1-3 with the key on: hold-to-run open/close of all three
@@ -469,8 +488,8 @@ step 2 of the #31 plan (I/O through structs). Multi-cycle tests keep their insta
 Tests 3-9 pin down exactly MONETcommon's behaviour, so they also prove the port; test 10 covers the new method.
 TcUnit is sized to 32 suites / 32 tests.
 
-**Release:** HalfBROT minor. Into **v0.6.0** if merged before Tim cuts it (it is breaking already: #21, #22),
-otherwise v0.7.0. Breaking for external users: `OabOpenCover`/`OabCloseCover` are no longer inputs, the delay
+**Release:** HalfBROT minor, **v0.9.0** (HalfBROT is at 0.8.0; breaking, so a minor bump like the earlier breaking changes),
+Breaking for external users: `OabOpenCover`/`OabCloseCover` are no longer inputs, the delay
 timers are gone, the sequence and pendant behaviour change (see Risks, Potsdam). Breaks nothing on an IAG
 telescope alone: no IAG application or MONETcommon uses HalfBROT's `FB_CoverControl`/`FB_PendantControl`
 (MONETS/MONETN keep running `FB_MonetCoverControl` until step 2/3).
@@ -478,11 +497,11 @@ telescope alone: no IAG application or MONETcommon uses HalfBROT's `FB_CoverCont
 ### MONETcommon step 2: drop `FB_MonetCoverControl`, pendant on HalfBROT's block (one PR)
 
 Branch from `fix/pendant-error-lamp` (draft PR #68, `9527380`) while #68 is open, because both edit
-`FB_MonetPendantControl`; retarget/rebase onto `develop` once #68 is merged. Bump `ProjectVersion` to **0.9.0**
+`FB_MonetPendantControl`; retarget/rebase onto `develop` once #68 is merged. Bump `ProjectVersion` to the next minor (**0.10.0**; develop is at 0.9.10)
 on the branch before any on-site install (MONETcommon #69 comment: a branch build with the released version
 number overwrites the release in the library repository).
 
-1. Delete `MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU` and its `<Compile Include="FB_MonetCoverControl.TcPOU">`
+1. Delete `MONETcommon/MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU` and its `<Compile Include="FB_MonetCoverControl.TcPOU">`
    (`MONETcommon.plcproj` l. 31-33).
 2. `FB_MonetPendantControl.TcPOU` l. 7: `fbCovers : REFERENCE TO HalfBROT.FB_CoverControl;`
 3. Pendant option B. Declarations, after `fbResetTrigger : R_TRIG;` (l. 26):
@@ -537,10 +556,10 @@ END_IF
    README table row and the "Why `FB_MonetCoverControl`'s new movement timeout (#9) isn't tested yet" section
    (`MONETcommonTests/README.md` l. 13, l. 22-31); point to `HalfBROTTests` instead.
 5. `README.md` l. 53: replace the `FB_MonetCoverControl` row with a sentence under the table: "The mirror covers
-   use HalfBROT's `FB_CoverControl` (one copy since v0.9.0; needs HalfBROT >= the release from step 1)". Same in
+   use HalfBROT's `FB_CoverControl` (one copy since v0.10.0; needs HalfBROT >= the release from step 1)". Same in
    the pendant row: "selection 1-3 with the key on: hold-to-run open/close of all covers".
-6. Release: MONETcommon **v0.9.0** (minor, breaking: `FB_MonetCoverControl` removed). If #68 is released first
-   as v0.9.0, this becomes v0.10.0.
+6. Release: MONETcommon **v0.10.0** (minor, breaking: `FB_MonetCoverControl` removed). If #68 is still unreleased,
+   it ships in the same release (number then follows the next free minor).
 
 **Alone (released and installed on `Becky`) this breaks the MONETS/MONETN build** (`FB_MonetCoverControl`
 unknown), and it needs the step 1 HalfBROT installed (`Stop()`). So it is merged and released only together
@@ -615,23 +634,23 @@ before the next, and the libraries are installed on each `Becky` in dependency o
 | Step | PR / release | Breaks if done alone |
 |---|---|---|
 | 0 | HalfBROT: `HalfBROTTests` + `tests.yml` | nothing |
-| 1 | HalfBROT: new `FB_CoverControl` + pendant B + cover suite; release v0.6.0 (or v0.7.0) | nothing on IAG telescopes; Potsdam behaviour (sequence, timeout, pendant) |
-| 2 | MONETcommon: drop `FB_MonetCoverControl`, pendant B, tests moved; branch, ProjectVersion 0.9.0, **not merged** | released alone: MONETS/MONETN build fails (type unknown); needs step 1 installed |
+| 1 | HalfBROT: new `FB_CoverControl` + pendant B + cover suite; release v0.9.0 | nothing on IAG telescopes; Potsdam behaviour (sequence, timeout, pendant) |
+| 2 | MONETcommon: drop `FB_MonetCoverControl`, pendant B, tests moved; branch, ProjectVersion 0.10.0, **not merged** | released alone: MONETS/MONETN build fails (type unknown); needs step 1 installed |
 | 3 | MONETS, MONETN: `MAIN` l. 22, README; branches, **not merged** | needs step 2 installed |
 | 4 | Tim, XAE: build MONETS and MONETN against steps 1-3 (0 errors, warnings no more than the 2 known), check the twelve cover links per telescope | - |
-| 5 | On site: install, activate, checks below; passed -> merge 2 (after #68), release MONETcommon v0.9.0, merge 3, release MONETS (v1.5.0) and MONETN | - |
+| 5 | On site: install, activate, checks below; passed -> merge 2 (after #68), release MONETcommon v0.10.0, merge 3, release MONETS (v1.5.0) and MONETN | - |
 
 Install order on `Becky`: BROTLib, AstroBROT (unchanged), **HalfBROT (step 1) before MONETcommon (step 2)**, then
 build the application. The applications reference everything as `*` (IAG #9), so the newest installed version
-wins: a MONETcommon 0.9.0 installed without the step 1 HalfBROT fails to compile (`Stop()` unknown), and any
-application built on that `Becky` afterwards picks up 0.9.0.
+wins: a MONETcommon 0.10.0 installed without the step 1 HalfBROT fails to compile (`Stop()` unknown), and any
+application built on that `Becky` afterwards picks up 0.10.0.
 
-**Rollback** (cover or pendant misbehaves on site): in XAE Library Repository **uninstall MONETcommon 0.9.0**
-(with `*` it would otherwise keep winning), reinstall the MONETcommon **v0.8.0** release asset (or the #68 branch
-build if that is the agreed baseline), check out MONETS `v1.4.0` (`67e683d`) / MONETN `5f94f89`, build, check the
+**Rollback** (cover or pendant misbehaves on site): in XAE Library Repository **uninstall MONETcommon 0.10.0**
+(with `*` it would otherwise keep winning), reinstall the MONETcommon release that ran before the swap (write the Library Manager versions down before
+activation; v0.9.10 is the current `develop` version, which release is installed on the controllers is unknown), check out MONETS `v1.4.0` (`67e683d`) / MONETN `5f94f89`, build, check the
 cover links, activate. The step 1 HalfBROT can stay installed: MONETcommon v0.8.0 and the old `MAIN`s do not use
 HalfBROT's `FB_CoverControl` or `FB_PendantControl`. Only if something else in that HalfBROT release is the
-problem: uninstall it and reinstall HalfBROT **v0.5.1**. Record the library versions that ran (IAG #9).
+problem: uninstall it and reinstall HalfBROT **v0.8.0**. Record the library versions that ran (IAG #9).
 
 **Timing (recommendation):** implement steps 0-3 now. Put the swap into the coming visit only as a separate,
 last activation ("build C"), after T8 and T9 have passed on the planned build, so T8's results stay attributable
@@ -694,7 +713,7 @@ this logic.
 - Q7 Tell Potsdam before the HalfBROT release?
 - Q8 `tMoveTimeout` rule once the times are known: 1.5 x the longest measured single-cover travel, rounded up to
   5 s (recommended), set per telescope in `MAIN`?
-- Q9 HalfBROT release: ride in v0.6.0 or wait for v0.7.0?
+- Q9 HalfBROT release: v0.9.0 (recommended) or fold into a later minor?
 
 **Option A (alternative to B), exact code.** Block, `VAR` additions:
 
@@ -747,14 +766,14 @@ pendant) is not proposed.
 
 ```
 py=/c/Users/husser/AppData/Local/Programs/Python/Python313/python.exe
-git -C MONETcommon show v0.8.0:MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU > old.TcPOU
-git -C HalfBROT show <branch>:HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU > new.TcPOU
+git -C MONETcommon show v0.8.0:MONETcommon/MONETcommon/MONETcommon/FB_MonetCoverControl.TcPOU > old.TcPOU
+git -C HalfBROT show <branch>:HalfBROT/HalfBROT/HalfBROT/POUs/FB_CoverControl.TcPOU > new.TcPOU
 for f in old new; do $py -I -c "import re,sys; s=open(sys.argv[1],encoding='utf-8-sig').read(); m=re.findall(r'<(Declaration|ST)><!\[CDATA\[(.*?)\]\]>',s,re.S); print(m[0][1]); print('=====BODY'); print(m[1][1])" $f.TcPOU > $f.st; done
 diff -u --strip-trailing-cr old.st new.st
 ```
 
-Expected: the body diff has exactly two hunks (`PT := tMoveTimeout` with its comment line, the telemetry
-comment); the declaration diff only items 1-4 of the list above. Any other hunk fails the check. Paste the
+Expected: the body diff has exactly two hunks (`PT := tMoveTimeout` with its comment line; the telemetry block: HalfBROT's #19
+timer lines and the changed comment); the declaration diff only items 1-4 of the list above. Any other hunk fails the check. Paste the
 diff into the PR description. Methods: `diff` of `Open`/`Close`/`Reset`/properties empty, `_SendTelemetry` only
 the guard, `Stop` new.
 
@@ -762,7 +781,7 @@ the guard, `Stop` new.
 MONETcommon `tcbuild.yml` and `tests.yml` on the step 2 branch (with the step 1 HalfBROT installed on the runner).
 
 **3. XAE (Tim, before any activation).** MONETS and MONETN build against steps 1-3: 0 errors, no more than the 2
-known warnings. Library Manager: HalfBROT = the step 1 version, MONETcommon = 0.9.0. I/O: twelve links per
+known warnings. Library Manager: HalfBROT = the step 1 version, MONETcommon = 0.10.0. I/O: twelve links per
 telescope, `MAIN.CoverControl.IabCoverOpen[1..3]`/`IabCoverClosed[1..3]` on "Mirror Cover IN (EL1008)" channels
 1-6 (open = odd, closed = even), `OabOpenCover[1..2]`/`OabCloseCover[1..2]` on "Mirror Cover OUT1 (EL2004)"
 channels 1-4, `OabOpenCover[3]`/`OabCloseCover[3]` on "Mirror Cover OUT2 (EL2004)" channels 1-2 (MONETS Term 8,
@@ -820,7 +839,7 @@ placeholder stays. `tReversalDeadTime` stays 1 s unless the drive documentation 
   on-site issue for the pendant covers; no new issue).
 - MONETcommon #3: comment, cover part done; stays open for the axes.
 - MONETcommon #27, #28: the code now lives in HalfBROT; they close with #62 as planned. Comment on #62: the block
-  is `HalfBROT.FB_CoverControl` from MONETcommon v0.9.0 on, checks unchanged, plus T15.
+  is `HalfBROT.FB_CoverControl` from MONETcommon v0.10.0 on, checks unchanged, plus T15.
 - MONETcommon #36: comment, the cover test moved to `HalfBROTTests`. MONETcommon #24 point 5 (forks with the
   same POU Id): comment, covers now one copy too.
 - MONETcommon #69: coordinate, PR #68 goes first; this branch is based on it.
