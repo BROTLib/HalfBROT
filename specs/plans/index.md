@@ -66,3 +66,6 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   the first start after a PLC start and after a pump failure, the pump enable held off during the pulse, a log message that
   names the starter. What the reset outputs switch is unknown. **implemented**, not compiled or run on a PLC; tests in
   MONETcommonTests and the on-site check MS-75 follow.
+- [2026-10-27-oil-level-clamp-123.md](2026-10-27-oil-level-clamp-123.md):
+  #123, `fOilLevel` was published below 0 % and above 100 % when the raw value left `nMinPanLevel`..`nMaxPanLevel`. Fix:
+  `cut := TRUE` in the `F_YREAL` call. **implemented**, not compiled or run on a PLC.
