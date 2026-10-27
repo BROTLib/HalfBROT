@@ -1,6 +1,6 @@
 # Covers: one FB_CoverControl in HalfBROT, MONETcommon's logic, used by MONETS and MONETN (#4, #29)
 
-**Status: step 1 implemented in HalfBROT (PR for #4); steps 0, 2, 3 not done.** Decided 2026-10-12 (Tim): "drop the HalfBROT version and move the MONETcommon version into
+**Status: step 1 merged (HalfBROT PR #125, #4 closed); steps 2 and 3 are draft PRs, not merged (MONETcommon #162, MONETS #64, MONETN #46; they need the HalfBROT release and the HalfBROT pin raised first); step 0 (`HalfBROTTests`) not done.** Decided 2026-10-12 (Tim): "drop the HalfBROT version and move the MONETcommon version into
 HalfBROT". Nothing implemented, nothing run on a PLC or a telescope. Facts below were read on 2026-10-12 from
 HalfBROT `origin/develop` @ `2cfaaf5`, MONETcommon `origin/develop` @ `38b5896` (= v0.8.0), MONETS `origin/develop`
 @ `67e683d` (v1.4.0), MONETN `origin/develop` @ `5f94f89`, BROTLib `origin/develop` @ `6d6035d`, IAG @ `05dda82`.
