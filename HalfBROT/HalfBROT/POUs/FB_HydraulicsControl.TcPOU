@@ -135,7 +135,7 @@ bOilFilterDirty := NOT IbOilFilterDirty;
 bOilCold 		:= NOT IbOilCold;
 bOilHot 		:= IbOilHot;
 //oil_level 			:= F_YREAL(in_oil_level, 0, 16383, 0.0, 5.0);
-fOilLevel		:= F_YREAL(inOilLevel, nMinPanLevel, nMaxPanLevel, 0, 100, cut := FALSE); 
+fOilLevel		:= F_YREAL(inOilLevel, nMinPanLevel, nMaxPanLevel, 0, 100, cut := TRUE); 
 bOilLevelValid	:= F_OilLevelValid(nRaw := InOilLevel, nMinValid := nMinValidPanLevel, nMaxValid := nMaxValidPanLevel);
 bOilLevelInvalid := NOT bOilLevelValid;
 bOilPanMaximum	:= IbOilpanMaximum;
