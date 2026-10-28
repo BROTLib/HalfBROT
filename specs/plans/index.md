@@ -69,3 +69,8 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
 - [2026-10-27-oil-level-clamp-123.md](2026-10-27-oil-level-clamp-123.md):
   #123, `fOilLevel` was published below 0 % and above 100 % when the raw value left `nMinPanLevel`..`nMaxPanLevel`. Fix:
   `cut := TRUE` in the `F_YREAL` call. **implemented**, not compiled or run on a PLC.
+- [2026-10-28-elevation-brake-settle-130.md](2026-10-28-elevation-brake-settle-130.md):
+  #130, the elevation was enabled the moment `bBrakeOpen` (inferred, 1 s after the output) went TRUE, so the AX5000 Wake&Shake
+  on enable failed with F616 (MONET/S, 2026-10-28). Fix: new `FB_BrakeSettleEnable`, enable and `bReady` only `tBrakeSettle`
+  (input, 3 s) after the brake reports open. **implemented** for the elevation, not compiled or run on a PLC; azimuth, tests in
+  MONETcommonTests and the supervised on-site check open.
