@@ -5,12 +5,13 @@
 VAR_INPUT
 	fbCovers		: I_MirrorCovers;
 	fbBrake			: I_Brake;
+	tBrakeSettle	: TIME := T#3S;	// wait after the brake reports open before the axis is enabled (#130), to be confirmed on site
 END_VAR
 VAR_OUTPUT
 	bWarning			: BOOL;		// warning condition
 END_VAR
 VAR
-	tonReadyDelay			: TON;	// delay until commutator angle is measured
+	fbBrakeSettle			: FB_BrakeSettleEnable;	// axis enable after the brake settled, ready delay until commutator angle is measured (#130)
 	tonBrakeWarning			: TON;	// the brake stays open with the axis disabled (MONETcommon#121)
 	enableTrigger			: F_TRIG;	// disable trigger for hydraulics
 	brakeEvent				: FB_EventLog;
@@ -80,8 +81,11 @@ MC_SetAcceptBlockedDriveSignal(
 	Axis := axisRef, 
 	Enable := bHomeAxis);
 	
+// the brake needs some seconds longer than bBrakeOpen says; enabling earlier fails the AX5000 Wake&Shake with F616 (#130)
+fbBrakeSettle(bEnable := bEnable, bBrakeOpen := bBrakeOpen, tSettle := tBrakeSettle, tReadyDelay := T#6000MS);
+
 fbAxis(
-	Enable 			:= bEnable AND bBrakeOpen,
+	Enable 			:= fbBrakeSettle.bAxisEnable,
 	Reset 			:= bReset,
 	Tracking 		:= bTracking,
 	Position 		:= fPosition, 
@@ -119,8 +123,8 @@ _CheckDiagnostic(sAxis := 'Elevation', bSoEResetOnReset := FALSE);
 _SoEReset(sAxis := 'Elevation');
 
 // MONETcommon#121: ready only while the axis is enabled, like fbAxis.Enable and the azimuth. Not bCalibrated: the power-on
-// homes an axis that is Ready and not yet calibrated.
-tonReadyDelay(IN := bEnable AND bBrakeOpen, PT := T#6000MS, Q=> bReady);
+// homes an axis that is Ready and not yet calibrated. Timed from the axis enable, the brake settle time included (#130).
+bReady := fbBrakeSettle.bReady;
 
 fbReadParameter(	
 	Axis 			:= axisRef, 
@@ -156,7 +160,8 @@ lowElevationEvent(
 	OnMessage 		:= LREAL_TO_FMTSTR(fActualPosition, 2, TRUE), 
 	comm 			:= fbComm);
 				
-// a normal disable overlaps the open brake for one scan (the hydraulics close it in the next one), so debounce (MONETcommon#121)
+// a normal disable overlaps the open brake for one scan (the hydraulics close it in the next one), so debounce (MONETcommon#121).
+// bEnable, not the axis enable: the brake is open on purpose during the settle time (#130)
 tonBrakeWarning(IN := NOT bEnable AND bBrakeOpen, PT := T#500MS);
 brakeEvent( 
 	Trigger 		:= tonBrakeWarning.Q, 

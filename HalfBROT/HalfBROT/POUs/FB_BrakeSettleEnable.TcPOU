@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_BrakeSettleEnable" Id="{0c6ffdd6-4641-441d-9f0e-40873309241b}" SpecialFunc="None">
+    <Declaration><![CDATA[// Enable an axis only after the brake has been reported open for tSettle (#130). bBrakeOpen is inferred by the hydraulics
+// (1 s after the output), the brake needs longer: an AX5000 with P-0-0165 = On enable request runs the Wake&Shake at the
+// first enable and fails with F616 against a brake that is not yet released.
+// tSettle = T#0S is the old behaviour: the enable follows bEnable AND bBrakeOpen directly.
+// Call once per cycle, before the axis block that takes bAxisEnable.
+FUNCTION_BLOCK FB_BrakeSettleEnable
+VAR_INPUT
+	bEnable			: BOOL;		// the axis is wanted enabled
+	bBrakeOpen		: BOOL;		// brake reported open
+	tSettle			: TIME;		// wait after bEnable AND bBrakeOpen before the axis is enabled
+	tReadyDelay		: TIME;		// bReady this long after bAxisEnable
+END_VAR
+VAR_OUTPUT
+	bAxisEnable		: BOOL;		// to the axis Enable
+	bSettling		: BOOL;		// enable requested and brake open, waiting for tSettle
+	bReady			: BOOL;		// bAxisEnable for tReadyDelay (MONETcommon#121: never ready while not enabled)
+END_VAR
+VAR
+	tonSettle		: TON;
+	tonReady		: TON;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[tonSettle(IN := bEnable AND bBrakeOpen, PT := tSettle);
+// repeat the inputs so the enable drops in the same cycle as either of them
+bAxisEnable := bEnable AND bBrakeOpen AND tonSettle.Q;
+bSettling := bEnable AND bBrakeOpen AND NOT tonSettle.Q;
+tonReady(IN := bAxisEnable, PT := tReadyDelay);
+bReady := tonReady.Q AND bAxisEnable;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
