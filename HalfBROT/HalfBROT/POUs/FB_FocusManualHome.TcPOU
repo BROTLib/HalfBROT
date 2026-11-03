@@ -12,6 +12,7 @@ VAR_INPUT
 	bHomePending	: BOOL;		// fbAxis.HomePending
 	bCalibrated		: BOOL;		// fbAxis.calibrated
 	bAbortPulse		: BOOL;		// fbAxis.CommandAborted OR fbAxis.StopDone OR bError
+	bError			: BOOL;		// the axis reports an error: MC_Home is over even if HomeActive stays TRUE (BROTLib keeps Execute of a failed command until Reset, #114)
 END_VAR
 VAR_OUTPUT
 	bRunning		: BOOL;		// a request was accepted and has not ended
@@ -33,7 +34,8 @@ bAborted := FALSE;
 IF bRunning THEN
 	bActiveSeen := bActiveSeen OR bHomeActive;
 	bAbortSeen := bAbortSeen OR bAbortPulse;
-	IF NOT bHomeActive AND NOT bHomePending THEN
+	bAbortSeen := bAbortSeen OR bError;
+	IF (NOT bHomeActive AND NOT bHomePending) OR bError THEN
 		bRunning := FALSE;
 		IF bActiveSeen AND NOT bAbortSeen AND bCalibrated THEN
 			bDone := TRUE;
@@ -79,6 +81,15 @@ ELSE
 	bRestoreTarget := bCalibrated;
 	fRestoreTarget := SEL(bCalibrated, 0.0, fTarget);
 END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Block" Id="{7c1d4e0a-3b52-4f6e-9a18-5d2e8f0b6c43}">
+      <Declaration><![CDATA[// A homing was stopped on an uncalibrated axis: keep the automatic homing off until the next request or ClearBlock.
+METHOD Block
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bBlockAutoHome := TRUE;
 ]]></ST>
       </Implementation>
     </Method>

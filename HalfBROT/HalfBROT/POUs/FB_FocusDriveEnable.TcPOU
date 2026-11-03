@@ -27,7 +27,8 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[bWanted := bMoveWanted OR bHomeWanted;
+      <ST><![CDATA[// a move or homing in error is not wanted any more: MC blocks in error keep Execute/HomeActive until Reset (#114)
+bWanted := (bMoveWanted OR bHomeWanted) AND NOT bError;
 tonRest(IN := bAtRest AND NOT bWanted, PT := tBrakeDelay);
 IF bWanted THEN
 	bLockPending := FALSE;		// a move or homing takes over; the brake delay locks after it
