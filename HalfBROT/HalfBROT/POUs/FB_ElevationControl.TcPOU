@@ -19,6 +19,9 @@ VAR
 	lowElevationEvent		: FB_EventLog;
 	tonTorqueTimer				: TON;		// timer to trigger a warning if torque is high
 	bConnected				: BOOL;		// fbCovers and fbBrake are assigned (#16)
+	bCoversOpen				: BOOL;		// fbCovers.Opened, FALSE while fbCovers is not assigned
+	bHomeRefused			: BOOL;		// homing request dropped because the covers are not open
+	coversHomeEvent			: FB_EventLog;
 	bBrakeOpen				: BOOL;		// fbBrake.BrakeOpen, FALSE while fbBrake is not assigned
 	notConnectedEvent		: FB_EventLog;
 END_VAR
@@ -55,12 +58,25 @@ IF enableTrigger.Q AND bConnected THEN
 	fbBrake.CloseBrake();
 END_IF
 
-// keep the homing overrides (AcceptBlockedDriveSignal, positive limit) until the homing has finished: the NC sets
-// Homed (Calibrated, HomeDone) before the homing procedure is done, and switching them off then restarts it
-IF (fbAxis.Calibrated AND NOT fbAxis.HomeActive) OR bError THEN
-	bHomeAxis := FALSE;
+// the elevation never moves with closed covers: a homing request that has not started is dropped (a re-home does not
+// open the covers). The end of a request that has started is _HomeRequest (#136)
+bCoversOpen := FALSE;
+IF bConnected THEN
+	bCoversOpen := fbCovers.Opened;
 END_IF
+bHomeRefused := bHomeAxis AND NOT fbAxis.HomeActive AND NOT bCoversOpen;
+IF bHomeRefused THEN
+	THIS^.HomeAxis := FALSE;
+END_IF
+coversHomeEvent(
+	Trigger 		:= bHomeRefused,
+	Level 			:= ADSLOG_MSGTYPE_WARN,
+	FormatString 	:= '%s',
+	OnMessage 		:= 'Elevation: homing refused, the mirror covers are not open.',
+	Comm 			:= fbComm);
 
+// the homing overrides (AcceptBlockedDriveSignal, positive limit) stay on with bHomeAxis until the homing has finished,
+// see _HomeRequest (#136): the NC clears Homed (Calibrated) when MC_Home starts and sets it before the homing is done
 bCalibrated := fbAxis.Calibrated;
 
 IF bHomeAxis THEN
@@ -104,10 +120,8 @@ IF fbAxis.MoveDone THEN
 	bMoveAxis := FALSE;
 END_IF
 
-IF fbAxis.HomeDone AND NOT fbAxis.HomeActive THEN
-	bHomeAxis := FALSE;
-END_IF
-	
+_HomeRequest(sAxis := 'Elevation');
+
 IF fbAxis.ResetDone THEN
 	bReset := FALSE;
 END_IF

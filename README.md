@@ -82,14 +82,16 @@ implements the `I_Axis` interface. Common features:
   mode and while a jog runs, the target `fPosition` follows the actual position, so the focus does not drive back to
   its old target when the telescope returns to automatic. A jog of an uncalibrated focus drops the stored position
   (cam homing next time).
-- **Manual focus re-home** — `FB_FocusControl.bManualHome` (set TRUE online in XAE, by ADS or from a program; the block
-  clears it) homes a calibrated focus again on its cam at `fHomingPosition`, e.g. when the stored position is in
-  doubt. The stored position is dropped first, so the `MC_Direct` shortcut is not taken. It is accepted in automatic
-  mode, calibrated, at rest, without `bManualUnlock` or error and with no homing running; otherwise a warning with the
-  reason (`E_FocusManualHome`) is logged and nothing happens. Use it with the telescope idle: the re-home takes
+- **Manual focus re-home** — `FB_FocusControl.bManualHome` (set TRUE online in XAE, by ADS, from a program or by the Visu
+  Start button; the block clears it) homes the focus, calibrated or not, on its cam at `fHomingPosition`, e.g. when the
+  stored position is in doubt. The stored position is dropped first, so the `MC_Direct` shortcut is not taken. It is
+  accepted in automatic mode, at rest, without `bManualUnlock` or error and with no homing running; otherwise a warning
+  with the reason (`E_FocusManualHome`) is logged, nothing happens and the output `eManualHome` holds the reason for
+  the Visu (#138). Use it with the telescope idle: the re-home takes
   minutes, `Busy` holds back goto/slew/track/park, and if the NC drops `Homed` while homing, the telescope shows
-  READY_STATE -2 until it is done (unverified on the telescope). Afterwards the focus returns to the target it had
-  before. `Stop()` aborts a re-home; if that leaves the focus uncalibrated, the automatic homing stays off until the
+  READY_STATE -2 until it is done (unverified on the telescope). Afterwards a calibrated focus returns to the target it had
+  before; an uncalibrated one has no target (#115) and stays where the homing ended (at most `fMaxPosition`), like
+  after the automatic homing. `Stop()` aborts a re-home; if that leaves the focus uncalibrated, the automatic homing stays off until the
   next `bManualHome` or another homing request.
 - **No position restore** — azimuth and elevation home on their cam at every start. A restore with
   `MC_SetPosition` was removed (#7): it most likely never set `Calibrated`, and a mount moved while switched off

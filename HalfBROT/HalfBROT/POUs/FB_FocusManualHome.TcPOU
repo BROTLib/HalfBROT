@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
   <POU Name="FB_FocusManualHome" Id="{5bd5e2c0-b882-4f8e-b385-019e45c8a5c0}" SpecialFunc="None">
-    <Declaration><![CDATA[// Manual re-home of a calibrated focus (FB_FocusControl.bManualHome): decides a request, then follows the homing to its end.
+    <Declaration><![CDATA[// Manual re-home of the focus, calibrated or not (FB_FocusControl.bManualHome): decides a request, then follows the homing to its end.
 // No NC access, the caller does the axis calls (like FB_MoveFollower). Call it once per cycle after the axis block.
 // A re-home ends when no homing is active or pending any more: done if it was seen active, nothing aborted it and the
 // axis is calibrated, else aborted. An aborted re-home that leaves the axis uncalibrated blocks the automatic homing
@@ -19,6 +19,7 @@ VAR_OUTPUT
 	bAborted		: BOOL;		// one cycle: ended otherwise
 	bBlockAutoHome	: BOOL;		// ended uncalibrated: keep the automatic homing off
 	fRestoreTarget	: LREAL;	// the target at the request
+	bRestoreTarget	: BOOL;		// fRestoreTarget is a real target (request on a calibrated focus); else keep the position reached (#138)
 END_VAR
 VAR
 	bActiveSeen		: BOOL;
@@ -46,7 +47,7 @@ END_IF
     </Implementation>
     <Method Name="Request" Id="{aab99738-82f2-4818-a18c-90a456227694}">
       <Declaration><![CDATA[// Decide a request. Accepted: running, the target is kept for the end, the automatic homing is released again.
-// An uncalibrated axis is only accepted while the automatic homing is blocked by an aborted re-home.
+// Calibrated or not (#138): on an uncalibrated axis fPosition is no target (#115), so nothing is restored at the end.
 METHOD Request : E_FocusManualHome
 VAR_INPUT
 	bAutomatic		: BOOL;		// telescope mode is automatic
@@ -67,8 +68,6 @@ ELSIF bError THEN
 	Request := E_FocusManualHome.AxisError;
 ELSIF bRunning OR bHoming THEN
 	Request := E_FocusManualHome.Homing;
-ELSIF NOT bCalibrated AND NOT bBlockAutoHome THEN
-	Request := E_FocusManualHome.NotCalibrated;
 ELSIF bMoving THEN
 	Request := E_FocusManualHome.Moving;
 ELSE
@@ -77,7 +76,8 @@ ELSE
 	bActiveSeen := FALSE;
 	bAbortSeen := FALSE;
 	bBlockAutoHome := FALSE;
-	fRestoreTarget := fTarget;
+	bRestoreTarget := bCalibrated;
+	fRestoreTarget := SEL(bCalibrated, 0.0, fTarget);
 END_IF
 ]]></ST>
       </Implementation>

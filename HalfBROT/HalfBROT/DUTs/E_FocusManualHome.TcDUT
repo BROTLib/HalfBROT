@@ -10,7 +10,7 @@ TYPE E_FocusManualHome :
 	NotAutomatic := 1,
 	ManualUnlock := 2,
 	AxisError := 3,
-	NotCalibrated := 4,
+	NotCalibrated := 4,		// no longer returned (#138), kept for existing references
 	Homing := 5,
 	Moving := 6
 );
