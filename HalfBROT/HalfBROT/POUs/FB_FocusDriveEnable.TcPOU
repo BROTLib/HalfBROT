@@ -11,8 +11,6 @@ VAR_INPUT
 	bAutomatic		: BOOL;		// automatic positioning: eTelescopeMode = automatic AND NOT bManualUnlock
 	bCalibrated		: BOOL;		// fbAxis.calibrated
 	bError			: BOOL;
-	bDriveReady		: BOOL;		// fbAxis.Ready, from its last call (FALSE = the NC no longer controls the axis, lock at once)
-	tErrorHold		: TIME;		// longest time the brake stays open after an error while the axis is Ready and not at rest (T#0S = lock at once)
 	bMoveWanted		: BOOL;		// fbFollower.bNeedEnable OR fbFollower.bMoving OR fbAxis.MovePending (this cycle)
 	bHomeWanted		: BOOL;		// bHomeAxis OR fbAxis.HomeActive OR fbAxis.HomePending
 	bAtRest			: BOOL;		// fbAxis.StandStill AND NOT fbAxis.Busy, from its last call
@@ -22,20 +20,15 @@ VAR_OUTPUT
 	bEnableOn		: BOOL;		// this cycle: bEnable := TRUE
 	bEnableOff		: BOOL;		// this cycle: bEnable := FALSE
 	bLockPending	: BOOL;		// a lock request waits until the axis is at rest
-	bErrorLock		: BOOL;		// after an error: the brake may lock (at rest, drive not Ready, or tErrorHold over); latched until the error clears
 END_VAR
 VAR
 	tonRest			: TON;		// at rest with nothing wanted (the brake delay)
-	tonErrorHold	: TON;
 	bWanted			: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[// a move or homing in error is not wanted any more: MC blocks in error keep Execute/HomeActive until Reset (#114)
 bWanted := (bMoveWanted OR bHomeWanted) AND NOT bError;
-// an MC error with the axis still under control must not cut the enable at once (0x4260 hides the first error, #114)
-tonErrorHold(IN := bError, PT := tErrorHold);
-bErrorLock := bError AND (bErrorLock OR bAtRest OR NOT bDriveReady OR tonErrorHold.Q);
 tonRest(IN := bAtRest AND NOT bWanted, PT := tBrakeDelay);
 IF bWanted THEN
 	bLockPending := FALSE;		// a move or homing takes over; the brake delay locks after it
@@ -43,7 +36,7 @@ END_IF
 
 bEnableOn := bAutomatic AND NOT bError AND bWanted;
 bEnableOff := NOT bWanted AND (
-		(bLockPending AND (bAtRest OR bErrorLock))		// bErrorLock: the brake is already locked (ObFocusUnlock)
+		(bLockPending AND (bAtRest OR bError))		// bError: the drive is already off (ObFocusUnlock)
 		OR (bAutomatic AND bCalibrated AND tonRest.Q));
 IF bEnableOff THEN
 	bLockPending := FALSE;

@@ -1,6 +1,6 @@
 # Focus: stop during a homing ends in 0x4260 and a stuck re-home (#114 H2)
 
-**Status: E and G implemented in HalfBROT (branch `fix/focus-stop-during-homing-114`), not compiled by this author, not run on a PLC; F (BROTLib) open until the Scope trace (D7).** Read on 2026-11-03 from HalfBROT `v0.10.2` (`6b4d87a`; the focus
+**Status: E implemented in HalfBROT (PR #141), not compiled by this author, not run on a PLC. G is on branch `feat/focus-error-lock-114` (hardening, not needed for #114, Q1 open). F (BROTLib, a homing stopped by `Stop()` ends as aborted) is the fix that makes step 4 pass; the NC log and the PLC cycle order confirm the chain, see the addendum.**
 POUs are unchanged on `origin/develop` `cf96e21`), BROTLib `v0.17.0` (`82153e4`) and MONETcommon `v0.14.0` (`63a2f95`), the
 versions MONETS develop `d3b9e33` pins. Line numbers are file lines at those tags. **Hypothesis** marks anything the code and
 the logs do not settle.
