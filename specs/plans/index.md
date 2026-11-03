@@ -74,3 +74,8 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   on enable failed with F616 (MONET/S, 2026-10-28). Fix: new `FB_BrakeSettleEnable`, enable and `bReady` only `tBrakeSettle`
   (input, 3 s) after the brake reports open. **implemented** for the elevation, not compiled or run on a PLC; azimuth, tests in
   MONETcommonTests and the supervised on-site check open.
+- [2026-11-03-home-calibrated-axis-136.md](2026-11-03-home-calibrated-axis-136.md):
+  #136, HomeAxis on a calibrated axis cleared `bHomeAxis` in the same scan (the clear ignored `HomePending`), so the homing
+  sweep ran without the limit/blocked-drive overrides and failed with 0x4B0A (MONET/S, 2026-11-03). Fix: new `FB_HomeRequest`
+  ends the request only through the `FB_Axis` handshake, start timeout, elevation never homes with closed covers.
+  **in implementation**, not compiled or run on a PLC.
