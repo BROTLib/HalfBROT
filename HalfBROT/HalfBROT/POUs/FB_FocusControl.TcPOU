@@ -37,6 +37,8 @@ VAR
 	fbJogLatch			: FB_FocusJogLatch;			// a jog is running until standstill, see F_FocusTargetFollowsActual
 	fbTargetInit		: FB_FocusTargetInit;		// the first calibration without a homing takes the actual position (#115)
 	fHomingReference	: LREAL;	// reference of the running homing, fixed in _StartHoming (#115); 0 = not set
+	bHomeStopped		: BOOL;		// Stop() hit a homing: it ends the homing request once the axis is out of it, locked and not re-homed (#114)
+	tErrorHold			: TIME := T#1S;	// brake stays open at most this long after an error while the axis is Ready and not at rest
 	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
 	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
 	tonFocusDelay		: TON;
@@ -178,6 +180,8 @@ fbDriveEnable(
 	bAutomatic	:= eTelescopeMode = E_TelescopeMode.automatic AND NOT bManualUnlock,
 	bCalibrated	:= fbAxis.calibrated,
 	bError		:= bError,
+	bDriveReady	:= fbAxis.Ready,
+	tErrorHold	:= tErrorHold,
 	bMoveWanted	:= fbFollower.bNeedEnable OR fbFollower.bMoving OR fbAxis.MovePending,
 	bHomeWanted	:= bHomeAxis OR fbAxis.HomeActive OR fbAxis.HomePending,
 	bAtRest		:= fbAxis.StandStill AND NOT fbAxis.Busy,
@@ -189,7 +193,7 @@ ELSIF fbDriveEnable.bEnableOff THEN
 END_IF
 
 // focus is unlocked if enabled or manually unlocked and no eror
-ObFocusUnlock := (bManualUnlock OR bEnable) AND NOT bError;
+ObFocusUnlock := (bManualUnlock OR bEnable) AND NOT fbDriveEnable.bErrorLock;	// an error locks when the axis can be locked (#114)
 
 // wait until the focus is unlocked for n milliseconds
 tonFocusDelay(IN := ObFocusUnlock, PT := ptFocusDelay, Q => bFocusUnlocked);
@@ -287,7 +291,19 @@ fbManualHome(
 	bHomeActive		:= fbAxis.HomeActive,
 	bHomePending	:= fbAxis.HomePending,
 	bCalibrated		:= fbAxis.calibrated,
-	bAbortPulse		:= fbAxis.CommandAborted OR fbAxis.StopDone OR bError);
+	bAbortPulse		:= fbAxis.CommandAborted OR fbAxis.StopDone OR bError,
+	bError			:= bError);
+
+// Stop() hit a homing: when the axis is out of it (or failed), nothing holds the drive enabled or the far switch bypass
+// any more; an uncalibrated focus is not homed again by itself until the next power-on or manual re-home (#114)
+IF bHomeStopped AND ((NOT fbAxis.HomeActive AND NOT fbAxis.HomePending) OR bError) THEN
+	bHomeStopped := FALSE;
+	THIS^.HomeAxis := FALSE;
+	fbDriveEnable.RequestLock();
+	IF NOT fbAxis.calibrated THEN
+		fbManualHome.Block();
+	END_IF
+END_IF
 IF fbManualHome.bDone THEN
 	// back to the focus the observer had, now in the corrected calibration; an uncalibrated focus has no target (#115),
 	// it stays where the homing ended, like after the automatic homing
@@ -450,6 +466,7 @@ METHOD Stop : BOOL
       <Implementation>
         <ST><![CDATA[fbFollower.Stop();
 fbAxis.CancelMove();
+bHomeStopped := bHomeStopped OR bHomeAxis OR fbAxis.HomeActive OR fbAxis.HomePending;
 IF fbManualHome.bRunning THEN
 	fbAxis.CancelHome();	// a re-home that waits for the drive must not start after the stop
 END_IF

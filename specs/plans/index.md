@@ -54,6 +54,12 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   `FB_MoveFollower` raises `bNeedEnable` for a pending move. #114 root cause partly a hypothesis (trace needed).
   #103, #85, #102, MONETcommon#122, BROTLib#74 out of scope. Sim tests in MONETcommonTests, BROTLib then HalfBROT
   0.7.3 then pins. **proposed**, nothing implemented, compiled or run on a PLC; eight open questions.
+- [2026-11-03-focus-stop-during-homing-114-h2.md](2026-11-03-focus-stop-during-homing-114-h2.md):
+  focus stop during a homing (#114 H2): the MC error raised by the stop cuts the enable (`bError` gate, 0x4260) and a
+  failed MC_Home keeps `HomeActive`, so the manual re-home never ends. E (error ends a homing, lock request survives it,
+  stop of an automatic homing blocks it) and G (brake lock waits for rest after an error, `tErrorHold`) in HalfBROT; F
+  (BROTLib: a homing stopped by `Stop()` ends as aborted) waits for the Scope trace. **E and G implemented, not compiled
+  or hardware-tested; F open.**
 - [2026-10-25-focus-target-after-restart-115.md](2026-10-25-focus-target-after-restart-115.md):
   #115, after a PLC restart the calibrated focus has `fPosition` 0 (no initial value), the clamp makes it 0.5 and the
   follower drives there (reproduced on MONET/S, D1). Fix: new pure-logic `FB_FocusTargetInit`, the first calibration
