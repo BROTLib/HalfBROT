@@ -33,14 +33,13 @@ END_IF
 
 IF fbAxis.Calibrated THEN
 	bCalibrated := fbAxis.Calibrated;
-	// not while the homing runs: the NC sets Homed before the homing procedure has finished
-	IF NOT fbAxis.HomeActive THEN
-		bHomeAxis := FALSE;
-	END_IF
 END_IF
-	
+
+// the request stays until the homing has run, see _HomeRequest (#136)
 IF bHomeAxis THEN
 	fPosition := fCalibPosition;
+	bMoveAxis := FALSE;
+	bTracking := FALSE;
 END_IF
 
 // Software limits: stop once when the axis leaves the range (#20). Stopping every cycle would also cancel every
@@ -54,7 +53,7 @@ IF outOfRangeTrigger.Q THEN
 	// Stop() drops pending/running MoveTo() and Home(): clear the request flags so they can be requested again
 	// (homing is re-requested next cycle while not calibrated)
 	bMoveAxis := FALSE;
-	bHomeAxis := FALSE;
+	THIS^.HomeAxis := FALSE;
 END_IF
 
 fbAxis(
@@ -79,9 +78,8 @@ IF fbAxis.MoveDone OR bReset OR bError THEN
 	bMoveAxis := FALSE;
 END_IF
 
-IF (fbAxis.HomeDone AND NOT fbAxis.HomeActive) OR bReset OR bError THEN
-	bHomeAxis := FALSE;
-END_IF
+// Reset and Stop drop the homing through the FB_Axis handshake, an axis error ends the request
+_HomeRequest(sAxis := 'Derotator');
 	
 IF fbAxis.ResetDone THEN
 	bReset := FALSE;

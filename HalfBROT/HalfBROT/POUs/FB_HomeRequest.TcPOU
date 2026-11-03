@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_HomeRequest" Id="{dca44231-9322-4a91-ad80-bb2838941897}" SpecialFunc="None">
+    <Declaration><![CDATA[// End of a homing request (bHomeAxis) of an axis block (#136). The request ends when the homing has run and finished
+// (HomeActive seen for this request, now neither active nor pending), when it was dropped before it started (CancelHome,
+// Stop, Reset), on an axis error, or when it has waited tStartTimeout without starting. Calibrated alone never ends it:
+// it is the stale NC Homed level when a calibrated axis is re-homed, the NC clears it when MC_Home starts and sets it
+// again before MC_Home is done.
+// Call once per cycle right after fbAxis(...); on bRelease the caller sets HomeAxis := FALSE (property: CancelHome).
+FUNCTION_BLOCK FB_HomeRequest
+VAR_INPUT
+	bRequest		: BOOL;		// bHomeAxis
+	bHomeActive		: BOOL;		// fbAxis.HomeActive
+	bHomePending	: BOOL;		// fbAxis.HomePending
+	bCalibrated		: BOOL;		// fbAxis.Calibrated
+	bError			: BOOL;		// bError of the axis block
+	tStartTimeout	: TIME;		// pending without start longer than this ends the request; T#0S = wait for ever
+END_VAR
+VAR_OUTPUT
+	bRelease		: BOOL;		// end the request in this cycle
+	bStarted		: BOOL;		// HomeActive was seen for the current request
+	bDone			: BOOL;		// one cycle: ended after it ran, calibrated
+	bFailed			: BOOL;		// one cycle: ended otherwise (error, dropped, uncalibrated, timeout)
+	bTimedOut		: BOOL;		// one cycle: the start timeout ended it
+END_VAR
+VAR
+	rtRequest		: R_TRIG;
+	tonStart		: TON;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[rtRequest(CLK := bRequest);
+IF rtRequest.Q THEN
+	bStarted := FALSE;
+END_IF
+bStarted := bRequest AND (bStarted OR bHomeActive);
+
+tonStart(IN := bRequest AND NOT bStarted AND bHomePending AND tStartTimeout > T#0S, PT := tStartTimeout);
+
+bRelease := FALSE;
+bDone := FALSE;
+bFailed := FALSE;
+bTimedOut := FALSE;
+
+IF bRequest THEN
+	IF bError THEN
+		bRelease := TRUE;
+		bFailed := TRUE;
+	ELSIF NOT bHomeActive AND NOT bHomePending THEN
+		// finished, or dropped before it started
+		bRelease := TRUE;
+		bDone := bStarted AND bCalibrated;
+		bFailed := NOT bDone;
+	ELSIF tonStart.Q THEN
+		bRelease := TRUE;
+		bTimedOut := TRUE;
+		bFailed := TRUE;
+	END_IF
+END_IF
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
