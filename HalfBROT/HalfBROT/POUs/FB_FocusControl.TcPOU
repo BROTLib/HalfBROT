@@ -21,13 +21,14 @@ VAR_INPUT
 	// ADS port of the PLC runtime whose persistent data are written (#8), 851 = first PLC runtime
 	nPersistentAdsPort		: UINT := 851;
 
-	// Set TRUE (online in XAE, by ADS or from a program) to home a calibrated focus again on its cam, e.g. when the stored
-	// position is in doubt. Cleared by the block; a request that is not accepted is logged. Not for the MAIN call, which
+	// Set TRUE (online in XAE, by ADS or from a program, or by the Visu Start button) to home the focus on its cam, calibrated
+	// or not, e.g. when the stored position is in doubt. Cleared by the block; a request that is not accepted is logged. Not for the MAIN call, which
 	// would overwrite every online write.
 	bManualHome				: BOOL;
 END_VAR
 VAR_OUTPUT
 	bFocusUnlocked		: BOOL;
+	eManualHome			: E_FocusManualHome;		// result of the last bManualHome request (for the Visu, #138)
 END_VAR
 VAR
 	fbFollower			: BROTLib.FB_MoveFollower;	// starts, re-targets and holds the move to fPosition (MONETcommon#122)
@@ -36,7 +37,6 @@ VAR
 	fbJogLatch			: FB_FocusJogLatch;			// a jog is running until standstill, see F_FocusTargetFollowsActual
 	fbTargetInit		: FB_FocusTargetInit;		// the first calibration without a homing takes the actual position (#115)
 	fHomingReference	: LREAL;	// reference of the running homing, fixed in _StartHoming (#115); 0 = not set
-	eManualHome			: E_FocusManualHome;		// result of the last bManualHome request
 	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
 	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
 	tonFocusDelay		: TON;
@@ -205,7 +205,7 @@ IF NOT fbAxis.calibrated AND NOT bHomeAxis AND fbJogLatch.bJogging THEN
 	fLastPosition := -1.0;
 END_IF
 
-// Manual re-home of a calibrated focus (bManualHome). After the automatic block: the stored position is dropped, so
+// Manual re-home of the focus (bManualHome). After the automatic block: the stored position is dropped, so
 // the cam homing runs and the position that is in doubt is not used again (it is not written back while bHomeAxis).
 IF bHomeAxis AND NOT fbManualHome.bRunning THEN
 	fbManualHome.ClearBlock();	// somebody else requested a homing
@@ -289,8 +289,11 @@ fbManualHome(
 	bCalibrated		:= fbAxis.calibrated,
 	bAbortPulse		:= fbAxis.CommandAborted OR fbAxis.StopDone OR bError);
 IF fbManualHome.bDone THEN
-	// back to the focus the observer had, now in the corrected calibration
-	fPosition := LIMIT(fMinPosition, fbManualHome.fRestoreTarget, fMaxPosition);
+	// back to the focus the observer had, now in the corrected calibration; an uncalibrated focus has no target (#115),
+	// it stays where the homing ended, like after the automatic homing
+	IF fbManualHome.bRestoreTarget THEN
+		fPosition := LIMIT(fMinPosition, fbManualHome.fRestoreTarget, fMaxPosition);
+	END_IF
 	ADSLOGSTR(ADSLOG_MSGTYPE_HINT OR ADSLOG_MSGTYPE_LOG, 'Focus: manual re-home done, position %s mm',
 		LREAL_TO_STRING(fActualPosition));
 ELSIF fbManualHome.bAborted THEN

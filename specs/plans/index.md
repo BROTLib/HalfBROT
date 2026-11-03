@@ -79,3 +79,7 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   sweep ran without the limit/blocked-drive overrides and failed with 0x4B0A (MONET/S, 2026-11-03). Fix: new `FB_HomeRequest`
   ends the request only through the `FB_Axis` handshake, start timeout, elevation never homes with closed covers.
   **in implementation**, not compiled or run on a PLC.
+- [2026-11-03-focus-visu-manual-home-138.md](2026-11-03-focus-visu-manual-home-138.md):
+  #138, the Visu focus Start (`HomeAxis`) was a no-op on a calibrated focus. `bManualHome` now accepts an uncalibrated focus
+  (no target restore, the focus stays where the cam homing ends), `eManualHome` is an output for the Visu, HalfBROT 0.11.0;
+  MONETS `MAIN` requests `bManualHome`. **implemented**, not compiled or run on a PLC; tests in MONETcommonTests.
