@@ -28,14 +28,12 @@ fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
 // conduct the calibrated signal
 bCalibrated := fbAxis.Calibrated;
 
-// keep the homing overrides (AcceptBlockedDriveSignal, positive limit) until the homing has finished: the NC sets
-// Homed (Calibrated, HomeDone) before the homing procedure is done, and switching them off then restarts it
-IF (bCalibrated AND NOT fbAxis.HomeActive) OR bError THEN
-	bHomeAxis := FALSE;
-END_IF
-	
+// the homing overrides (AcceptBlockedDriveSignal, positive limit) stay on with bHomeAxis until the homing has finished,
+// see _HomeRequest (#136): the NC clears Homed (Calibrated) when MC_Home starts and sets it before the homing is done
 IF bHomeAxis THEN
 	fPosition := fCalibPosition;
+	bMoveAxis := FALSE;
+	bTracking := FALSE;
 END_IF
 
 // enable the azimuth if not moved by the power chain. Sorry for the hack
@@ -75,10 +73,8 @@ IF fbAxis.MoveDone THEN
 	bMoveAxis := FALSE;
 END_IF
 
-IF fbAxis.HomeDone AND NOT fbAxis.HomeActive THEN
-	bHomeAxis := FALSE;
-END_IF
-	
+_HomeRequest(sAxis := 'Azimuth');
+
 IF fbAxis.ResetDone THEN
 	bReset := FALSE;
 END_IF

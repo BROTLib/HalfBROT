@@ -10,6 +10,7 @@ VAR_INPUT
 	fMaxPosition			: REAL := 450.0;
 	fCalibPosition			: LREAL := 45.0; // position of the calibration cam, used by cam homing (elevation, azimuth): set it per telescope.
 											 // Ignored by the derotator (MC_ForceCalibration, absolute encoder) (#17)
+	tHomeStartTimeout		: TIME := T#30S;	// a homing request that has not started after this long is dropped (#136), T#0S = wait for ever
 END_VAR
 VAR_OUTPUT
 END_VAR
@@ -49,10 +50,53 @@ VAR
 	bSoEResetFailed			: BOOL;		// last SoE reset failed (cleared when the next one starts)
 	sSoEResetMessage		: STRING(255);
 	soeResetEvent			: FB_EventLog;
+
+	fbHomeRequest			: FB_HomeRequest;	// end of the homing request bHomeAxis, see _HomeRequest (#136)
+	homeTimeoutEvent		: FB_EventLog;
+	homeFailedEvent			: FB_EventLog;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
+    <Method Name="_HomeRequest" Id="{772c0820-5ea0-4c68-8d7a-7c6c2eb71bdd}">
+      <Declaration><![CDATA[// End of the homing request bHomeAxis (#136), call every cycle right after fbAxis(...). The request is kept until the
+// homing has run: a calibrated axis that is re-homed is calibrated (stale NC Homed) in the cycle of the request, before
+// HomeActive. Ended through the FB_Axis handshake (HomeActive/HomePending), an axis error or tHomeStartTimeout, see FB_HomeRequest.
+METHOD PROTECTED _HomeRequest
+VAR_INPUT
+	sAxis				: STRING;	// axis name for the event log
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbHomeRequest(
+	bRequest 		:= bHomeAxis,
+	bHomeActive 	:= fbAxis.HomeActive,
+	bHomePending 	:= fbAxis.HomePending,
+	bCalibrated 	:= fbAxis.Calibrated,
+	bError 			:= bError,
+	tStartTimeout 	:= tHomeStartTimeout);
+
+IF fbHomeRequest.bRelease THEN
+	// through the property: CancelHome() drops a request that has not started (timeout, error)
+	THIS^.HomeAxis := FALSE;
+END_IF
+
+homeTimeoutEvent(
+	Trigger 		:= fbHomeRequest.bTimedOut,
+	Level 			:= ADSLOG_MSGTYPE_WARN,
+	FormatString 	:= '%s',
+	OnMessage 		:= CONCAT(sAxis, ': homing did not start, request dropped.'),
+	Comm 			:= fbComm);
+
+homeFailedEvent(
+	Trigger 		:= fbHomeRequest.bFailed AND NOT fbHomeRequest.bTimedOut AND NOT bError,
+	Level 			:= ADSLOG_MSGTYPE_WARN,
+	FormatString 	:= '%s',
+	OnMessage 		:= CONCAT(sAxis, ': homing ended without calibration.'),
+	Comm 			:= fbComm);
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="_CheckDiagnostic" Id="{97428712-b82f-4bd2-9913-b20b307cda8e}">
       <Declaration><![CDATA[// Drive diagnostic (AX5000 S-0-0390 in InDiagnostic), call every cycle after fbAxis(...) and before axisEvent (#2).
 // F (error): bDiagnosticError, nErrorID := code, ERROR event; the code overrides fbAxis's ErrorID while it lasts.
