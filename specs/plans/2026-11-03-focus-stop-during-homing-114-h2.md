@@ -1,9 +1,6 @@
 # Focus: stop during a homing ends in 0x4260 and a stuck re-home (#114 H2)
 
-**Status: E implemented in HalfBROT (PR #141), not compiled by this author, not run on a PLC. G is on branch `feat/focus-error-lock-114` (hardening, not needed for #114, Q1 open). F (BROTLib, a homing stopped by `Stop()` ends as aborted) is the fix that makes step 4 pass; the NC log and the PLC cycle order confirm the chain, see the addendum.**
-POUs are unchanged on `origin/develop` `cf96e21`), BROTLib `v0.17.0` (`82153e4`) and MONETcommon `v0.14.0` (`63a2f95`), the
-versions MONETS develop `d3b9e33` pins. Line numbers are file lines at those tags. **Hypothesis** marks anything the code and
-the logs do not settle.
+**Status 2026-11-04: E (PR #141), BROTLib F (#153) and the standstill fix (PR #145) are on `develop`; #141 and #153 are released (HalfBROT 0.11.1, BROTLib 0.17.1, in MONETS/MONETN 1.6.4), #145 is not released yet (the next release waits for more changes). On hardware (MONET/S, 1.6.4): step 4 (stop during `bManualHome`, 2 s) passed on the PLC variables; step 4c (stop during the power-on cam homing) failed and is fixed by #145, which has not been run on a PLC. G is on branch `feat/focus-error-lock-114` (hardening, not needed for #114, Q1 open). Section 7a lists what passed, failed and is open.**
 
 Follows `2026-10-25-focus-enable-handling-108-110-111-114.md` (PR #117), section 1.5 (H2), section 5 step 4 and Q4.
 Inputs: #114 (comments 2026-10-25, 2026-10-30, 2026-11-03), PR #117 comment of 2026-11-03 08:24, #138.
@@ -208,14 +205,34 @@ channel status word. Save the NC event log of each run.
   then `bManualHome` (accepted while blocked).
 - **Step 4 run 2 (60 s variant), on 0.10.2 too**, same recording: same block/ID expected; if not, the trigger depends on
   the homing phase (search vs. cam).
-- After E+F+G: step 4 both runs: no 0x4B0A, no 0x4260, `bEnable` TRUE until `StandStill`, then FALSE once; `bRunning`
+- Expected after E+F: step 4 both runs: no 0x4B0A, no 0x4260, `bEnable` TRUE until `StandStill`, then FALSE once; `bRunning`
   FALSE, `bAborted` one cycle, `bBlockAutoHome` TRUE, `READY_STATE` unchanged, no emergency park; then `bManualHome`
   again: full re-home, ends as step 3.
-- New step 4c: `stop=1` during the power-on cam homing (uncalibrated focus): stops, no error, stays locked and
+- Step 4c: `stop=1` during the power-on cam homing (uncalibrated focus): stops, no error, stays locked and
   uncalibrated, no automatic homing until the next `power=1` or `bManualHome`.
-- Steps 5-8 of the 2026-10-25 plan are still pending (#110 `bManualUnlock`, #108 locked/stale pending, brake-delay race,
-  regression incl. `Stop()` during a focus move and a clean `MC_Direct` restart).
 - With G only, a forced MC error during a move is not reproducible on purpose; record whatever errors the session gives.
+
+### 7a. Hardware status (MONET/S, 2026-11-04)
+
+Rows are in the IAG test plan results (`2026-10-12-monet-telescope-test-plan-results.md`); the open items are in T17 of
+`2026-10-12-monet-telescope-test-plan.md` (the IAG test plan is split in two files since 2026-11-04).
+
+| Test | Build | Result | Row |
+|---|---|---|---|
+| D7 and step 4, 2 s and 60 s | 0.10.2 / 0.11.0 | **failed** as described in section 1: NC 0x4260 22 ms after `STOP commencing`, stuck `bRunning`/`HomeActive`, emergency park | MS-95 (10), MS-100 |
+| Step 4, `stop=1` 2 s after `bManualHome`, three runs | 1.6.4 | **passed on the PLC variables**: `bRunning`/`HomeActive` FALSE within 1 s, `bEnable` FALSE, uncalibrated, no telescope error, no park, no `reset=1`. Not read: NC event log (0x4260 not excluded), Scope trace, `bAborted` (read 30 s after the stop only) | MS-103 |
+| Re-home after the stopped homing | 1.6.4 | **passed**: cam homing 5 min 2 s, calibrated, locked, 91.99 mm (not 91.5 mm, not investigated) | MS-104 |
+| Step 4, 60 s variant (from far away) | 1.6.4 | **open** (all runs started near the cam) | T17 step 1 |
+| Step 4c, `stop=1` during the power-on cam homing | 1.6.4 | **failed**, twice: `READY_STATE` -2 but the focus homing ran to its end and ended calibrated; see section 10 | MS-105, MS-106, MS-107 |
+| Step 4c repeated | with #145 | **open**, needs a release | T17 step 1b |
+| Steps 2, 6 (#117 plan) | 1.6.3 | passed | MS-97 |
+| Step 5 (#110 `bManualUnlock`) | 1.6.3 | did not behave as the plan expects (to be judged) | MS-97 |
+| Step 7 (brake-delay race) | 1.6.3 | passed | MS-98 |
+| Step 8 (part): `Stop()` during a move, retarget during a long move | 1.6.3 | passed | MS-99 |
+| Step 8, pendant jog (#66) and a clean `MC_Direct` restart | | no row found, open | |
+
+Scope channels still to add for the next run: `fbDriveEnable.bLockPending`, `fbDriveEnable.bEnableOff`,
+`fbManualHome.bBlockAutoHome`, and for 4c `fbFocus.HomeAxis` / `ePowerOnStage` (not in `FocusEnable.tcscopex`).
 
 ## 8. Risks and regressions
 
@@ -250,3 +267,26 @@ channel status word. Save the NC event log of each run.
    both runs be exported (gives `StateDWord`/`ActVelo` at 0x4260 without a new run)?
 5. Order: E alone first as 0.10.3 (the stuck state goes away, step 4 still fails with the error), or E+F+G together after
    D7 (recommended)?
+
+## 10. Step 4c: stop during the power-on cam homing (2026-11-04)
+
+**Observation (MS-105, MS-106, Scope analysis MS-107, `FocusEnable_8/_9.svdx`).** `stop=1` 10 s into the power-on cam homing:
+the telescope aborts the power-on (`READY_STATE` -2, `TCS_command` 7 > 5 > 0 within 30 ms), but `Axis_Stop.Execute`, `StopCommand`,
+`bHoldOnStop` and every error channel stay 0, and the homing runs on and ends calibrated about 12 s later. `bHomeAxis` was not cleared
+by the power-on abort either.
+
+**Cause (confirmed by the Scope, MS-107).** The cam homing has two phases (about 9.5 s each) with a 0.3 s `StandStill` gap between them,
+while `MC_Home` keeps `Execute` and `Busy`. Both stops landed in that gap (`StandStill` 57.84 s, stop 57.93 s; run 8: 62.41 s, 62.52 s).
+`FB_FocusControl.Stop()` sent the MC_Stop only under `fbAxis.Ready AND NOT fbAxis.StandStill`, so the stop was skipped. The telescope
+calls `fbFocus.Stop()` once per stop transaction (`_StopTelescope`, `bStopTxBegun`), so there was no second try. Step 4 passed because the
+manual home was stopped 2 s in, while the axis was moving.
+
+**Fix.** HalfBROT PR #145: the condition is `fbAxis.Ready AND (NOT fbAxis.StandStill OR fbAxis.HomeActive OR fbAxis.HomePending)`.
+Not compiled by hand, not run on a PLC. No PLC test in HalfBROT; a rig test (stop with `StandStill` TRUE during a homing) belongs in
+MONETcommon (`FB_FocusMock`) and is not written.
+
+**Open.**
+- Re-run 4c on a build with #145, and with other delays than 10 s (3 to 5 s into phase 1, 15 s into phase 2, MS-107 caveat).
+- After the stop, `fbFocus.HomeAxis := FALSE` of the power-on abort did not clear `bHomeAxis` (MS-107); check on the re-run with
+  `bHomeAxis`/`ePowerOnStage` in the Scope.
+- The same gap exists in the manual re-home from far away (phase change): the 60 s variant of step 4 covers part of it.
