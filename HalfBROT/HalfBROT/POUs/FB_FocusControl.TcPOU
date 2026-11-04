@@ -467,7 +467,8 @@ bHomeStopped := bHomeStopped OR bHomeAxis OR fbAxis.HomeActive OR fbAxis.HomePen
 IF fbManualHome.bRunning THEN
 	fbAxis.CancelHome();	// a re-home that waits for the drive must not start after the stop
 END_IF
-IF fbAxis.Ready AND NOT fbAxis.StandStill THEN
+// a homing is stopped also while the axis stands still (the cam homing pauses at the far switch, #114 step 4c)
+IF fbAxis.Ready AND (NOT fbAxis.StandStill OR fbAxis.HomeActive OR fbAxis.HomePending) THEN
 	Stop := fbAxis.Stop();
 	bHoldOnStop := TRUE;
 ELSIF fbAxis.calibrated THEN
