@@ -98,3 +98,6 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   Position. Proposed: new pure-logic `FB_HomeFailPosition` integrates the travel during the homing and restores
   `start + travel` (clamped into the soft-limit window, axis stays uncalibrated) with `MC_SetPosition`; Visu Set Position as a
   follow-up. **implemented** (0.13.0 candidate, PR open), not compiled or run on a PLC; no TcUnit test yet; Q7 open.
+- [2026-11-06-manual-home-restore-after-abort-152.md](2026-11-06-manual-home-restore-after-abort-152.md) - manual focus re-home after an
+  aborted one (stop in the sweep) kept "nothing to restore" and ended on the cam; now the first re-home's target is kept until done.
+  **implemented** (branch `fix/manual-home-restore-after-abort-152`), not compiled or run on a PLC.
