@@ -51,6 +51,7 @@ VAR
 	sSoEResetMessage		: STRING(255);
 	soeResetEvent			: FB_EventLog;
 
+	fbJogRequest			: FB_JogRequest;	// jog requests only while the axis can jog, see _JogRequest (#148)
 	fbHomeRequest			: FB_HomeRequest;	// end of the homing request bHomeAxis, see _HomeRequest (#136)
 	homeTimeoutEvent		: FB_EventLog;
 	homeFailedEvent			: FB_EventLog;
@@ -58,6 +59,34 @@ END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
+    <Method Name="_JogRequest" Id="{e0399c0e-93c0-47d6-a46c-a5e54450385f}">
+      <Declaration><![CDATA[// Jog requests bMovePos/bMoveNeg (#148), call every cycle right before fbAxis(...) and pass fbJogRequest.bJogPos/bJogNeg as
+// Jog_Forward/Jog_Backwards. A request that is stored while the axis cannot jog (disabled, error, homing, tracking, at the
+// limit) is cleared and does not start the axis when the condition goes away, see FB_JogRequest.
+METHOD PROTECTED _JogRequest
+VAR_INPUT
+	bAllowPos			: BOOL;		// the Enable_Positive passed to fbAxis
+	bAllowNeg			: BOOL;		// the Enable_Negative passed to fbAxis
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbJogRequest(
+	bMovePos 	:= bMovePos,
+	bMoveNeg 	:= bMoveNeg,
+	bCanJog 	:= fbAxis.Ready AND NOT bError AND NOT bHomeAxis AND NOT fbAxis.HomeActive AND NOT fbAxis.HomePending
+	               AND NOT bTracking AND NOT fbAxis.isTracking,
+	bAllowPos 	:= bAllowPos,
+	bAllowNeg 	:= bAllowNeg);
+
+IF fbJogRequest.bClearPos THEN
+	bMovePos := FALSE;
+END_IF
+IF fbJogRequest.bClearNeg THEN
+	bMoveNeg := FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="_HomeRequest" Id="{772c0820-5ea0-4c68-8d7a-7c6c2eb71bdd}">
       <Declaration><![CDATA[// End of the homing request bHomeAxis (#136), call every cycle right after fbAxis(...). The request is kept until the
 // homing has run: a calibrated axis that is re-homed is calibrated (stale NC Homed) in the cycle of the request, before
