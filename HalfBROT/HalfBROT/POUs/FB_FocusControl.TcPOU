@@ -34,6 +34,7 @@ VAR
 	fbFollower			: BROTLib.FB_MoveFollower;	// starts, re-targets and holds the move to fPosition (MONETcommon#122)
 	rtTargetMissed		: R_TRIG;					// the follower gave up correcting a miss (HalfBROT#85)
 	fbManualHome		: FB_FocusManualHome;		// decides and follows a manual re-home (bManualHome)
+	fbJogRequest		: FB_JogRequest;			// jog requests only while the focus can jog (#148)
 	fbJogLatch			: FB_FocusJogLatch;			// a jog is running until standstill, see F_FocusTargetFollowsActual
 	fbTargetInit		: FB_FocusTargetInit;		// the first calibration without a homing takes the actual position (#115)
 	fHomingReference	: LREAL;	// reference of the running homing, fixed in _StartHoming (#115); 0 = not set
@@ -102,8 +103,22 @@ END_IF
 // limit to sane positions
 fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
 
+// a request stored while the focus cannot jog (locked, error, homing, limit) is cleared and does not start it later (#148)
+fbJogRequest(
+	bMovePos 	:= bMovePos,
+	bMoveNeg 	:= bMoveNeg,
+	bCanJog 	:= fbAxis.Ready AND bFocusUnlocked AND NOT bError AND NOT bHomeAxis AND NOT fbAxis.HomeActive AND NOT fbAxis.HomePending,
+	bAllowPos 	:= NOT IbLimitFar,
+	bAllowNeg 	:= NOT IbLimitNear);
+IF fbJogRequest.bClearPos THEN
+	bMovePos := FALSE;
+END_IF
+IF fbJogRequest.bClearNeg THEN
+	bMoveNeg := FALSE;
+END_IF
+
 // a jog runs until standstill (the inputs are what fbAxis reported in its last call)
-fbJogLatch(bJogCommand := (bMovePos OR bMoveNeg) AND bFocusUnlocked, bStandStill := fbAxis.StandStill);
+fbJogLatch(bJogCommand := fbJogRequest.bJogPos OR fbJogRequest.bJogNeg, bStandStill := fbAxis.StandStill);
 
 // a new target during a move restarts it, MoveDone, abort, error and stop end it (MONETcommon#122); the inputs are
 // what fbAxis reported in its last call
@@ -256,8 +271,8 @@ fbAxis(
 	Velocity 		:= fVelocity,
 	enable_Positive := NOT IbLimitFar OR bHomeAxis,
 	enable_Negative := NOT IbLimitNear,
-	Jog_Forward 	:= bMovePos AND bFocusUnlocked,
-	Jog_Backwards 	:= bMoveNeg AND bFocusUnlocked,
+	Jog_Forward 	:= fbJogRequest.bJogPos,
+	Jog_Backwards 	:= fbJogRequest.bJogNeg,
 	bCalibrationCam := IbLimitFar,
 	ActualPosition 	=> fActualPosition,
 	Error 			=> bError,
@@ -467,7 +482,8 @@ bHomeStopped := bHomeStopped OR bHomeAxis OR fbAxis.HomeActive OR fbAxis.HomePen
 IF fbManualHome.bRunning THEN
 	fbAxis.CancelHome();	// a re-home that waits for the drive must not start after the stop
 END_IF
-IF fbAxis.Ready AND NOT fbAxis.StandStill THEN
+// a homing is stopped also while the axis stands still (the cam homing pauses at the far switch, #114 step 4c)
+IF fbAxis.Ready AND (NOT fbAxis.StandStill OR fbAxis.HomeActive OR fbAxis.HomePending) THEN
 	Stop := fbAxis.Stop();
 	bHoldOnStop := TRUE;
 ELSIF fbAxis.calibrated THEN

@@ -100,6 +100,9 @@ MC_SetAcceptBlockedDriveSignal(
 // the brake needs some seconds longer than bBrakeOpen says; enabling earlier fails the AX5000 Wake&Shake with F616 (#130)
 fbBrakeSettle(bEnable := bEnable, bBrakeOpen := bBrakeOpen, tSettle := tBrakeSettle, tReadyDelay := T#6000MS);
 
+// jog requests only while the axis can jog (#148)
+_JogRequest(bAllowPos := inDigitalInputs.0, bAllowNeg := inDigitalInputs.1);
+
 fbAxis(
 	Enable 			:= fbBrakeSettle.bAxisEnable,
 	Reset 			:= bReset,
@@ -108,8 +111,8 @@ fbAxis(
 	Velocity 		:= fVelocity,
 	Enable_Positive := inDigitalInputs.0 OR bHomeAxis,
 	Enable_Negative := inDigitalInputs.1,
-	Jog_Forward 	:= bMovePos,
-	Jog_Backwards 	:= bMoveNeg,
+	Jog_Forward 	:= fbJogRequest.bJogPos,
+	Jog_Backwards 	:= fbJogRequest.bJogNeg,
 	bCalibrationCam := NOT inDigitalInputs.0,
 	ActualPosition 	=> fActualPosition,
 	Error 			=> bError,

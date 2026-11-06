@@ -5,7 +5,7 @@
 // released is part of it). Call once per cycle before the follower.
 FUNCTION_BLOCK FB_FocusJogLatch
 VAR_INPUT
-	bJogCommand		: BOOL;		// (bMovePos OR bMoveNeg) AND bFocusUnlocked, what goes to Jog_Forward/Jog_Backwards
+	bJogCommand		: BOOL;		// the gated jog request (FB_JogRequest), what goes to Jog_Forward/Jog_Backwards
 	bStandStill		: BOOL;		// fbAxis.StandStill from its last call
 END_VAR
 VAR_OUTPUT

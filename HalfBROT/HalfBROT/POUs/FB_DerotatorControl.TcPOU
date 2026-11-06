@@ -56,6 +56,9 @@ IF outOfRangeTrigger.Q THEN
 	THIS^.HomeAxis := FALSE;
 END_IF
 
+// jog requests only while the axis can jog (#148)
+_JogRequest(bAllowPos := fbAxis.ActualPosition < fMaxPosition, bAllowNeg := fbAxis.ActualPosition > fMinPosition);
+
 fbAxis(
 	enable 			:= bEnable,
 	Reset 			:= bReset,
@@ -64,8 +67,8 @@ fbAxis(
 	Velocity 		:= fVelocity,
 	Enable_Positive := fbAxis.ActualPosition < fMaxPosition,
 	Enable_Negative := fbAxis.ActualPosition > fMinPosition,
-	Jog_Forward 	:= bMovePos,
-	Jog_Backwards 	:= bMoveNeg,
+	Jog_Forward 	:= fbJogRequest.bJogPos,
+	Jog_Backwards 	:= fbJogRequest.bJogNeg,
 	//bCalibrationCam := inDigitalInputs.0,
 	isModuloAxis 	:= FALSE,
 	Tracking 		:= bTracking,

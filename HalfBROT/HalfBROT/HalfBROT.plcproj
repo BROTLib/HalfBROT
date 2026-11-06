@@ -22,7 +22,7 @@
     <AllowChecksForLibrary>false</AllowChecksForLibrary>
     <POUsForPropertyAccessIncluded>false</POUsForPropertyAccessIncluded>
     <GlobalVersionStructureIncluded>false</GlobalVersionStructureIncluded>
-    <ProjectVersion>0.11.1</ProjectVersion>
+    <ProjectVersion>0.12.0</ProjectVersion>
     <CompilerDefines>VISU_USEPROPERTYINFO</CompilerDefines>
   </PropertyGroup>
   <ItemGroup>
@@ -72,6 +72,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\FB_FocusDriveEnable.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\FB_JogRequest.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\FB_FocusJogLatch.TcPOU">
