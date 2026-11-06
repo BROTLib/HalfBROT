@@ -184,13 +184,13 @@ ELSE
 				lamp_error := fbFocus.Error;
 			END_IF
 								
-		6:	// Derotator control
-			lamp_left  := fbDerotator.Ready AND NOT fbDerotator.InNegLimit;
-			lamp_right := fbDerotator.Ready AND NOT fbDerotator.InPosLimit;
+		6:	// Derotator control: no hardware limit switches, the soft limits in the NC axis (XAE) and fMin/MaxPosition stop it
+			lamp_left  := fbDerotator.Ready;
+			lamp_right := fbDerotator.Ready;
 			IF key_switch THEN
 				DerotatorEnable(SET := start_switch, Q := fbDerotator.bEnable);
-				fbDerotator.MoveNeg := direction_left AND NOT fbDerotator.inDigitalInputs.1;
-				fbDerotator.MovePos := direction_right AND NOT fbDerotator.inDigitalInputs.0;
+				fbDerotator.MoveNeg := direction_left;
+				fbDerotator.MovePos := direction_right;
 				fbDerotator.bReset := reset_switch;
 				lamp_error := fbDerotator.Error;
 			END_IF
