@@ -50,6 +50,9 @@ MC_SetAcceptBlockedDriveSignal(
 	Axis 	:= axisRef, 
 	Enable 	:= bHomeAxis);
 
+// jog requests only while the axis can jog (#148)
+_JogRequest(bAllowPos := inDigitalInputs.1, bAllowNeg := inDigitalInputs.0);
+
 fbAxis(	
 	Enable 			:= bEnable AND bAtRest AND bBrakeOpen,
 	Reset 			:= bReset,
@@ -58,8 +61,8 @@ fbAxis(
 	Velocity 		:= fVelocity,
 	Enable_Positive := inDigitalInputs.1 OR bHomeAxis,
 	Enable_Negative := inDigitalInputs.0,
-	Jog_Forward 	:= bMovePos,
-	Jog_Backwards 	:= bMoveNeg,
+	Jog_Forward 	:= fbJogRequest.bJogPos,
+	Jog_Backwards 	:= fbJogRequest.bJogNeg,
 	bCalibrationCam := NOT inDigitalInputs.1,
 	ActualPosition 	=> fActualPosition,
 	Error 			=> bError,

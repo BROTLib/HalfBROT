@@ -90,3 +90,6 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   #138, the Visu focus Start (`HomeAxis`) was a no-op on a calibrated focus. `bManualHome` now accepts an uncalibrated focus
   (no target restore, the focus stays where the cam homing ends), `eManualHome` is an output for the Visu, HalfBROT 0.11.0;
   MONETS `MAIN` requests `bManualHome`. **implemented**, not compiled or run on a PLC; tests in MONETcommonTests.
+- [2026-11-05-clear-latched-jog-on-enable-148.md](2026-11-05-clear-latched-jog-on-enable-148.md): #148, a stored jog request
+  (Visu toggle, pendant held) no longer starts the axis at the next enable; new `FB_JogRequest` clears and re-arms. **implemented**,
+  CI build only; tests and pins follow in MONETcommon, hardware check pending.

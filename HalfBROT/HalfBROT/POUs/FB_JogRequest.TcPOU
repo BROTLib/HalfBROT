@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_JogRequest" Id="{23743767-8f4e-48d0-888c-ef6a663dee82}" SpecialFunc="None">
+    <Declaration><![CDATA[// Jog requests of an axis block (#148). A jog reaches fbAxis only for a request that rose (or was released and pressed again)
+// while the axis could jog; while it cannot (not Ready, error, homing, tracking) the requests are cleared and disarmed, so an
+// enable, a reset, the end of a homing or of tracking never starts a jog by itself. Per direction, the limit disarms too.
+// Call once per cycle before fbAxis(...); on bClearPos/bClearNeg the caller writes bMovePos/bMoveNeg := FALSE.
+FUNCTION_BLOCK FB_JogRequest
+VAR_INPUT
+	bMovePos		: BOOL;		// the stored requests (Visu, pendant, HMI)
+	bMoveNeg		: BOOL;
+	bCanJog			: BOOL;		// fbAxis.Ready of the last call AND NOT error AND NOT homing AND NOT tracking (per block)
+	bAllowPos		: BOOL;		// the Enable_Positive the block passes to fbAxis (limit free)
+	bAllowNeg		: BOOL;		// the Enable_Negative the block passes to fbAxis (limit free)
+END_VAR
+VAR_OUTPUT
+	bJogPos			: BOOL;		// to Jog_Forward
+	bJogNeg			: BOOL;		// to Jog_Backwards
+	bClearPos		: BOOL;		// clear the stored request in this cycle
+	bClearNeg		: BOOL;
+END_VAR
+VAR
+	bArmedPos		: BOOL;		// the request was FALSE at least once while the direction could jog
+	bArmedNeg		: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[bArmedPos := bCanJog AND bAllowPos AND (bArmedPos OR NOT bMovePos);
+bArmedNeg := bCanJog AND bAllowNeg AND (bArmedNeg OR NOT bMoveNeg);
+// both pressed: no jog (MC_Jog gets both inputs otherwise)
+bJogPos := bMovePos AND bArmedPos AND NOT bMoveNeg;
+bJogNeg := bMoveNeg AND bArmedNeg AND NOT bMovePos;
+bClearPos := bMovePos AND NOT (bCanJog AND bAllowPos);
+bClearNeg := bMoveNeg AND NOT (bCanJog AND bAllowNeg);
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>
