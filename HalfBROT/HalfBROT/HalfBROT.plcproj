@@ -59,6 +59,9 @@
     <Compile Include="POUs\FB_HomeRequest.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\FB_HomeFailPosition.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\FB_BrakeSettleEnable.TcPOU">
       <SubType>Code</SubType>
     </Compile>

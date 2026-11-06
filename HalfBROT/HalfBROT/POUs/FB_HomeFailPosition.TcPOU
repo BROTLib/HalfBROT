@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_HomeFailPosition" Id="{5b0f6f0e-3c63-4f0b-9a52-6d1f4b2a7c91}" SpecialFunc="None">
+    <Declaration><![CDATA[// Position after a failed cam homing (#147). The NC sets the actual position to -1e10 when a cam homing starts and to +1e10 at
+// the cam; if the homing fails or is stopped, the axis stays at that virtual position and the NC software limits refuse every
+// jog (0x4460). This block keeps the last real position before the homing and the travel since then, and asks for a restore to
+// fStart + fTravel (clamped into the soft-limit window) once the failed homing has ended and the axis can take MC_SetPosition.
+// The axis stays uncalibrated. Only a homing that started on a calibrated axis is restored: otherwise fStart is meaningless.
+// Call once per cycle after fbAxis(...) and _HomeRequest; on bRestore the caller runs MC_SetPosition(Position := fRestorePosition).
+FUNCTION_BLOCK FB_HomeFailPosition
+VAR_INPUT
+	fActualPosition	: LREAL;	// fbAxis.ActualPosition
+	bHomeActive		: BOOL;		// fbAxis.HomeActive
+	bHomePending	: BOOL;		// fbAxis.HomePending
+	bCalibrated		: BOOL;		// fbAxis.Calibrated
+	bFailed			: BOOL;		// fbHomeRequest.bFailed (one cycle)
+	bCanSet			: BOOL;		// no axis error and the axis does not move
+	fMin			: LREAL;	// lower end of the position window
+	fMax			: LREAL;	// upper end of the position window
+	fMargin			: LREAL := 0.5;		// keep the restored value this far inside the window
+	fMaxStep		: LREAL := 1.0;		// largest real change in one cycle; a larger change is an NC jump (+/-1e10, reference)
+	bSetDone		: BOOL;		// MC_SetPosition.Done
+	bSetError		: BOOL;		// MC_SetPosition.Error
+END_VAR
+VAR_OUTPUT
+	bRestore			: BOOL;		// level: run MC_SetPosition now (Execute)
+	fRestorePosition	: LREAL;	// position to set
+	fEstimate			: LREAL;	// fStart + fTravel before the clamp, for the log
+	bClamped			: BOOL;		// fRestorePosition differs from fEstimate
+	bRestored			: BOOL;		// one cycle: MC_SetPosition done
+	bRestoreFailed		: BOOL;		// one cycle: MC_SetPosition failed, no retry
+END_VAR
+VAR
+	fStart				: LREAL;	// last real position before the homing
+	fTravel				: LREAL;	// real travel since the homing started
+	fLast				: LREAL;
+	bPending			: BOOL;		// a restore is wanted
+	bBusy				: BOOL;
+	bStartCalibrated	: BOOL;		// the homing started on a calibrated axis
+	rtBusy				: R_TRIG;
+END_VAR
+
+VAR CONSTANT
+	fVirtual			: LREAL := 1.0E9;	// |position| above this is the NC's virtual homing position
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[bBusy := bHomeActive OR bHomePending;
+rtBusy(CLK := bBusy);
+bRestored := FALSE;
+bRestoreFailed := FALSE;
+
+IF rtBusy.Q THEN
+	// a new request replaces a restore that was still waiting
+	bPending := FALSE;
+	bRestore := FALSE;
+	fTravel := 0.0;
+	fLast := fActualPosition;
+ELSIF NOT bBusy AND NOT bPending AND ABS(fActualPosition) < fVirtual THEN
+	// idle, real position: remember it as the start of the next homing
+	fStart := fActualPosition;
+	bStartCalibrated := bCalibrated;
+END_IF
+
+// keep adding the real travel until the restore is done (the axis may still coast after a stop)
+IF bBusy OR bPending THEN
+	IF ABS(fActualPosition - fLast) <= fMaxStep THEN
+		fTravel := fTravel + (fActualPosition - fLast);
+	END_IF
+	fLast := fActualPosition;
+END_IF
+
+// the homing failed and left the virtual position: ask for a restore
+IF bFailed AND NOT bCalibrated AND bStartCalibrated AND ABS(fActualPosition) > fVirtual THEN
+	bPending := TRUE;
+END_IF
+
+IF bPending THEN
+	fEstimate := fStart + fTravel;
+	fRestorePosition := LIMIT(fMin + fMargin, fEstimate, fMax - fMargin);
+	bClamped := fRestorePosition <> fEstimate;
+	bRestore := bCanSet AND NOT bBusy;
+	IF bSetDone THEN
+		bRestored := TRUE;
+		bPending := FALSE;
+		bRestore := FALSE;
+	ELSIF bSetError THEN
+		bRestoreFailed := TRUE;
+		bPending := FALSE;
+		bRestore := FALSE;
+	END_IF
+ELSE
+	bRestore := FALSE;
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="FB_HomeFailPosition">
+      <LineId Id="1" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
