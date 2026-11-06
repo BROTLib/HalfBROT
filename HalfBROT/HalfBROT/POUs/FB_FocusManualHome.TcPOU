@@ -28,7 +28,11 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[bDone := FALSE;
+      <ST><![CDATA[// the restore target is used up by the cycle of bDone (FB_FocusControl reads it in that cycle) (#152)
+IF bDone THEN
+	bRestoreTarget := FALSE;
+END_IF
+bDone := FALSE;
 bAborted := FALSE;
 
 IF bRunning THEN
@@ -42,6 +46,9 @@ IF bRunning THEN
 		ELSE
 			bAborted := TRUE;
 			bBlockAutoHome := NOT bCalibrated;
+			IF bCalibrated THEN
+				bRestoreTarget := FALSE;	// the focus never left its calibration: nothing to restore later (#152)
+			END_IF
 		END_IF
 	END_IF
 END_IF
@@ -49,7 +56,8 @@ END_IF
     </Implementation>
     <Method Name="Request" Id="{aab99738-82f2-4818-a18c-90a456227694}">
       <Declaration><![CDATA[// Decide a request. Accepted: running, the target is kept for the end, the automatic homing is released again.
-// Calibrated or not (#138): on an uncalibrated axis fPosition is no target (#115), so nothing is restored at the end.
+// Calibrated or not (#138): on an uncalibrated axis fPosition is no target (#115), so nothing is restored at the end,
+// except the target of an earlier re-home that was aborted and left the axis uncalibrated: that one is kept (#152).
 METHOD Request : E_FocusManualHome
 VAR_INPUT
 	bAutomatic		: BOOL;		// telescope mode is automatic
@@ -78,8 +86,14 @@ ELSE
 	bActiveSeen := FALSE;
 	bAbortSeen := FALSE;
 	bBlockAutoHome := FALSE;
-	bRestoreTarget := bCalibrated;
-	fRestoreTarget := SEL(bCalibrated, 0.0, fTarget);
+	IF bCalibrated THEN
+		bRestoreTarget := TRUE;
+		fRestoreTarget := fTarget;
+	ELSIF NOT bRestoreTarget THEN
+		fRestoreTarget := 0.0;
+	END_IF
+	// else: an earlier re-home was aborted and left the axis uncalibrated; the focus the observer had before it is
+	// still the one to restore when this one ends, fTarget of an uncalibrated axis is no target (#115, #152)
 END_IF
 ]]></ST>
       </Implementation>
@@ -99,6 +113,9 @@ METHOD ClearBlock
 ]]></Declaration>
       <Implementation>
         <ST><![CDATA[bBlockAutoHome := FALSE;
+// the automatic homing ends on the cam and restores nothing: a target kept from an aborted re-home is stale (#152)
+bRestoreTarget := FALSE;
+fRestoreTarget := 0.0;
 ]]></ST>
       </Implementation>
     </Method>
