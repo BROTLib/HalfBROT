@@ -55,6 +55,12 @@ VAR
 	fbHomeRequest			: FB_HomeRequest;	// end of the homing request bHomeAxis, see _HomeRequest (#136)
 	homeTimeoutEvent		: FB_EventLog;
 	homeFailedEvent			: FB_EventLog;
+	fbHomeFailPosition		: FB_HomeFailPosition;	// position after a failed homing, see _HomeFailPosition (#147)
+	fbSetPosition			: MC_SetPosition;
+	homeRestoreEvent		: FB_EventLog;
+	homeRestoreFailedEvent	: FB_EventLog;
+	sRestoreMessage			: STRING(255);
+	sRestoreFailedMessage	: STRING(255);
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
@@ -122,6 +128,69 @@ homeFailedEvent(
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= CONCAT(sAxis, ': homing ended without calibration.'),
+	Comm 			:= fbComm);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="_HomeFailPosition" Id="{6842cbf3-4f46-439e-85a4-bb18fb86d805}">
+      <Declaration><![CDATA[// Position after a failed homing (#147), call every cycle right after _HomeRequest. A cam homing that fails or is stopped
+// leaves the NC's virtual position (about -1e10) and the software limits refuse every jog (0x4460). The travel since the
+// start of the homing is added up and MC_SetPosition sets start + travel, clamped 0.5 deg inside the window. The axis stays
+// uncalibrated (jog only). Only for a homing that started on a calibrated axis, see FB_HomeFailPosition.
+METHOD PROTECTED _HomeFailPosition
+VAR_INPUT
+	sAxis				: STRING;	// axis name for the event log
+	fMin				: LREAL;	// lower end of the position window (not wider than the NC soft limits)
+	fMax				: LREAL;	// upper end of the position window
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbHomeFailPosition(
+	fActualPosition := fbAxis.ActualPosition,
+	bHomeActive 	:= fbAxis.HomeActive,
+	bHomePending 	:= fbAxis.HomePending,
+	bCalibrated 	:= fbAxis.Calibrated,
+	bFailed 		:= fbHomeRequest.bFailed,
+	bCanSet 		:= NOT fbAxis.Error AND NOT bError AND NOT fbAxis.InMotion,
+	fMin 			:= fMin,
+	fMax 			:= fMax,
+	bSetDone 		:= fbSetPosition.Done,
+	bSetError 		:= fbSetPosition.Error);
+
+// absolute, no motion; the axis stays uncalibrated
+fbSetPosition(
+	Axis 		:= axisRef,
+	Execute 	:= fbHomeFailPosition.bRestore,
+	Position 	:= fbHomeFailPosition.fRestorePosition,
+	Mode 		:= FALSE);
+
+IF fbHomeFailPosition.bRestored THEN
+	sRestoreMessage := CONCAT(sAxis, ': homing failed, position restored to ');
+	sRestoreMessage := CONCAT(sRestoreMessage, LREAL_TO_STRING(fbHomeFailPosition.fRestorePosition));
+	sRestoreMessage := CONCAT(sRestoreMessage, ' (estimate ');
+	sRestoreMessage := CONCAT(sRestoreMessage, LREAL_TO_STRING(fbHomeFailPosition.fEstimate));
+	IF fbHomeFailPosition.bClamped THEN
+		sRestoreMessage := CONCAT(sRestoreMessage, ', clamped');
+	END_IF
+	sRestoreMessage := CONCAT(sRestoreMessage, '); axis not calibrated, jog only.');
+END_IF
+homeRestoreEvent(
+	Trigger 		:= fbHomeFailPosition.bRestored,
+	Level 			:= ADSLOG_MSGTYPE_WARN,
+	FormatString 	:= '%s',
+	OnMessage 		:= sRestoreMessage,
+	Comm 			:= fbComm);
+
+IF fbHomeFailPosition.bRestoreFailed THEN
+	sRestoreFailedMessage := CONCAT(sAxis, ': position restore after the failed homing failed (error ');
+	sRestoreFailedMessage := CONCAT(sRestoreFailedMessage, UDINT_TO_STRING(fbSetPosition.ErrorID));
+	sRestoreFailedMessage := CONCAT(sRestoreFailedMessage, '), the position is virtual: Set Actual Position in XAE.');
+END_IF
+homeRestoreFailedEvent(
+	Trigger 		:= fbHomeFailPosition.bRestoreFailed,
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	FormatString 	:= '%s',
+	OnMessage 		:= sRestoreFailedMessage,
 	Comm 			:= fbComm);
 ]]></ST>
       </Implementation>

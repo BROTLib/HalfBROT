@@ -124,6 +124,7 @@ IF fbAxis.MoveDone THEN
 END_IF
 
 _HomeRequest(sAxis := 'Elevation');
+_HomeFailPosition(sAxis := 'Elevation', fMin := MAX(0.0, fMinPosition), fMax := MIN(90.0, fMaxPosition));
 
 IF fbAxis.ResetDone THEN
 	bReset := FALSE;

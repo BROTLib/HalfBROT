@@ -97,4 +97,4 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   leaves the NC's virtual position (-1e10 + travel), so the soft limits refuse every manual jog (0x4460) until XAE Set Actual
   Position. Proposed: new pure-logic `FB_HomeFailPosition` integrates the travel during the homing and restores
   `start + travel` (clamped into the soft-limit window, axis stays uncalibrated) with `MC_SetPosition`; Visu Set Position as a
-  follow-up. **proposed**, questions answered in section 7; not compiled or run on a PLC.
+  follow-up. **implemented** (0.13.0 candidate, PR open), not compiled or run on a PLC; no TcUnit test yet; Q7 open.

@@ -77,6 +77,9 @@ implements the `I_Axis` interface. Common features:
   disk (`FB_WritePersistentData`, port `nPersistentAdsPort` = 851) after it changed, at rest, at most once a
   minute, so an unclean power-off restores the last position written, not the one of the last clean shutdown (#8). After an SoE reset the axis
   must fully re-home.
+- **Failed homing** — a cam homing that fails or is stopped leaves the NC's virtual position (about -1e10) and the soft limits
+  refuse every jog (#147). If it started on a calibrated axis, `FB_HomeFailPosition` adds up the travel and `MC_SetPosition` restores
+  `start + travel` (0.5 deg inside the window); the axis stays uncalibrated, jog only.
 - **Manual focus jog** — the stored position is tracked in every mode (calibrated, brake locked, not homing), so a focus
   jogged with the pendant in manual mode is restored at its new position after a restart (#66). Outside automatic
   mode and while a jog runs, the target `fPosition` follows the actual position, so the focus does not drive back to

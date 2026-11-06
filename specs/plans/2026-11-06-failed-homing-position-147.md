@@ -1,6 +1,6 @@
 # A failed homing must not leave the axis at the virtual -1e10 position (#147)
 
-**Status: proposed (open questions answered in section 7), implementation in progress, not compiled or run on a PLC.** Facts read on 2026-11-06 from HalfBROT `origin/develop` @
+**Status: proposed (open questions answered in section 7), implemented in the PR, not compiled or run on a PLC.** Facts read on 2026-11-06 from HalfBROT `origin/develop` @
 `a1287d7` (0.12.0, contains #136 and #148), BROTLib `origin/develop` @ `84c53c0` (0.18.0), MONETcommon `origin/develop` @ `f9c7d5d`
 (0.16.0), MONETS `origin/develop` @ `e7247a4`. Line numbers are at those commits. Suggested branch `fix/failed-homing-position-147`
 from `origin/develop`.
@@ -206,3 +206,11 @@ Answers proposed after the first draft; Q6 was checked, Q7 could not be.
 7. **Q7 Telemetry consumers:** not verifiable here. pyobs and the GUI are not in this tree; in the PLC repos only
    `FB_BaseTelescopeControl` / `FB_RaDecCoordinates` use `fElevationCurrent`. **Open, check before the MONETS/MONETN pin.** The restored
    value is published with `bElevationCalibrated` FALSE.
+
+## 8. Deviations in the implementation
+
+- The position window is not read from the NC (`MC_ReadParameter` names for the soft limits could not be verified without XAE). `_HomeFailPosition` takes
+  `fMin`/`fMax` from the block: azimuth `fMinPosition`/`fMaxPosition`, elevation `MAX(0, fMinPosition)`/`MIN(90, fMaxPosition)`. The elevation window is
+  therefore 0..90 while the NC allows 91; the clamp is conservative. Set `fMinPosition`/`fMaxPosition` no wider than the NC limits.
+- Option B (`SetPosition` method, Visu) and the TcUnit suite (in MONETcommonTests) are not part of this PR.
+- Not compiled: no XAE/tctool run (this machine is the CI runner). The CI build of the PR is the first compile.
