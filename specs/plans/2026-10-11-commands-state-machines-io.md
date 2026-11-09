@@ -1,6 +1,6 @@
 # Commands through methods, explicit state machines, I/O through structs
 
-**Status: draft.** Nothing implemented. Facts below were read from `develop` @ `4ef3b7b` (v0.5.1) and the
+**Status: draft.** Nothing implemented. Updated 2026-11-06: VISU bindings added to the current state and to step 1. Facts below were read from `develop` @ `4ef3b7b` (v0.5.1) and the
 consumers' `develop` on 2026-10-11; nothing was run on a PLC or a telescope.
 
 Issues: #31 (D3, umbrella), #32 (D4, tests). The bug class it removes: #4 (cover stale outputs), #5 (pendant
@@ -39,7 +39,25 @@ Some writes are property/method setters (`MoveAxis`, `StopAxis`, `Tracking`, `Op
 |---|---|---|
 | MONETS `MAIN` (l. 82), MONETN `MAIN` (l. 79) | `HydraulicsControl.bOpenBrake := brakeClearing` | every cycle in manual/off mode; level semantics from the cabinet "brakes cleared" switch |
 | MONETcommon `FB_MonetTelescopeControl` (l. 403–405) | `fbElevation/fbAzimuth/fbDerotator.bTracking := FALSE` | |
+| MONETS/MONETN `VISUs/*.TcVIS` (identical in both) | 24 element bindings to block inputs, see below | operator pages: DipSwitches write, lamps read |
 | MONETcommon `FB_MonetPendantControl` (l. 101–102) | `fbCovers.bOpen/bClose` | on `FB_MonetCoverControl` (MONETcommon), **not** HalfBROT's |
+
+### Visualisation bindings (read from the `.TcVIS` files on `develop`, 2026-11-06; not opened in XAE)
+
+MONETS and MONETN bind VISU elements directly to block inputs (`MAIN.<Block>.<input>`). A visualisation cannot
+reach a `VAR` member or call a method, so every input that step 1 moves into `VAR` breaks its binding (compile
+error in XAE) unless the binding is moved first.
+
+| Page | Bound inputs |
+|---|---|
+| `Hydraulics` | `bEnable`, `bReset`, `bOpenBrake`, `bCloseBrake`, `bManualSuction`, `bManualPumpStop` |
+| `Azimuth`, `Elevation`, `Derotator` | `bEnable`, `bReset`, `fPosition`, `bMoveAxis` (each) |
+| `Focus` | `bEnable`, `bReset`, `fPosition`, `bMoveAxis` (lamp, read only), `bManualUnlock` |
+| `Cover` | `bReset` (of `MAIN.CoverControl`) |
+| `Telescope` | `MAIN.TelescopeControl.bTracking` (MONETcommon block, not HalfBROT) |
+
+Which of these are DipSwitches/buttons (write) and which lamps/text (read) has to be checked per element.
+`bEnable`, `bReset`, `fPosition` of the axis blocks are BROTLib `FB_BaseAxis` inputs and stay (open question 2).
 
 ### Who uses which block
 
@@ -73,6 +91,15 @@ any IAG telescope, so only testable with TcUnit).
 - `fPosition`: the block keeps its own clamped target in `VAR` instead of overwriting the caller's input.
 - Consumers: MONETS/MONETN `MAIN` replace the per-cycle `bOpenBrake := brakeClearing` with a call that keeps
   the level semantics (see open question 1); MONETcommon replaces `.bTracking := FALSE` with the property.
+- Visualisations (MONETS and MONETN `VISUs`): every HalfBROT-owned input that moves into `VAR` loses its binding
+  (hydraulics `bEnable`, `bReset`, `bOpenBrake`, `bCloseBrake`, `bManualSuction`, `bManualPumpStop`; focus
+  `bMoveAxis`, `bManualUnlock`; axis `bMoveAxis`). Order: (a) `MAIN` gets one variable per operator switch
+  (e.g. `bManualBrakeOpen`, `bManualPump`) and passes it to the block's method every cycle; (b) the DipSwitch
+  or button is re-bound to it; (c) lamps bind to read-only status properties or outputs of the block; only then
+  (d) the input moves into `VAR`. Do (a)+(b) in a first MONETS/MONETN release that still works with the old
+  library, so the library change itself needs no VISU edit.
+- Test for the VISU part: Tim opens every VISU page of both telescopes in XAE (no unresolved variable) and
+  operates each switch once on the bench with the PLC in manual mode.
 - Release: HalfBROT minor (inputs removed from the interface), MONETcommon/MONETS/MONETN bumps.
 - Test: XAE build of HalfBROT, MONETcommon, MONETS, MONETN (Tim); hardware-test issue for the brake in manual
   mode (open by switch, drops on pressure loss and is **not** re-opened while the switch stays on).
@@ -98,7 +125,20 @@ risk of a silently lost link is covered by checking all links in XAE before acti
 
 ### Step 3: TcUnit tests of the current behaviour (#32)
 
-- `HalfBROTTests` project like `MONETcommonTests`, run by Tim in XAE (CI has no runtime). Possible for every
+- Already there (2026-11-09): the pure-logic helpers of HalfBROT are tested in `MONETcommonTests`, not in a
+  HalfBROT project: `FB_FocusJogLatch`, `FB_FocusManualHome`, `FB_FocusTargetInit`, `FB_HomeRequest`,
+  `FB_JogRequest` and the `F_*` functions, plus `FB_BrakeSettleEnable`, `FB_FocusDriveEnable`,
+  `FB_HomeFailPosition` and `FB_PumpResetPulse` (MONETcommon#227, one suite `FB_HalfBROTHelpers_Tests`; CI:
+  35 suites, 306 tests, 0 failed). What is left for this step are the blocks with `AT` (hydraulics, axes,
+  cover, pendant, focus) and `FB_Hydraulics`' state.
+- Limit found 2026-11-09: `MONETcommonTests` loads on the user-mode runtime with at most 35 suites (36, 37 and 38
+  gave `PLC: Error (hr=0x98410033) loading boot project`); the build shows ~70 MB global data for 35 suites,
+  about 2 MB per suite instance, probably the limit (not confirmed). The TcUnit parameters say 41 suites. So
+  tests for the blocks do not fit as new suites in `MONETcommonTests` (34 + 1 = 35 used): they go into a
+  `HalfBROTTests` project, or `MAXNUMBEROFASSERTSFOREACHTESTSUITE` (256) is lowered first to make room.
+  Also: do not run a manual XAE activation while CI runs, both use the same runtime and boot folder.
+
+- `HalfBROTTests` project like `MONETcommonTests`, run by Tim in XAE and by CI through `tcbuild.yml` like `MONETcommonTests`. Possible for every
   block once step 2 is done (I/O is just struct members).
 - Characterisation tests first: pin down what the blocks do today, including the known bugs (#4, #5) as
   expected-failure or documented cases, so step 4 shows exactly what changes.
@@ -124,6 +164,8 @@ risk of a silently lost link is covered by checking all links in XAE before acti
    request ("open once")? Today it is a level: after a pressure loss the block clears `bOpenBrake`, `MAIN`
    sets it again the next cycle, so the brake probably re-opens as soon as `tonBrakeOpenDelay` allows it
    (read from code, not tested). Is that wanted?
+   The answer also fixes the VISU binding: a level switch needs a `MAIN` variable passed every cycle, a request
+   needs a button that sets it once.
 2. Should the axis command inputs move in BROTLib's `FB_BaseAxis` as well (fleet-wide, IAG50cm too), or only
    in HalfBROT's wrappers?
 3. Struct layout: one struct per block, or inputs/outputs split (outputs then cannot be overwritten by the
