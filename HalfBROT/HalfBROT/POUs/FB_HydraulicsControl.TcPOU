@@ -3,8 +3,6 @@
   <POU Name="FB_HydraulicsControl" Id="{0d9c5732-af19-4096-a83e-065687a13da0}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_HydraulicsControl IMPLEMENTS I_Hydraulics, I_Brake
 VAR_INPUT
-	bEnable				: BOOL := FALSE;	// start the hydraulics
-	bReset				: BOOL;				// reset any hydraulics error
 	bManualSuction		: BOOL;				// manual override to start the suction pump
 	bManualPumpStop		: BOOL;				// manual override to stop the pump
 	bBrakeClearing		: BOOL;				// external clearing for brakes
@@ -13,8 +11,6 @@ VAR_INPUT
 	nMaxPanLevel		: INT := 16383;		// maximum oil level from sensor
 	fMinPanPercent		: REAL := 0;		// oil level percentage to be seen as empty
 	fMaxPanPercent		: REAL := 90;		// oil level percentage to be seen as full
-	bOpenBrake			: BOOL := FALSE;	// command to open the brake
-	bCloseBrake			: BOOL;				// command to close the brake
 	fTelemetryInterval	: TIME := T#5S;		// publish at least this often, also without a change (#19)
 	tHydraulicsWatchdog	: TIME := T#140S;	// main pump running this long without the suction pump running = bHydraulicsFailure (#10)
 	nMinValidPanLevel	: INT := -32768;	// raw oil level below this is a sensor fault (wire break); the default accepts every value, no guard (MONETS#32)
@@ -43,6 +39,13 @@ VAR_OUTPUT
 	bPumpResetActive	: BOOL;				// a starter reset pulse is running, the pump enable is held off (#120)
 END_VAR
 VAR
+	// requests, set only through the methods and properties (Enable, Reset(), OpenBrake(), CloseBrake(), ManualBrake()) (#31)
+	bEnable				: BOOL;				// start the hydraulics
+	bReset				: BOOL;				// reset any hydraulics error
+	bOpenBrake			: BOOL;				// request to open the brake, cleared when the brake closes
+	bCloseBrake			: BOOL;				// request to close the brake
+	rtManualBrake		: R_TRIG;			// manual brake switch went on: one request to open (#31)
+	ftManualBrake		: F_TRIG;			// manual brake switch went off: the request ends
 	fbComm				: I_Comm;
  
 	IbOilLow			AT%I* : BOOL;	// 2.1
@@ -528,6 +531,27 @@ END_VAR]]></Declaration>
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="ManualBrake" Id="{8b5d6a2c-7fca-4e1a-a643-6fed8ba4cfb3}">
+      <Declaration><![CDATA[METHOD ManualBrake : BOOL
+VAR_INPUT
+	bSwitch	: BOOL;	// level of the cabinet switch, call every cycle
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// The switch requests the opening once, on its rising edge. After the brake closed for any reason (pressure loss,
+// pump stop, CloseBrake(), azimuth limit) it stays closed until the switch goes off and on again (#31).
+// The permission stays with bBrakeClearing, which closes the brake when the switch is off.
+rtManualBrake(CLK := bSwitch);
+ftManualBrake(CLK := bSwitch);
+IF rtManualBrake.Q THEN
+	bOpenBrake := TRUE;
+END_IF
+IF ftManualBrake.Q THEN
+	bOpenBrake := FALSE;
+END_IF
+ManualBrake := bOpenBrake;]]></ST>
+      </Implementation>
+    </Method>
     <Property Name="ManualStartSuction" Id="{06a625ea-0a04-4f85-a476-f15eb08387f8}">
       <Declaration><![CDATA[PROPERTY ManualStartSuction : BOOL]]></Declaration>
       <Get Name="Get" Id="{a9de2335-7475-4b84-8e53-4bdb3b981395}">
@@ -642,6 +666,9 @@ END_VAR
     </LineIds>
     <LineIds Name="FB_HydraulicsControl.FB_Init">
       <LineId Id="1" Count="1" />
+    </LineIds>
+    <LineIds Name="FB_HydraulicsControl.ManualBrake">
+      <LineId Id="1" Count="9" />
     </LineIds>
     <LineIds Name="FB_HydraulicsControl.ManualStartSuction.Get">
       <LineId Id="1" Count="0" />
