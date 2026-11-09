@@ -175,8 +175,11 @@ risk of a silently lost link is covered by checking all links in XAE before acti
 
 - Started 2026-11-09 (PR "feat/halfbrot-tests-32"): `HalfBROTTests` exists with `FB_HydraulicsControl_Tests` (start-up, the brake, the
   step 1 re-arm, the latched errors up to 13 s) and `FB_CoverControl_Tests` (sequence, last call wins, stop, limit switch fault,
-  timeout, reversal dead time); CI builds and runs it through `tcbuild.yml`. Left: pendant, axes, focus; the 15 s suction and 30 s
-  pressure watchdogs need a time seam (step 4: per-state timeouts).
+  timeout, reversal dead time); CI builds and runs it through `tcbuild.yml`. Pendant added 2026-11-09 (`FB_PendantControl_Tests`: selector,
+  error lamp, unset references #16, covers, hydraulics start/brake; focus, derotator, elevation, azimuth and telescope selections only as "not
+  connected"). Left: axes and focus: they run MC blocks on an NC axis (`AXIS_REF`) and `HalfBROTTests` has no NC axis, so they need a
+  simulated NC axis first (not tried: unknown whether the CI runtime supports it). The 15 s suction and 30 s pressure watchdogs need a time
+  seam (step 4: per-state timeouts).
 - `HalfBROTTests` project like `MONETcommonTests`, run by Tim in XAE and by CI through `tcbuild.yml` like `MONETcommonTests`. Possible for every
   block once step 2 is done (I/O is just struct members): a test sets the `In` struct and reads the `Out`
   struct.
