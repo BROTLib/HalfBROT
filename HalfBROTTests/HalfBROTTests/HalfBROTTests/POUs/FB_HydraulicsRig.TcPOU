@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="FB_HydraulicsRig" Id="{9df47610-35fc-4ed2-a49c-9da4e4e08121}" SpecialFunc="None">
+  <POU Name="FB_HydraulicsRig" Id="{f03c8e75-35a6-5eb0-ba58-4b005a03ced1}" SpecialFunc="None">
     <Declaration><![CDATA[// FB_HydraulicsControl with a plant: the pump feedback follows the pump enable output one scan later and the oil pressure
 // follows the pump (a starter and a pump that work), the suction feedback follows the suction enable. The sensors are healthy.
 // bAuto calls OpenBrake() in every scan (the automatic request of MONETcommon), bManual calls ManualBrake(bSwitch) and
@@ -31,7 +31,7 @@ END_VAR
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Method Name="Scan" Id="{61859e35-632f-4e31-908a-1bfb1b0d2b0b}">
+    <Method Name="Scan" Id="{f5cdac0c-d4f0-5b46-bdb5-96ac2875fe99}">
       <Declaration><![CDATA[METHOD Scan
 ]]></Declaration>
       <Implementation>
@@ -57,7 +57,7 @@ tonStep(IN := TRUE, PT := T#1H);
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="StepStart" Id="{68a824dc-1106-44c6-bcbf-9269fd2c5209}">
+    <Method Name="StepStart" Id="{b828b65d-e35a-50cf-9c05-942c73d6f13c}">
       <Declaration><![CDATA[METHOD StepStart
 ]]></Declaration>
       <Implementation>
@@ -66,7 +66,7 @@ nStepScans := 0;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="StepTime" Id="{46b177b5-3508-4505-8d06-93038fec8315}">
+    <Method Name="StepTime" Id="{5b412144-d45d-5751-a8ad-8345070fe72b}">
       <Declaration><![CDATA[METHOD StepTime : BOOL
 VAR_INPUT
 	tTime	: TIME;
@@ -77,7 +77,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetEnable" Id="{c44a5a3f-8201-45d6-874e-a8aaa2c12ec9}">
+    <Method Name="SetEnable" Id="{3ecaf0ab-3e22-5f48-acee-a7d3bf29c399}">
       <Declaration><![CDATA[METHOD SetEnable
 VAR_INPUT
 	bOn	: BOOL;
@@ -88,7 +88,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetStopPump" Id="{d199ef63-7d0b-4be9-ae32-0e5fd44926eb}">
+    <Method Name="SetStopPump" Id="{790ae574-875e-5d0d-9039-d261f13890d4}">
       <Declaration><![CDATA[METHOD SetStopPump
 VAR_INPUT
 	bOn	: BOOL;

@@ -1,0 +1,209 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_PendantRig" Id="{18dab1ee-83e9-5291-af29-6df26612cc86}" SpecialFunc="None">
+    <Declaration><![CDATA[// FB_PendantControl with the cover block and the hydraulics block behind it, each in its rig (FB_CoverRig, FB_HydraulicsRig).
+// The other blocks the pendant can reference (focus, elevation, azimuth, derotator, telescope) are not connected: the pendant
+// must light the error lamp and do nothing for those selections (#16). The test sets the pendant inputs through SetKey(),
+// SetSelector(), SetUp() ... and reads the lamps through Lamps() ("x" = lit, order up, down, left, right, error).
+// The pendant runs before the blocks in every scan, like in MAIN. StepStart()/nStepScans count the scans from the start of a step.
+FUNCTION_BLOCK FB_PendantRig
+VAR_INPUT
+	stIn		: HalfBROT.ST_PendantIn;
+END_VAR
+VAR
+	fbComm		: FB_NullComm;
+	fb			: HalfBROT.FB_PendantControl(comm := fbComm);
+	stOut		: HalfBROT.ST_PendantOut;
+	cov			: FB_CoverRig;
+	hyd			: FB_HydraulicsRig;
+	tonStep		: TON;
+	nScans		: UDINT;
+	nStepScans	: UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="Scan" Id="{d0baa10d-4fce-51a9-8f7d-dab00a24be35}">
+      <Declaration><![CDATA[METHOD Scan
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nScans := nScans + 1;
+nStepScans := nStepScans + 1;
+fb(stIn := stIn, fbCovers := cov.fb, fbBrake := hyd.fb, fbHydraulics := hyd.fb, stOut := stOut);
+cov.Scan();
+hyd.Scan();
+tonStep(IN := TRUE, PT := T#1H);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetKey" Id="{dfb79628-541c-54bd-adbd-933177492483}">
+      <Declaration><![CDATA[METHOD SetKey
+VAR_INPUT
+	bOn	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.bKeySwitch := bOn;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetUp" Id="{7881ccbc-3967-5ccd-87c8-8fe62922dba1}">
+      <Declaration><![CDATA[METHOD SetUp
+VAR_INPUT
+	bOn	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.bDirectionUp := bOn;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetDown" Id="{6e9c1f40-0ef0-559b-8ff1-78659aeeba22}">
+      <Declaration><![CDATA[METHOD SetDown
+VAR_INPUT
+	bOn	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.bDirectionDown := bOn;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetLeft" Id="{bacc161b-e70c-54fc-9c91-c195e2669dc1}">
+      <Declaration><![CDATA[METHOD SetLeft
+VAR_INPUT
+	bOn	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.bDirectionLeft := bOn;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetRight" Id="{1cf37d19-015c-527d-a70c-c6c1830182e1}">
+      <Declaration><![CDATA[METHOD SetRight
+VAR_INPUT
+	bOn	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.bDirectionRight := bOn;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetStart" Id="{559f8eda-7cd6-5ce5-a064-6b29010bc0ca}">
+      <Declaration><![CDATA[METHOD SetStart
+VAR_INPUT
+	bOn	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.bStartSwitch := bOn;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetReset" Id="{db106218-ab9f-5aab-9b03-f800a30a574d}">
+      <Declaration><![CDATA[METHOD SetReset
+VAR_INPUT
+	bOn	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.bResetSwitch := bOn;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetSelector" Id="{843c2ae9-5ce9-583d-b6f4-3816c74ee7a2}">
+      <Declaration><![CDATA[METHOD SetSelector
+VAR_INPUT
+	nSelector	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.bBCD0 := (nSelector AND 1) <> 0;
+stIn.bBCD2 := (nSelector AND 2) <> 0;
+stIn.bBCD4 := (nSelector AND 4) <> 0;
+stIn.bBCD8 := (nSelector AND 8) <> 0;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetClearing" Id="{28087647-e35c-5bd7-93b4-f12c3fd6740d}">
+      <Declaration><![CDATA[METHOD SetClearing
+VAR_INPUT
+	bOn	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[hyd.bClearing := bOn;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Lamps" Id="{4fb4742d-7569-5d2a-9f60-2d0377a4e72b}">
+      <Declaration><![CDATA[METHOD Lamps : STRING(5)
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Lamps := '';
+IF stOut.bLampUp THEN
+	Lamps := CONCAT(Lamps, 'x');
+ELSE
+	Lamps := CONCAT(Lamps, '-');
+END_IF
+IF stOut.bLampDown THEN
+	Lamps := CONCAT(Lamps, 'x');
+ELSE
+	Lamps := CONCAT(Lamps, '-');
+END_IF
+IF stOut.bLampLeft THEN
+	Lamps := CONCAT(Lamps, 'x');
+ELSE
+	Lamps := CONCAT(Lamps, '-');
+END_IF
+IF stOut.bLampRight THEN
+	Lamps := CONCAT(Lamps, 'x');
+ELSE
+	Lamps := CONCAT(Lamps, '-');
+END_IF
+IF stOut.bLampError THEN
+	Lamps := CONCAT(Lamps, 'x');
+ELSE
+	Lamps := CONCAT(Lamps, '-');
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="State" Id="{bf6403d8-ee24-529f-8f59-93f59fdaee83}">
+      <Declaration><![CDATA[METHOD State : STRING(100)
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[State := CONCAT('[sel ', UINT_TO_STRING(fb.Selection));
+State := CONCAT(State, CONCAT(' lamps ', Lamps()));
+State := CONCAT(State, CONCAT(' open ', cov.OpenOutputs()));
+State := CONCAT(State, CONCAT(' close ', cov.CloseOutputs()));
+State := CONCAT(State, CONCAT(' pump ', BOOL_TO_STRING(hyd.stOut.bOilPumpEnable)));
+State := CONCAT(State, ']');
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepStart" Id="{94eb4b73-5509-5442-894d-135ed913d7c4}">
+      <Declaration><![CDATA[METHOD StepStart
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tonStep(IN := FALSE, PT := T#1H);
+nStepScans := 0;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepTime" Id="{8103a3b6-df76-502d-889c-8fa32aba49aa}">
+      <Declaration><![CDATA[METHOD StepTime : BOOL
+VAR_INPUT
+	tTime	: TIME;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[StepTime := tonStep.ET >= tTime;
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

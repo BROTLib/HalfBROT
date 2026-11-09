@@ -1,0 +1,715 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_PendantControl_Tests" Id="{7190aa9a-fed0-5815-971e-decdd6a20b6c}" SpecialFunc="None">
+    <Declaration><![CDATA[// Characterisation tests of HalfBROT.FB_PendantControl (HalfBROT#32 step 3) through the I/O structs: the selector, the error
+// lamp for selector 0 and for blocks that are not connected (#16), the covers (hold-to-run with the key on, the level with the
+// key off, #5 cover part) and the hydraulics (start toggle, brake up/down). The focus, derotator, elevation, azimuth and
+// telescope selections need their blocks and are only covered for "not connected". They pin what the block does today, they
+// are not a specification. Every test owns a rig (FB_PendantRig, the pendant with the cover and hydraulics rigs behind it).
+FUNCTION_BLOCK FB_PendantControl_Tests EXTENDS FB_TestBase
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Selector_Decodes_BCD();
+Selector_Zero_Lights_Error_Lamp_Only();
+Selector_Without_Function_Has_No_Error();
+Unset_References_Light_Error_Lamp();
+Selector_14_Horn_And_Lamps_Follow_Key();
+Cover_Lamps_Show_The_Switches();
+Cover_Key_On_Hold_Up_Opens_Release_Stops();
+Cover_Key_On_Hold_Down_Closes_Release_Stops();
+Cover_Key_On_Up_And_Down_Together_Do_Nothing();
+Cover_Run_Stops_When_Selector_Leaves_1_To_3();
+Cover_Key_Off_Up_Opens();
+Hydraulics_Start_Button_Toggles_Pump();
+Hydraulics_Key_Off_Buttons_Do_Nothing();
+Hydraulics_Up_Opens_Brake_Down_Closes();
+]]></ST>
+    </Implementation>
+    <Method Name="Selector_Decodes_BCD" Id="{5843fba7-9088-53a9-90d6-44acab85be51}">
+      <Declaration><![CDATA[// The four selector inputs are the bits 1, 2, 4 and 8 of Selection.
+METHOD PRIVATE Selector_Decodes_BCD
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Selector_Decodes_BCD');
+sCurrent := 'Selector_Decodes_BCD: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(1);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 2 THEN
+		Check(rig.fb.Selection = 1, CONCAT('selector 1 ', rig.State()));
+		rig.SetSelector(2);
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.nStepScans >= 2 THEN
+		Check(rig.fb.Selection = 2, CONCAT('selector 2 ', rig.State()));
+		rig.SetSelector(4);
+		rig.StepStart();
+		nStep := 30;
+	END_IF
+30:
+	IF rig.nStepScans >= 2 THEN
+		Check(rig.fb.Selection = 4, CONCAT('selector 4 ', rig.State()));
+		rig.SetSelector(8);
+		rig.StepStart();
+		nStep := 40;
+	END_IF
+40:
+	IF rig.nStepScans >= 2 THEN
+		Check(rig.fb.Selection = 8, CONCAT('selector 8 ', rig.State()));
+		rig.SetSelector(11);
+		rig.StepStart();
+		nStep := 50;
+	END_IF
+50:
+	IF rig.nStepScans >= 2 THEN
+		Check(rig.fb.Selection = 11, CONCAT('selector 11 ', rig.State()));
+		rig.SetSelector(15);
+		rig.StepStart();
+		nStep := 60;
+	END_IF
+60:
+	IF rig.nStepScans >= 2 THEN
+		Check(rig.fb.Selection = 15, CONCAT('selector 15 ', rig.State()));
+		rig.SetSelector(0);
+		rig.StepStart();
+		nStep := 70;
+	END_IF
+70:
+	IF rig.nStepScans >= 2 THEN
+		Check(rig.fb.Selection = 0, CONCAT('selector 0 ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Selector_Zero_Lights_Error_Lamp_Only" Id="{6af8c895-718b-574b-9112-e16f110f59e6}">
+      <Declaration><![CDATA[// Selector at 0 (pendant disconnected): only the error lamp, whatever the buttons say; nothing moves (#12).
+METHOD PRIVATE Selector_Zero_Lights_Error_Lamp_Only
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Selector_Zero_Lights_Error_Lamp_Only');
+sCurrent := 'Selector_Zero_Lights_Error_Lamp_Only: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(0); rig.SetKey(TRUE); rig.SetUp(TRUE); rig.SetStart(TRUE);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 6 THEN
+		Check(rig.Lamps() = '----x', CONCAT('only the error lamp ', rig.State()));
+		Check(rig.cov.OpenOutputs() = '---' AND rig.cov.CloseOutputs() = '---', CONCAT('no cover moves ', rig.State()));
+		Check(NOT rig.hyd.stOut.bOilPumpEnable, CONCAT('no pump ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Selector_Without_Function_Has_No_Error" Id="{19e4a2ee-6635-5983-8090-2ff5ba25d08c}">
+      <Declaration><![CDATA[// Selector 4 (Nasmyth), 9 (dome) and 10 (filter wheel) do nothing and light no lamp, also with the key on.
+METHOD PRIVATE Selector_Without_Function_Has_No_Error
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Selector_Without_Function_Has_No_Error');
+sCurrent := 'Selector_Without_Function_Has_No_Error: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetKey(TRUE); rig.SetSelector(4);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 3 THEN
+		Check(rig.Lamps() = '-----', CONCAT('selector 4: no lamp ', rig.State()));
+		rig.SetKey(TRUE); rig.SetSelector(9);
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.nStepScans >= 3 THEN
+		Check(rig.Lamps() = '-----', CONCAT('selector 9: no lamp ', rig.State()));
+		rig.SetKey(TRUE); rig.SetSelector(10);
+		rig.StepStart();
+		nStep := 30;
+	END_IF
+30:
+	IF rig.nStepScans >= 3 THEN
+		Check(rig.Lamps() = '-----', CONCAT('selector 10: no lamp ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Unset_References_Light_Error_Lamp" Id="{ad2543f6-c0b2-52c8-b7bc-b2a6f825ece3}">
+      <Declaration><![CDATA[// Selections whose block is not connected (focus, derotator, elevation, azimuth, telescope) light the error lamp and do nothing, with key, start and up pressed: no access to the unset reference (#16).
+METHOD PRIVATE Unset_References_Light_Error_Lamp
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Unset_References_Light_Error_Lamp');
+sCurrent := 'Unset_References_Light_Error_Lamp: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(5);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 4 THEN
+		Check(rig.Lamps() = '----x', CONCAT('selector 5: block not connected ', rig.State()));
+		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(6);
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.nStepScans >= 4 THEN
+		Check(rig.Lamps() = '----x', CONCAT('selector 6: block not connected ', rig.State()));
+		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(7);
+		rig.StepStart();
+		nStep := 30;
+	END_IF
+30:
+	IF rig.nStepScans >= 4 THEN
+		Check(rig.Lamps() = '----x', CONCAT('selector 7: block not connected ', rig.State()));
+		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(8);
+		rig.StepStart();
+		nStep := 40;
+	END_IF
+40:
+	IF rig.nStepScans >= 4 THEN
+		Check(rig.Lamps() = '----x', CONCAT('selector 8: block not connected ', rig.State()));
+		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(11);
+		rig.StepStart();
+		nStep := 50;
+	END_IF
+50:
+	IF rig.nStepScans >= 4 THEN
+		Check(rig.Lamps() = '----x', CONCAT('selector 11: block not connected ', rig.State()));
+		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(12);
+		rig.StepStart();
+		nStep := 60;
+	END_IF
+60:
+	IF rig.nStepScans >= 4 THEN
+		Check(rig.Lamps() = '----x', CONCAT('selector 12: block not connected ', rig.State()));
+		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(13);
+		rig.StepStart();
+		nStep := 70;
+	END_IF
+70:
+	IF rig.nStepScans >= 4 THEN
+		Check(rig.Lamps() = '----x', CONCAT('selector 13: block not connected ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Selector_14_Horn_And_Lamps_Follow_Key" Id="{c05a7602-0870-58f5-b8e6-ea969d5c1e20}">
+      <Declaration><![CDATA[// Selector 14: lamps up, down, left and right and the horn follow the key switch.
+METHOD PRIVATE Selector_14_Horn_And_Lamps_Follow_Key
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Selector_14_Horn_And_Lamps_Follow_Key');
+sCurrent := 'Selector_14_Horn_And_Lamps_Follow_Key: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(14);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 3 THEN
+		Check(rig.Lamps() = '-----', CONCAT('key off: no lamp ', rig.State()));
+		Check(NOT rig.fb.horn, CONCAT('key off: no horn ', rig.State()));
+		rig.SetKey(TRUE);
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.nStepScans >= 3 THEN
+		Check(rig.Lamps() = 'xxxx-', CONCAT('key on: four lamps, no error lamp ', rig.State()));
+		Check(rig.fb.horn, CONCAT('key on: horn ', rig.State()));
+		rig.SetKey(FALSE);
+		rig.StepStart();
+		nStep := 30;
+	END_IF
+30:
+	IF rig.nStepScans >= 3 THEN
+		Check(rig.Lamps() = '-----', CONCAT('key off again: no lamp ', rig.State()));
+		Check(NOT rig.fb.horn, CONCAT('key off again: no horn ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Cover_Lamps_Show_The_Switches" Id="{ccf54349-b998-5a32-bf59-481502d8ab10}">
+      <Declaration><![CDATA[// Selector 1: up is lit while the cover is not at its open switch, down while it is not at its closed switch; with the key on the error lamp shows a limit switch fault.
+METHOD PRIVATE Cover_Lamps_Show_The_Switches
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Cover_Lamps_Show_The_Switches');
+sCurrent := 'Cover_Lamps_Show_The_Switches: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(1);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 5 THEN
+		Check(rig.Lamps() = 'x----', CONCAT('closed: up lit, down dark ', rig.State()));
+		rig.cov.AllOpen();
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.nStepScans >= 5 THEN
+		Check(rig.Lamps() = '-x---', CONCAT('open: up dark, down lit ', rig.State()));
+		rig.cov.SetBoth(1); rig.SetKey(TRUE);
+		rig.StepStart();
+		nStep := 30;
+	END_IF
+30:
+	IF rig.nStepScans >= 5 THEN
+		Check(rig.Lamps() = '----x', CONCAT('both switches reached: error lamp ', rig.State()));
+		rig.cov.SetMid(1);
+		rig.StepStart();
+		nStep := 40;
+	END_IF
+40:
+	IF rig.nStepScans >= 5 THEN
+		Check(rig.Lamps() = 'xx---', CONCAT('between the switches: up and down lit, no error ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Cover_Key_On_Hold_Up_Opens_Release_Stops" Id="{8bb66184-1178-5350-a81c-d8bd5e8d3745}">
+      <Declaration><![CDATA[// Key on, selector 1: up held opens cover 1 (the block does the order); releasing the button stops the run.
+METHOD PRIVATE Cover_Key_On_Hold_Up_Opens_Release_Stops
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Cover_Key_On_Hold_Up_Opens_Release_Stops');
+sCurrent := 'Cover_Key_On_Hold_Up_Opens_Release_Stops: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(1); rig.SetKey(TRUE);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 4 THEN
+		Check(rig.cov.OpenOutputs() = '---' AND rig.cov.CloseOutputs() = '---', CONCAT('nothing moves without a button ', rig.State()));
+		rig.SetUp(TRUE);
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.nStepScans >= 25 THEN
+		Check(rig.cov.OpenOutputs() = 'x--' AND rig.cov.CloseOutputs() = '---', CONCAT('up held: cover 1 opens ', rig.State()));
+		rig.SetUp(FALSE);
+		rig.StepStart();
+		nStep := 30;
+	END_IF
+30:
+	IF rig.nStepScans >= 25 THEN
+		Check(rig.cov.OpenOutputs() = '---' AND rig.cov.CloseOutputs() = '---', CONCAT('the release stops the run ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Cover_Key_On_Hold_Down_Closes_Release_Stops" Id="{c83c0cd9-3eb6-55a2-b816-323dfea06206}">
+      <Declaration><![CDATA[// Key on, selector 1, all covers open: down held closes cover 2 first; releasing the button stops the run.
+METHOD PRIVATE Cover_Key_On_Hold_Down_Closes_Release_Stops
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Cover_Key_On_Hold_Down_Closes_Release_Stops');
+sCurrent := 'Cover_Key_On_Hold_Down_Closes_Release_Stops: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.cov.AllOpen(); rig.SetSelector(1); rig.SetKey(TRUE);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 5 THEN
+		Check(rig.cov.OpenOutputs() = '---' AND rig.cov.CloseOutputs() = '---', CONCAT('nothing moves without a button ', rig.State()));
+		rig.SetDown(TRUE);
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.nStepScans >= 25 THEN
+		Check(rig.cov.CloseOutputs() = '-x-' AND rig.cov.OpenOutputs() = '---', CONCAT('down held: cover 2 closes first ', rig.State()));
+		rig.SetDown(FALSE);
+		rig.StepStart();
+		nStep := 30;
+	END_IF
+30:
+	IF rig.nStepScans >= 5 THEN
+		Check(rig.cov.OpenOutputs() = '---' AND rig.cov.CloseOutputs() = '---', CONCAT('the release stops the run ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Cover_Key_On_Up_And_Down_Together_Do_Nothing" Id="{45882c46-1e5d-568f-b3a6-e605869d898a}">
+      <Declaration><![CDATA[// Key on, selector 1: up and down pressed together start nothing.
+METHOD PRIVATE Cover_Key_On_Up_And_Down_Together_Do_Nothing
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Cover_Key_On_Up_And_Down_Together_Do_Nothing');
+sCurrent := 'Cover_Key_On_Up_And_Down_Together_Do_Nothing: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(1); rig.SetKey(TRUE); rig.SetUp(TRUE); rig.SetDown(TRUE);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 12 THEN
+		Check(rig.cov.OpenOutputs() = '---' AND rig.cov.CloseOutputs() = '---', CONCAT('up and down together ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Cover_Run_Stops_When_Selector_Leaves_1_To_3" Id="{aa8114db-f941-5979-932b-2f7554079737}">
+      <Declaration><![CDATA[// A run started by the pendant stops when the selector leaves 1 to 3 although the button is still held.
+METHOD PRIVATE Cover_Run_Stops_When_Selector_Leaves_1_To_3
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Cover_Run_Stops_When_Selector_Leaves_1_To_3');
+sCurrent := 'Cover_Run_Stops_When_Selector_Leaves_1_To_3: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(1); rig.SetKey(TRUE); rig.SetUp(TRUE);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 6 THEN
+		Check(rig.cov.OpenOutputs() = 'x--', CONCAT('cover 1 opens ', rig.State()));
+		rig.SetSelector(4);
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.nStepScans >= 4 THEN
+		Check(rig.cov.OpenOutputs() = '---' AND rig.cov.CloseOutputs() = '---', CONCAT('the run stops with the selector ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Cover_Key_Off_Up_Opens" Id="{dc58cb06-123b-57e2-a1c2-45b91a947fc6}">
+      <Declaration><![CDATA[// Key off (automatic), selector 1: up opens cover 1 (the level, no hold-to-run).
+METHOD PRIVATE Cover_Key_Off_Up_Opens
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Cover_Key_Off_Up_Opens');
+sCurrent := 'Cover_Key_Off_Up_Opens: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(1); rig.SetUp(TRUE);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 6 THEN
+		Check(rig.cov.OpenOutputs() = 'x--' AND rig.cov.CloseOutputs() = '---', CONCAT('up: cover 1 opens ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Hydraulics_Start_Button_Toggles_Pump" Id="{d3cc7a05-ce23-56ac-90ec-a7bd110bc4c7}">
+      <Declaration><![CDATA[// Key on, selector 15: each press of start (the edge, not the level) toggles the hydraulics enable; the lamps show pump and pressure.
+METHOD PRIVATE Hydraulics_Start_Button_Toggles_Pump
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Hydraulics_Start_Button_Toggles_Pump');
+sCurrent := 'Hydraulics_Start_Button_Toggles_Pump: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(15); rig.SetKey(TRUE);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 4 THEN
+		Check(NOT rig.hyd.stOut.bOilPumpEnable, CONCAT('the pump is off ', rig.State()));
+		rig.SetStart(TRUE);
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.nStepScans >= 15 THEN
+		Check(rig.hyd.stOut.bOilPumpEnable AND rig.hyd.fb.Enable, CONCAT('the pump is enabled ', rig.State()));
+		Check(rig.hyd.fb.PumpRunning AND rig.hyd.fb.OilPressureOK, CONCAT('pump running with pressure ', rig.State()));
+		Check(rig.stOut.bLampLeft AND rig.stOut.bLampUp AND NOT rig.stOut.bLampDown, CONCAT('lamps: pump running, pressure, brake closed ', rig.State()));
+		rig.SetStart(FALSE);
+		rig.StepStart();
+		nStep := 30;
+	END_IF
+30:
+	IF rig.nStepScans >= 8 THEN
+		Check(rig.hyd.stOut.bOilPumpEnable AND rig.hyd.fb.Enable, CONCAT('the pump is still enabled after the button was held and released ', rig.State()));
+		rig.SetStart(TRUE);
+		rig.StepStart();
+		nStep := 40;
+	END_IF
+40:
+	IF rig.nStepScans >= 8 THEN
+		Check(NOT rig.hyd.stOut.bOilPumpEnable AND NOT rig.hyd.fb.Enable, CONCAT('the second press stops the pump ', rig.State()));
+		rig.SetStart(FALSE);
+		rig.StepStart();
+		nStep := 50;
+	END_IF
+50:
+	IF rig.nStepScans >= 6 THEN
+		Check(NOT rig.stOut.bLampLeft AND NOT rig.stOut.bLampUp, CONCAT('lamps: pump stopped ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Hydraulics_Key_Off_Buttons_Do_Nothing" Id="{e6abdafa-394a-5cec-9ecb-5cd6a3eacfaf}">
+      <Declaration><![CDATA[// Key off, selector 15: start and up change nothing (the buttons work with the key on only).
+METHOD PRIVATE Hydraulics_Key_Off_Buttons_Do_Nothing
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Hydraulics_Key_Off_Buttons_Do_Nothing');
+sCurrent := 'Hydraulics_Key_Off_Buttons_Do_Nothing: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(15); rig.SetStart(TRUE); rig.SetUp(TRUE);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 15 THEN
+		Check(NOT rig.hyd.stOut.bOilPumpEnable AND NOT rig.hyd.fb.Enable, CONCAT('no pump ', rig.State()));
+		Check(NOT rig.stOut.bLampLeft AND NOT rig.stOut.bLampUp AND NOT rig.stOut.bLampDown, CONCAT('no lamp ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Hydraulics_Up_Opens_Brake_Down_Closes" Id="{2af0253e-dd2a-5553-9a74-dd28f4a68bc7}">
+      <Declaration><![CDATA[// Key on, selector 15, pump running: up held opens the brake (pressure delay 3 s), down closes it; the lamps follow.
+METHOD PRIVATE Hydraulics_Up_Opens_Brake_Down_Closes
+VAR_INST
+	rig		: FB_PendantRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Hydraulics_Up_Opens_Brake_Down_Closes');
+sCurrent := 'Hydraulics_Up_Opens_Brake_Down_Closes: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.SetSelector(15);
+	rig.SetKey(TRUE);
+	rig.SetClearing(TRUE);
+	rig.SetStart(TRUE);
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 3 THEN
+		rig.SetStart(FALSE);
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.hyd.fb.OilPressureOK THEN
+		rig.SetUp(TRUE);
+		rig.StepStart();
+		nStep := 30;
+	ELSIF rig.StepTime(T#2S) THEN
+		Check(FALSE, 'the pump did not come up');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+30:
+	IF rig.hyd.fb.BrakeOpen THEN
+		rig.StepStart();
+		nStep := 35;
+	ELSIF rig.StepTime(T#8S) THEN
+		Check(FALSE, 'up held did not open the brake');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+35:
+	IF rig.nStepScans >= 3 THEN
+		Check(rig.stOut.bLampDown AND NOT rig.stOut.bLampUp, CONCAT('lamps: pressure, brake open ', rig.State()));
+		rig.SetUp(FALSE);
+		rig.SetDown(TRUE);
+		rig.StepStart();
+		nStep := 40;
+	END_IF
+40:
+	IF NOT rig.hyd.fb.BrakeOpen THEN
+		Check(NOT rig.hyd.stOut.bBrakeAzEl, CONCAT('the brake output is off ', rig.State()));
+		rig.StepStart();
+		nStep := 45;
+	ELSIF rig.StepTime(T#1S) THEN
+		Check(FALSE, 'down held did not close the brake');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+45:
+	IF rig.nStepScans >= 3 THEN
+		Check(rig.stOut.bLampUp AND NOT rig.stOut.bLampDown, CONCAT('lamps: pressure, brake closed ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>
