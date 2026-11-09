@@ -3,6 +3,7 @@
   <POU Name="FB_FocusControl" Id="{27922653-650e-4327-85ba-374d2f945b2c}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl EXTENDS FB_BaseAxis IMPLEMENTS I_Focus
 VAR_INPUT
+	stIn				: ST_FocusIn;	// process inputs, linked in the application (#30)
 	fMinPosition		: LREAL := 0;	// minimum position
 	fMaxPosition		: LREAL := 100;	// maximum position
 	eTelescopeMode		: E_TelescopeMode;
@@ -21,10 +22,9 @@ VAR_INPUT
 	// ADS port of the PLC runtime whose persistent data are written (#8), 851 = first PLC runtime
 	nPersistentAdsPort		: UINT := 851;
 
-	// Set TRUE (online in XAE, by ADS or from a program, or by the Visu Start button) to home the focus on its cam, calibrated
-	// or not, e.g. when the stored position is in doubt. Cleared by the block; a request that is not accepted is logged. Not for the MAIN call, which
-	// would overwrite every online write.
-	bManualHome				: BOOL;
+END_VAR
+VAR_IN_OUT
+	stOut			: ST_FocusOut;	// process outputs, linked in the application (#30)
 END_VAR
 VAR_OUTPUT
 	bFocusUnlocked		: BOOL;
@@ -40,18 +40,21 @@ VAR
 	fHomingReference	: LREAL;	// reference of the running homing, fixed in _StartHoming (#115); 0 = not set
 	bHomeStopped		: BOOL;		// Stop() hit a homing: it ends the homing request once the axis is out of it, locked and not re-homed (#114)
 	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
-	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
+	ObFocusUnlock : BOOL;		// whether focus is unlocked
 	tonFocusDelay		: TON;
 	fbDriveEnable		: FB_FocusDriveEnable;		// the only writer of bEnable in this block (#108, #110, #111, #114)
 	bManualUnlock		: BOOL;		// manual override to unlock the focus
+	// Request to home the focus on its cam, calibrated or not, e.g. when the stored position is in doubt: call ManualHome()
+	// (or set it TRUE online in XAE). Cleared by the block; a request that is not accepted is logged and eManualHome says why (#31).
+	bManualHome			: BOOL;
 	tonComm 			: TON := (PT:=fTelemetryInterval);
 	//getlastposition:	BOOL := TRUE;
 	fbAxisEvent			: FB_EventLog;
 	fbCalibrationEvent	: FB_EventLog;
 	eHomingMode			: MC_HOMINGMODE := MC_DefaultHoming;
 	
-	IbLimitNear    AT%I*: BOOL;	// DIN29 3.4
-	IbLimitFar     AT%I*: BOOL;	// DIN30 3.5
+	IbLimitNear: BOOL;	// DIN29 3.4
+	IbLimitFar: BOOL;	// DIN30 3.5
 	refAxis			: AXIS_REF;
 
 	// write of fLastPosition to disk while running, see _WritePersistentPosition (#8)
@@ -80,7 +83,11 @@ VAR PERSISTENT
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(*
+      <ST><![CDATA[// process inputs of this scan
+IbLimitNear := stIn.bLimitNear;
+IbLimitFar := stIn.bLimitFar;
+
+(*
 Focus Control Unit
 spindle gear: 5mm
 brake: 86 61103H00 Var. 0005 Index C; 24VDC geglattet 0,25 A P1672/R7
@@ -351,7 +358,9 @@ IF tonComm.Q THEN // publish new payload every fTelemetryInterval
 	THIS^.SendTelemetry();	
 END_IF
 
-HandleEvents();]]></ST>
+HandleEvents();
+// process outputs of this scan
+stOut.bUnlock := ObFocusUnlock;]]></ST>
     </Implementation>
     <Method Name="_StartHoming" Id="{d763a0dd-f5c6-4dbb-a6cd-b9a5c12596fe}">
       <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_Direct to the stored last position if there is one, else cam homing to fHomingPosition (the choice is stored in eHomingMode, which the body uses).
@@ -466,6 +475,15 @@ persistWriteEvent(
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
 	Comm 			:= fbComm);
 ]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ManualHome" Id="{53fb6dbe-8a2e-46a5-8655-6c86c7bb7980}">
+      <Declaration><![CDATA[// Request a manual re-home on the cam, calibrated or not (HalfBROT#138). The result of the request is eManualHome.
+METHOD ManualHome : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bManualHome := TRUE;
+ManualHome := TRUE;]]></ST>
       </Implementation>
     </Method>
     <Method Name="Stop" Id="{afb66802-078c-4672-893d-9d18ed5b7993}">
@@ -607,6 +625,9 @@ fbComm.PublishLREAL('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.CURRSPEED'
     <LineIds Name="FB_FocusControl">
       <LineId Id="6020" Count="115" />
       <LineId Id="136" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.ManualHome">
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_FocusControl.HandleEvents">
       <LineId Id="1" Count="14" />

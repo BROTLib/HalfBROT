@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="ST_HydraulicsIn" Id="{9f362bf3-82bc-49c9-ab39-fe4ac05a8f75}">
+    <Declaration><![CDATA[// Process inputs of FB_HydraulicsControl, linked in the application (GVL_IO). Passed as VAR_INPUT: the block gets a copy (#30, #31).
+TYPE ST_HydraulicsIn :
+STRUCT
+	bOilLow	: BOOL;	// 2.1
+	bOilHigh	: BOOL;	// ?
+	bOilPressureOK	: BOOL;	// 2.3
+	bOilHot	: BOOL;	// 2.4
+	bOilCold	: BOOL;	// 2.5
+	bOilFilterDirty	: BOOL;	// 2.6
+	bPumpRunning	: BOOL;	// 2.7
+	bSuctionRunning	: BOOL;	// 2.8
+	nOilLevel	: INT;	// BT2
+	bOilPanMaximum	: BOOL;	// DIN39 4.6
+	bOilReserve	: BOOL;	// DIN40 4.7
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

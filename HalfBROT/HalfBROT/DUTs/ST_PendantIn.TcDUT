@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="ST_PendantIn" Id="{83d6ed70-79ad-4d03-9d65-6bf012cc99dc}">
+    <Declaration><![CDATA[// Process inputs of FB_PendantControl, linked in the application (GVL_IO) (#30, #31).
+TYPE ST_PendantIn :
+STRUCT
+	bBCD0	: BOOL;	// selector, bit 0
+	bBCD2	: BOOL;	// selector, bit 1
+	bBCD4	: BOOL;	// selector, bit 2
+	bBCD8	: BOOL;	// selector, bit 3
+	bResetSwitch	: BOOL;	// 
+	bDirectionUp	: BOOL;	// 
+	bDirectionDown	: BOOL;	// 
+	bKeySwitch	: BOOL;	// 
+	bStartSwitch	: BOOL;	// 
+	bDirectionLeft	: BOOL;	// 
+	bDirectionRight	: BOOL;	// 
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

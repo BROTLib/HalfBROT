@@ -15,7 +15,8 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(* Azimuth Axis control section
+      <ST><![CDATA[_ReadIn();
+(* Azimuth Axis control section
 Power must be on and brake must be open for the axis to operate
 *)
 
@@ -23,7 +24,7 @@ Power must be on and brake must be open for the axis to operate
 tonReadyDelay(IN :=  fbAxis.Enable, PT := T#3000MS, Q=> bReady);
 
 // limit the input position angle
-fPosition := LIMIT(fMinPosition, fPosition, fMaxPosition);
+fTarget := LIMIT(fMinPosition, fPosition, fMaxPosition);
 
 // conduct the calibrated signal
 bCalibrated := fbAxis.Calibrated;
@@ -31,7 +32,7 @@ bCalibrated := fbAxis.Calibrated;
 // the homing overrides (AcceptBlockedDriveSignal, positive limit) stay on with bHomeAxis until the homing has finished,
 // see _HomeRequest (#136): the NC clears Homed (Calibrated) when MC_Home starts and sets it before the homing is done
 IF bHomeAxis THEN
-	fPosition := fCalibPosition;
+	fTarget := fCalibPosition;
 	bMoveAxis := FALSE;
 	bTracking := FALSE;
 END_IF
@@ -57,7 +58,7 @@ fbAxis(
 	Enable 			:= bEnable AND bAtRest AND bBrakeOpen,
 	Reset 			:= bReset,
 	Tracking 		:= bTracking,
-	Position 		:= fPosition, 
+	Position 		:= fTarget, 
 	Velocity 		:= fVelocity,
 	Enable_Positive := inDigitalInputs.1 OR bHomeAxis,
 	Enable_Negative := inDigitalInputs.0,
