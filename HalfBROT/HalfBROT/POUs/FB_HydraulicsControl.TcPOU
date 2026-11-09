@@ -3,6 +3,7 @@
   <POU Name="FB_HydraulicsControl" Id="{0d9c5732-af19-4096-a83e-065687a13da0}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_HydraulicsControl IMPLEMENTS I_Hydraulics, I_Brake
 VAR_INPUT
+	stIn				: ST_HydraulicsIn;	// process inputs, linked in the application (#30)
 	bManualSuction		: BOOL;				// manual override to start the suction pump
 	bManualPumpStop		: BOOL;				// manual override to stop the pump
 	bBrakeClearing		: BOOL;				// external clearing for brakes
@@ -16,6 +17,9 @@ VAR_INPUT
 	nMinValidPanLevel	: INT := -32768;	// raw oil level below this is a sensor fault (wire break); the default accepts every value, no guard (MONETS#32)
 	nMaxValidPanLevel	: INT := 32767;		// raw oil level above this is a sensor fault (over-range); the default accepts every value, no guard
 	tPumpResetPulse		: TIME := T#1S;		// length of the reset pulse for the pump starters, also sent once before the first pump start after a PLC start and after a main pump failure; T#0S = old behaviour, reset outputs follow bReset (#120)
+END_VAR
+VAR_IN_OUT
+	stOut			: ST_HydraulicsOut;	// process outputs, linked in the application (#30)
 END_VAR
 VAR_OUTPUT
 	bBrakeOpen			: BOOL;				// status of the brake: is the brake open?
@@ -48,22 +52,22 @@ VAR
 	ftManualBrake		: F_TRIG;			// manual brake switch went off: the request ends
 	fbComm				: I_Comm;
  
-	IbOilLow			AT%I* : BOOL;	// 2.1
-	IbOilHigh			AT%I* : BOOL;	// ?
-	IbOilPressureOK		AT%I* : BOOL;	// 2.3
-	IbOilHot			AT%I* : BOOL;	// 2.4
-	IbOilCold			AT%I* : BOOL;	// 2.5
-	IbOilFilterDirty	AT%I* : BOOL;	// 2.6
-	IbPumpRunning		AT%I* : BOOL;	// 2.7
-	IbSuctionRunning	AT%I* : BOOL;	// 2.8
-	InOilLevel			AT%I* : INT;	//BT2
-	IbOilpanMaximum		AT%I* : BOOL;	//DIN39 4.6
-	IbOilReserve		AT%I* : BOOL;	//DIN40 4.7
-	ObOilPumpEnable		AT%Q* : BOOL;	//DOUT4 0.3
-	ObOilSuctionEnable	AT%Q* : BOOL; //DOUT5 0.4	
-	ObBrakeAzEl			AT%Q* : BOOL;	// brake set
-	ObResetOilPump		AT%Q* : BOOL;
-	ObResetSuctionPump	AT%Q* : BOOL;
+	IbOilLow : BOOL;	// 2.1
+	IbOilHigh : BOOL;	// ?
+	IbOilPressureOK : BOOL;	// 2.3
+	IbOilHot : BOOL;	// 2.4
+	IbOilCold : BOOL;	// 2.5
+	IbOilFilterDirty : BOOL;	// 2.6
+	IbPumpRunning : BOOL;	// 2.7
+	IbSuctionRunning : BOOL;	// 2.8
+	InOilLevel : INT;	//BT2
+	IbOilpanMaximum : BOOL;	//DIN39 4.6
+	IbOilReserve : BOOL;	//DIN40 4.7
+	ObOilPumpEnable : BOOL;	//DOUT4 0.3
+	ObOilSuctionEnable : BOOL; //DOUT5 0.4	
+	ObBrakeAzEl : BOOL;	// brake set
+	ObResetOilPump : BOOL;
+	ObResetSuctionPump : BOOL;
 	
 	tonPressureWatchdog	: TON;				// monitors the pressure of the pump is running
 	tonSuctionWatchdog	: TON;				// monitors the activation of the suction pump
@@ -115,7 +119,20 @@ VAR
 	statusWord, lastStatus:	UDINT;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(* 
+      <ST><![CDATA[// process inputs of this scan
+IbOilLow := stIn.bOilLow;
+IbOilHigh := stIn.bOilHigh;
+IbOilPressureOK := stIn.bOilPressureOK;
+IbOilHot := stIn.bOilHot;
+IbOilCold := stIn.bOilCold;
+IbOilFilterDirty := stIn.bOilFilterDirty;
+IbPumpRunning := stIn.bPumpRunning;
+IbSuctionRunning := stIn.bSuctionRunning;
+InOilLevel := stIn.nOilLevel;
+IbOilpanMaximum := stIn.bOilPanMaximum;
+IbOilReserve := stIn.bOilReserve;
+
+(* 
 Main control Logic for the Hydraulics system
 * power on delay for main pump and suction pump
 * start main pump if main control is ready (button pressed or remote)
@@ -460,7 +477,13 @@ brakeHydraulicsWarning(
 	Level 			:= ADSLOG_MSGTYPE_WARN,
 	FormatString 	:= '%s',
 	OnMessage 		:= 'Cannot open brake without running hydraulics.', 
-	comm 			:= fbComm);]]></ST>
+	comm 			:= fbComm);
+// process outputs of this scan
+stOut.bOilPumpEnable := ObOilPumpEnable;
+stOut.bOilSuctionEnable := ObOilSuctionEnable;
+stOut.bBrakeAzEl := ObBrakeAzEl;
+stOut.bResetOilPump := ObResetOilPump;
+stOut.bResetSuctionPump := ObResetSuctionPump;]]></ST>
     </Implementation>
     <Property Name="BrakeOpen" Id="{0f49c805-8206-4d47-881c-fcf69eddebfe}">
       <Declaration><![CDATA[PROPERTY BrakeOpen : BOOL]]></Declaration>

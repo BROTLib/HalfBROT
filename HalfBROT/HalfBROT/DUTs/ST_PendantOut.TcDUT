@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="ST_PendantOut" Id="{a413a276-48e2-4963-a266-4ff993dbe3eb}">
+    <Declaration><![CDATA[// Process outputs of FB_PendantControl, linked in the application (GVL_IO) (#30, #31).
+TYPE ST_PendantOut :
+STRUCT
+	bLampUp	: BOOL;	// 
+	bLampDown	: BOOL;	// 
+	bLampRight	: BOOL;	// 
+	bLampLeft	: BOOL;	// 
+	bLampError	: BOOL;	// 
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

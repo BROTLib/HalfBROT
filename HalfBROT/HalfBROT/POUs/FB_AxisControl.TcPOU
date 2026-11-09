@@ -3,6 +3,7 @@
   <POU Name="FB_AxisControl" Id="{6fdef2a3-176a-42ec-90be-24250bb425eb}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_AxisControl EXTENDS FB_BaseAxis IMPLEMENTS I_Axis
 VAR_INPUT
+	stIn				: ST_AxisIn;	// process inputs, linked in the application (#30); copied by _ReadIn(), call it first in the body
 	fMinPosition			: REAL := 0;
 	fMaxPosition			: REAL := 450.0;
 	fCalibPosition			: LREAL := 45.0; // position of the calibration cam, used by cam homing (elevation, azimuth): set it per telescope.
@@ -19,10 +20,10 @@ VAR
 	fTarget					: LREAL;	// target position: fPosition clamped to the range, passed to fbAxis (the input fPosition is not overwritten) (#31)
 	fSlewTime				: LREAL;	// time to reach target position
 
-	InDigitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
-	InDiagnostic	  AT%I*	: UDINT;	// diagnostic number
-	InTorque	 	  AT%I*	: INT;		// torque feedback of the drive in 0.1 % (fTorque = InTorque / 10)
-	IbSTO		  	  AT%I*	: BOOL;		// STO state of the drive: linked and shown in the Safety visualisation of MONETS/MONETN, not used by the axis logic
+	InDigitalInputs	: WORD;		// digitale inputs der Endlagen
+	InDiagnostic	: UDINT;	// diagnostic number
+	InTorque	: INT;		// torque feedback of the drive in 0.1 % (fTorque = InTorque / 10)
+	IbSTO	: BOOL;		// STO state of the drive: linked and shown in the Safety visualisation of MONETS/MONETN, not used by the axis logic
 
 	axisEvent			: FB_EventLog;
 	diagnosticEvent		: FB_EventLog;
@@ -67,6 +68,17 @@ END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
+    <Method Name="_ReadIn" Id="{6b895cd9-e3cc-4937-8e5a-c9577787eaec}">
+      <Declaration><![CDATA[// Copies the process inputs of this scan (stIn) into the variables the axis blocks use. Call first in the body of the axis block (#30).
+METHOD PROTECTED _ReadIn
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[InDigitalInputs := stIn.nDigitalInputs;
+InDiagnostic := stIn.nDiagnostic;
+InTorque := stIn.nTorque;
+IbSTO := stIn.bSTO;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="_JogRequest" Id="{e0399c0e-93c0-47d6-a46c-a5e54450385f}">
       <Declaration><![CDATA[// Jog requests bMovePos/bMoveNeg (#148), call every cycle right before fbAxis(...) and pass fbJogRequest.bJogPos/bJogNeg as
 // Jog_Forward/Jog_Backwards. A request that is stored while the axis cannot jog (disabled, error, homing, tracking, at the

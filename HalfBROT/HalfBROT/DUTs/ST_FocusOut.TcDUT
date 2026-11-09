@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="ST_FocusOut" Id="{e914862d-39e1-48a4-b245-0d8f39502c46}">
+    <Declaration><![CDATA[// Process outputs of FB_FocusControl, linked in the application (GVL_IO) (#30, #31).
+TYPE ST_FocusOut :
+STRUCT
+	bUnlock	: BOOL;	// whether the focus is unlocked
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

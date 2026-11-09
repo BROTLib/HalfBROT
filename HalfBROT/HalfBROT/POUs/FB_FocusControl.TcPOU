@@ -3,6 +3,7 @@
   <POU Name="FB_FocusControl" Id="{27922653-650e-4327-85ba-374d2f945b2c}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK FB_FocusControl EXTENDS FB_BaseAxis IMPLEMENTS I_Focus
 VAR_INPUT
+	stIn				: ST_FocusIn;	// process inputs, linked in the application (#30)
 	fMinPosition		: LREAL := 0;	// minimum position
 	fMaxPosition		: LREAL := 100;	// maximum position
 	eTelescopeMode		: E_TelescopeMode;
@@ -22,6 +23,9 @@ VAR_INPUT
 	nPersistentAdsPort		: UINT := 851;
 
 END_VAR
+VAR_IN_OUT
+	stOut			: ST_FocusOut;	// process outputs, linked in the application (#30)
+END_VAR
 VAR_OUTPUT
 	bFocusUnlocked		: BOOL;
 	eManualHome			: E_FocusManualHome;		// result of the last bManualHome request (for the Visu, #138)
@@ -36,7 +40,7 @@ VAR
 	fHomingReference	: LREAL;	// reference of the running homing, fixed in _StartHoming (#115); 0 = not set
 	bHomeStopped		: BOOL;		// Stop() hit a homing: it ends the homing request once the axis is out of it, locked and not re-homed (#114)
 	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
-	ObFocusUnlock AT%Q* : BOOL;		// whether focus is unlocked
+	ObFocusUnlock : BOOL;		// whether focus is unlocked
 	tonFocusDelay		: TON;
 	fbDriveEnable		: FB_FocusDriveEnable;		// the only writer of bEnable in this block (#108, #110, #111, #114)
 	bManualUnlock		: BOOL;		// manual override to unlock the focus
@@ -49,8 +53,8 @@ VAR
 	fbCalibrationEvent	: FB_EventLog;
 	eHomingMode			: MC_HOMINGMODE := MC_DefaultHoming;
 	
-	IbLimitNear    AT%I*: BOOL;	// DIN29 3.4
-	IbLimitFar     AT%I*: BOOL;	// DIN30 3.5
+	IbLimitNear: BOOL;	// DIN29 3.4
+	IbLimitFar: BOOL;	// DIN30 3.5
 	refAxis			: AXIS_REF;
 
 	// write of fLastPosition to disk while running, see _WritePersistentPosition (#8)
@@ -79,7 +83,11 @@ VAR PERSISTENT
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(*
+      <ST><![CDATA[// process inputs of this scan
+IbLimitNear := stIn.bLimitNear;
+IbLimitFar := stIn.bLimitFar;
+
+(*
 Focus Control Unit
 spindle gear: 5mm
 brake: 86 61103H00 Var. 0005 Index C; 24VDC geglattet 0,25 A P1672/R7
@@ -350,7 +358,9 @@ IF tonComm.Q THEN // publish new payload every fTelemetryInterval
 	THIS^.SendTelemetry();	
 END_IF
 
-HandleEvents();]]></ST>
+HandleEvents();
+// process outputs of this scan
+stOut.bUnlock := ObFocusUnlock;]]></ST>
     </Implementation>
     <Method Name="_StartHoming" Id="{d763a0dd-f5c6-4dbb-a6cd-b9a5c12596fe}">
       <Declaration><![CDATA[// Called by FB_BaseAxis.HomeAxis on FALSE -> TRUE: home with the reference position (BROTLib #62). MC_Direct to the stored last position if there is one, else cam homing to fHomingPosition (the choice is stored in eHomingMode, which the body uses).

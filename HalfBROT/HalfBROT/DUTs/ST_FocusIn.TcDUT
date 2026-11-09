@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="ST_FocusIn" Id="{53521348-9003-4dcb-bb38-cf08766023aa}">
+    <Declaration><![CDATA[// Process inputs of FB_FocusControl, linked in the application (GVL_IO) (#30, #31).
+TYPE ST_FocusIn :
+STRUCT
+	bLimitNear	: BOOL;	// DIN29 3.4
+	bLimitFar	: BOOL;	// DIN30 3.5
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

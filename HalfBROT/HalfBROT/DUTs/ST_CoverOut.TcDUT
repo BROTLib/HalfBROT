@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="ST_CoverOut" Id="{5d77f632-7195-474d-a202-c6f38fe638d7}">
+    <Declaration><![CDATA[// Process outputs of FB_CoverControl, linked in the application (GVL_IO) (#30, #31).
+TYPE ST_CoverOut :
+STRUCT
+	abOpen	: ARRAY[1..3] OF BOOL;	// open cover 1-3
+	abClose	: ARRAY[1..3] OF BOOL;	// close cover 1-3
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

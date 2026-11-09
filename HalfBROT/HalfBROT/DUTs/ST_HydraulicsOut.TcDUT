@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="ST_HydraulicsOut" Id="{68839697-42a3-4682-9bdd-e56ffb980f63}">
+    <Declaration><![CDATA[// Process outputs of FB_HydraulicsControl, linked in the application (GVL_IO). Passed as VAR_IN_OUT: the block writes it (#30, #31).
+TYPE ST_HydraulicsOut :
+STRUCT
+	bOilPumpEnable	: BOOL;	// DOUT4 0.3
+	bOilSuctionEnable	: BOOL;	// DOUT5 0.4
+	bBrakeAzEl	: BOOL;	// brake set
+	bResetOilPump	: BOOL;	// reset of the pump starter
+	bResetSuctionPump	: BOOL;	// reset of the suction pump starter
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

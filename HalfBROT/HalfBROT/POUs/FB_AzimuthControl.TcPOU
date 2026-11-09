@@ -15,7 +15,8 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(* Azimuth Axis control section
+      <ST><![CDATA[_ReadIn();
+(* Azimuth Axis control section
 Power must be on and brake must be open for the axis to operate
 *)
 
