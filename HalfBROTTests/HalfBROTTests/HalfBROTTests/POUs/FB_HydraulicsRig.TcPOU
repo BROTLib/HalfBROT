@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_HydraulicsRig" Id="{53448e04-cd1e-4b6c-b567-74840e181abb}" SpecialFunc="None">
+    <Declaration><![CDATA[// FB_HydraulicsControl with a plant: the pump feedback follows the pump enable output one scan later and the oil pressure
+// follows the pump (a starter and a pump that work), the suction feedback follows the suction enable. The sensors are healthy.
+// bAuto calls OpenBrake() in every scan (the automatic request of MONETcommon), bManual calls ManualBrake(bSwitch) and
+// feeds the switch to bBrakeClearing as MAIN of MONETS/MONETN does. tPumpResetPulse is T#0S: the pump starts at once.
+// StepStart()/StepTime() measure real time from the start of a step (the block timers run on the system time).
+FUNCTION_BLOCK FB_HydraulicsRig
+VAR
+	fbComm		: FB_NullComm;
+	fb			: HalfBROT.FB_HydraulicsControl(comm := fbComm);
+	stIn		: HalfBROT.ST_HydraulicsIn := (bOilLow := TRUE, bOilHigh := TRUE, bOilCold := TRUE, bOilFilterDirty := TRUE, nOilLevel := 8000);
+	stOut		: HalfBROT.ST_HydraulicsOut;
+	bClearing	: BOOL;
+	bAzLimit	: BOOL;
+	bAuto		: BOOL;
+	bManual		: BOOL;
+	bSwitch		: BOOL;
+	bPumpFollows	: BOOL := TRUE;
+	bPressure		: BOOL := TRUE;
+	bSuctionFollows	: BOOL := TRUE;
+	tHydraulicsWatchdog	: TIME := T#140S;
+	tonStep		: TON;
+	nScans		: UDINT;
+	nStepScans	: UDINT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="Scan" Id="{ef990531-7036-46e2-8d17-68e95108dea3}">
+      <Declaration><![CDATA[METHOD Scan
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[nScans := nScans + 1;
+nStepScans := nStepScans + 1;
+IF bPumpFollows THEN
+	stIn.bPumpRunning := stOut.bOilPumpEnable;
+END_IF
+stIn.bOilPressureOK := stIn.bPumpRunning AND bPressure;
+IF bSuctionFollows THEN
+	stIn.bSuctionRunning := stOut.bOilSuctionEnable;
+END_IF
+IF bAuto THEN
+	fb.OpenBrake();
+END_IF
+IF bManual THEN
+	bClearing := bSwitch;
+	fb.ManualBrake(bSwitch := bSwitch);
+END_IF
+fb(stIn := stIn, bBrakeClearing := bClearing, bAzimuthLimitSwitch := bAzLimit, tHydraulicsWatchdog := tHydraulicsWatchdog,
+	tPumpResetPulse := T#0S, stOut := stOut);
+tonStep(IN := TRUE, PT := T#1H);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepStart" Id="{de509a4c-ab06-4133-86da-24ce88516045}">
+      <Declaration><![CDATA[METHOD StepStart
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tonStep(IN := FALSE, PT := T#1H);
+nStepScans := 0;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepTime" Id="{b7417224-adf6-429d-8d6b-93a6e2a7a85a}">
+      <Declaration><![CDATA[METHOD StepTime : BOOL
+VAR_INPUT
+	tTime	: TIME;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[StepTime := tonStep.ET >= tTime;
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

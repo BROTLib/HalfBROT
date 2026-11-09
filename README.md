@@ -15,10 +15,10 @@ layer, on top of the core BROTLib library.
 > safety project. The `AT %I*` / `AT %Q*` variables in the blocks are mapped by the
 > consuming applications (MONETN, MONETS) in their own system projects.
 >
-> **Planned changes:** the blocks will stop using their inputs as internal state
-> (commands only through methods), the `AT` I/O moves out of the library into
-> structs, and each block gets an explicit state machine with TcUnit tests. See
-> [the plan](specs/plans/2026-10-11-commands-state-machines-io.md) (#31, #32).
+> **Changes in progress:** since 0.14.0 the blocks take commands only through methods and
+> the I/O through structs (no `AT` in the library); `HalfBROTTests` holds the TcUnit tests of
+> the blocks (hydraulics and covers so far), and each block gets an explicit state machine
+> next. See [the plan](specs/plans/2026-10-11-commands-state-machines-io.md) (#31, #32).
 
 ---
 
@@ -38,6 +38,7 @@ HalfBROT/
 │   │   │   ├── Focus.TcVIS, Cover.TcVIS, Hydraulics.TcVIS
 │   │   │   └── VisualizationManager.TcVMO
 │   │   └── GlobalTextList.TcGTLO # Global text list (visu texts, format strings)
+├── HalfBROTTests/                # TcUnit tests of the blocks (separate PLC project, run by CI)
 └── README.md
 ```
 

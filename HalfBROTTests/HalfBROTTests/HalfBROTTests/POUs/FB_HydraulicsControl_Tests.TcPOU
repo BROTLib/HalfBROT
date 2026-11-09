@@ -1,0 +1,779 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_HydraulicsControl_Tests" Id="{d8452675-ebc6-4a59-b2b7-70c8e83b4816}" SpecialFunc="None">
+    <Declaration><![CDATA[// Characterisation tests of HalfBROT.FB_HydraulicsControl (HalfBROT#32 step 3) through the I/O structs and the command methods
+// (#30, #31): start-up, the brake (pressure delay, clearing, pressure loss, CloseBrake, pump stop, azimuth limit), the manual
+// brake re-arm of #31, and the latched errors that need no more than 13 s. They pin what the block does today, they are
+// not a specification. Every test owns a rig (FB_HydraulicsRig, a plant behind the structs) and runs over many PLC cycles;
+// the block timers run on the system time, so the tests take real time (the longest about 15 s). Not covered: the 15 s
+// suction and 30 s pressure watchdogs.
+FUNCTION_BLOCK FB_HydraulicsControl_Tests EXTENDS FB_TestBase
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Idle_Everything_Off();
+Enable_Runs_Pump();
+Open_Brake_After_Pressure_Delay();
+No_Clearing_Keeps_Brake_Closed();
+Pressure_Loss_Closes_Brake_Auto_Reopens();
+CloseBrake_Closes_And_Ends_Request();
+Pump_Stop_Closes_Brake();
+Azimuth_Limit_Closes_Brake();
+Manual_Brake_Stays_Closed_After_Pressure_Loss();
+Manual_Brake_Reopens_After_Switch_Off_On();
+Manual_Switch_Off_Closes_Brake();
+Manual_Brake_Stays_Closed_After_Pump_Restart();
+Oil_Low_Is_Error_Until_Reset();
+Hydraulics_Watchdog_Is_Error();
+Main_Pump_Without_Feedback_Is_Error();
+]]></ST>
+    </Implementation>
+    <Method Name="Idle_Everything_Off" Id="{af31c6c4-c491-4484-90f4-a90d4dffaa2d}">
+      <Declaration><![CDATA[// No request, healthy sensors: no pump, no brake, no error, no starter reset.
+METHOD PRIVATE Idle_Everything_Off
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Idle_Everything_Off');
+sCurrent := 'Idle_Everything_Off: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+IF rig.nScans >= 5 THEN
+	Check(NOT rig.stOut.bOilPumpEnable, 'no pump enable');
+	Check(NOT rig.stOut.bOilSuctionEnable, 'no suction enable');
+	Check(NOT rig.stOut.bBrakeAzEl, 'brake output off');
+	Check(NOT rig.fb.bError, 'no error with healthy sensors');
+	Check(rig.fb.bBrakeClosed AND NOT rig.fb.bBrakeOpen, 'brake reported closed');
+	Check(NOT rig.stOut.bResetOilPump AND NOT rig.stOut.bResetSuctionPump, 'no starter reset');
+		nStep := 99;
+		TEST_FINISHED();
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Enable_Runs_Pump" Id="{81a68b96-1cf6-418f-a9e8-78a36cd9fe8d}">
+      <Declaration><![CDATA[// Enable starts the pump; the plant reports it running with pressure; the brake is not opened by the pump start.
+METHOD PRIVATE Enable_Runs_Pump
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Enable_Runs_Pump');
+sCurrent := 'Enable_Runs_Pump: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 6 THEN
+		Check(rig.fb.Enable, 'Enable reads back');
+		Check(rig.stOut.bOilPumpEnable, 'pump enable output');
+		Check(rig.fb.PumpRunning AND rig.fb.OilPressureOK, 'pump running and pressure reported');
+		Check(NOT rig.fb.Error, 'no error');
+		Check(NOT rig.stOut.bBrakeAzEl, 'the pump start does not open the brake');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Open_Brake_After_Pressure_Delay" Id="{11449a57-4092-4f05-bae3-7049eca1cdd7}">
+      <Declaration><![CDATA[// OpenBrake() each scan: the brake output comes about 3 s after the pressure, the report 1 s after the output.
+METHOD PRIVATE Open_Brake_After_Pressure_Delay
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Open_Brake_After_Pressure_Delay');
+sCurrent := 'Open_Brake_After_Pressure_Delay: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bClearing := TRUE;
+	rig.bAuto := TRUE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.StepTime(T#1S) THEN
+		Check(NOT rig.stOut.bBrakeAzEl, 'no brake output during the pressure delay');
+		nStep := 20;
+	END_IF
+20:
+	IF rig.stOut.bBrakeAzEl THEN
+		Check(rig.StepTime(T#2S500MS) AND NOT rig.StepTime(T#4S), 'the brake output comes about 3 s after the start');
+		Check(NOT rig.fb.bBrakeOpen, 'open is reported 1 s after the output, not with it');
+		rig.StepStart();
+		nStep := 30;
+	ELSIF rig.StepTime(T#6S) THEN
+		Check(FALSE, 'the brake output never came');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+30:
+	IF rig.fb.bBrakeOpen THEN
+		Check(rig.StepTime(T#800MS) AND NOT rig.StepTime(T#2S), 'open is reported about 1 s after the output');
+		Check(rig.fb.BrakeOpen AND NOT rig.fb.bBrakeClosed, 'BrakeOpen property and bBrakeClosed agree');
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#3S) THEN
+		Check(FALSE, 'open was never reported');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="No_Clearing_Keeps_Brake_Closed" Id="{0b9dc9f0-2872-46bd-8140-f339f25cbfe0}">
+      <Declaration><![CDATA[// Without bBrakeClearing the brake is not opened although it is requested and the pressure is there.
+METHOD PRIVATE No_Clearing_Keeps_Brake_Closed
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('No_Clearing_Keeps_Brake_Closed');
+sCurrent := 'No_Clearing_Keeps_Brake_Closed: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bClearing := FALSE;
+	rig.bAuto := TRUE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	bViol := bViol OR rig.stOut.bBrakeAzEl OR rig.fb.bBrakeOpen;
+	IF rig.StepTime(T#4S) THEN
+		Check(NOT bViol, 'the brake stays closed without the clearing');
+		Check(rig.fb.PumpRunning AND rig.fb.OilPressureOK, 'pump running with pressure');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Pressure_Loss_Closes_Brake_Auto_Reopens" Id="{f781da6c-2aa8-4619-90ae-61ed7764d784}">
+      <Declaration><![CDATA[// Pressure loss closes the brake after the 2 s debounce; with the automatic request still there it opens again after the pressure delay.
+METHOD PRIVATE Pressure_Loss_Closes_Brake_Auto_Reopens
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Pressure_Loss_Closes_Brake_Auto_Reopens');
+sCurrent := 'Pressure_Loss_Closes_Brake_Auto_Reopens: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bClearing := TRUE;
+	rig.bAuto := TRUE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.fb.bBrakeOpen THEN
+		rig.bPressure := FALSE;
+		rig.StepStart();
+		nStep := 20;
+	ELSIF rig.StepTime(T#8S) THEN
+		Check(FALSE, 'the brake never opened');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+20:
+	IF NOT rig.stOut.bBrakeAzEl THEN
+		Check(rig.StepTime(T#1S500MS), 'the brake holds during the 2 s debounce');
+		Check(NOT rig.fb.bBrakeOpen, 'closed is reported');
+		Check(rig.stOut.bOilPumpEnable, 'the pump enable stays');
+		rig.bPressure := TRUE;
+		rig.StepStart();
+		nStep := 30;
+	ELSIF rig.StepTime(T#4S) THEN
+		Check(FALSE, 'the brake did not close on the pressure loss');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+30:
+	IF rig.stOut.bBrakeAzEl THEN
+		Check(rig.StepTime(T#2S), 'the brake opens again only after the pressure delay');
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#6S) THEN
+		Check(FALSE, 'the automatic request did not open the brake again');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CloseBrake_Closes_And_Ends_Request" Id="{d605cc1d-575e-420d-af8b-5e2d2c84cf0a}">
+      <Declaration><![CDATA[// CloseBrake() closes the brake at once and the request ends: no automatic re-open without OpenBrake().
+METHOD PRIVATE CloseBrake_Closes_And_Ends_Request
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('CloseBrake_Closes_And_Ends_Request');
+sCurrent := 'CloseBrake_Closes_And_Ends_Request: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bClearing := TRUE;
+	rig.bAuto := TRUE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.fb.bBrakeOpen THEN
+		rig.bAuto := FALSE;
+		rig.fb.CloseBrake();
+		rig.StepStart();
+		nStep := 20;
+	ELSIF rig.StepTime(T#8S) THEN
+		Check(FALSE, 'the brake never opened');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+20:
+	IF NOT rig.stOut.bBrakeAzEl THEN
+		Check(NOT rig.StepTime(T#300MS), 'the brake output drops at once');
+		Check(NOT rig.fb.bBrakeOpen, 'closed is reported');
+		rig.StepStart();
+		nStep := 30;
+	ELSIF rig.StepTime(T#1S) THEN
+		Check(FALSE, 'CloseBrake() did not close the brake');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+30:
+	bViol := bViol OR rig.stOut.bBrakeAzEl;
+	IF rig.StepTime(T#4S) THEN
+		Check(NOT bViol, 'the brake stays closed with the pressure there');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Pump_Stop_Closes_Brake" Id="{2630b9bc-84ac-4d5a-9ed9-e132c6c8ea4b}">
+      <Declaration><![CDATA[// ManualStopPump drops the pump enable; with the pump the brake closes.
+METHOD PRIVATE Pump_Stop_Closes_Brake
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Pump_Stop_Closes_Brake');
+sCurrent := 'Pump_Stop_Closes_Brake: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bClearing := TRUE;
+	rig.bAuto := TRUE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.fb.bBrakeOpen THEN
+		rig.bAuto := FALSE;
+		rig.fb.ManualStopPump := TRUE;
+		rig.StepStart();
+		nStep := 20;
+	ELSIF rig.StepTime(T#8S) THEN
+		Check(FALSE, 'the brake never opened');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+20:
+	IF NOT rig.stOut.bBrakeAzEl THEN
+		Check(NOT rig.StepTime(T#300MS), 'the brake output drops with the pump');
+		Check(NOT rig.stOut.bOilPumpEnable, 'pump enable off');
+		Check(NOT rig.fb.bBrakeOpen, 'closed is reported');
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#1S) THEN
+		Check(FALSE, 'the pump stop did not close the brake');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Azimuth_Limit_Closes_Brake" Id="{9a08834e-2654-43c9-9817-2c1c56009e0a}">
+      <Declaration><![CDATA[// The azimuth limit switch closes the brake and holds it closed while it is active, although the request goes on.
+METHOD PRIVATE Azimuth_Limit_Closes_Brake
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Azimuth_Limit_Closes_Brake');
+sCurrent := 'Azimuth_Limit_Closes_Brake: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bClearing := TRUE;
+	rig.bAuto := TRUE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.fb.bBrakeOpen THEN
+		rig.bAzLimit := TRUE;
+		rig.StepStart();
+		nStep := 20;
+	ELSIF rig.StepTime(T#8S) THEN
+		Check(FALSE, 'the brake never opened');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+20:
+	IF NOT rig.stOut.bBrakeAzEl THEN
+		Check(NOT rig.StepTime(T#300MS), 'the brake output drops at once');
+		rig.StepStart();
+		nStep := 30;
+	ELSIF rig.StepTime(T#1S) THEN
+		Check(FALSE, 'the azimuth limit did not close the brake');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+30:
+	bViol := bViol OR rig.stOut.bBrakeAzEl;
+	IF rig.StepTime(T#4S) THEN
+		Check(NOT bViol, 'the brake stays closed while the limit is active');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Manual_Brake_Stays_Closed_After_Pressure_Loss" Id="{c3defdb8-f866-47a2-9da0-9f0315e5661b}">
+      <Declaration><![CDATA[// #31: the cabinet switch opens the brake once; after a pressure loss it stays closed while the switch stays on, with the pressure back.
+METHOD PRIVATE Manual_Brake_Stays_Closed_After_Pressure_Loss
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Manual_Brake_Stays_Closed_After_Pressure_Loss');
+sCurrent := 'Manual_Brake_Stays_Closed_After_Pressure_Loss: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bManual := TRUE;
+	rig.bSwitch := TRUE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.fb.bBrakeOpen THEN
+		Check(rig.stOut.bBrakeAzEl, 'the switch opened the brake');
+		rig.bPressure := FALSE;
+		rig.StepStart();
+		nStep := 20;
+	ELSIF rig.StepTime(T#8S) THEN
+		Check(FALSE, 'the brake never opened');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+20:
+	IF NOT rig.stOut.bBrakeAzEl THEN
+		Check(rig.StepTime(T#1S500MS), 'the brake holds during the 2 s debounce');
+		rig.bPressure := TRUE;
+		bViol := FALSE;
+		rig.StepStart();
+		nStep := 30;
+	ELSIF rig.StepTime(T#4S) THEN
+		Check(FALSE, 'the brake did not close on the pressure loss');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+30:
+	bViol := bViol OR rig.stOut.bBrakeAzEl;
+	IF rig.StepTime(T#4S500MS) THEN
+		Check(rig.fb.bOilPressureOK AND rig.fb.PumpRunning, 'pressure is back');
+		Check(NOT bViol, 'the brake is not opened again while the switch stays on');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Manual_Brake_Reopens_After_Switch_Off_On" Id="{a0bc2c8a-18c9-4f2a-8537-d6a005e6b6b6}">
+      <Declaration><![CDATA[// #31: after CloseBrake() the brake stays closed while the switch stays on; switch off and on opens it again.
+METHOD PRIVATE Manual_Brake_Reopens_After_Switch_Off_On
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Manual_Brake_Reopens_After_Switch_Off_On');
+sCurrent := 'Manual_Brake_Reopens_After_Switch_Off_On: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bManual := TRUE;
+	rig.bSwitch := TRUE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.fb.bBrakeOpen THEN
+		rig.fb.CloseBrake();
+		rig.StepStart();
+		nStep := 20;
+	ELSIF rig.StepTime(T#8S) THEN
+		Check(FALSE, 'the brake never opened');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+20:
+	IF NOT rig.stOut.bBrakeAzEl THEN
+		Check(NOT rig.StepTime(T#300MS), 'CloseBrake() closes at once');
+		bViol := FALSE;
+		rig.StepStart();
+		nStep := 30;
+	ELSIF rig.StepTime(T#1S) THEN
+		Check(FALSE, 'CloseBrake() did not close the brake');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+30:
+	bViol := bViol OR rig.stOut.bBrakeAzEl;
+	IF rig.StepTime(T#4S) THEN
+		Check(NOT bViol, 'the brake stays closed while the switch stays on');
+		rig.bSwitch := FALSE;
+		rig.StepStart();
+		nStep := 40;
+	END_IF
+40:
+	IF rig.StepTime(T#500MS) THEN
+		Check(NOT rig.stOut.bBrakeAzEl, 'the brake is closed with the switch off');
+		rig.bSwitch := TRUE;
+		rig.StepStart();
+		nStep := 50;
+	END_IF
+50:
+	IF rig.stOut.bBrakeAzEl THEN
+		Check(rig.StepTime(T#2S500MS), 'the switch off and on opens the brake after the pressure delay');
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#6S) THEN
+		Check(FALSE, 'the brake did not open again after the switch went off and on');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Manual_Switch_Off_Closes_Brake" Id="{749f68d1-cd4d-47bd-b950-4c98cccdafe1}">
+      <Declaration><![CDATA[// The permission: switch off closes the brake at once (bBrakeClearing) and ends the request.
+METHOD PRIVATE Manual_Switch_Off_Closes_Brake
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Manual_Switch_Off_Closes_Brake');
+sCurrent := 'Manual_Switch_Off_Closes_Brake: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bManual := TRUE;
+	rig.bSwitch := TRUE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.fb.bBrakeOpen THEN
+		rig.bSwitch := FALSE;
+		rig.StepStart();
+		nStep := 20;
+	ELSIF rig.StepTime(T#8S) THEN
+		Check(FALSE, 'the brake never opened');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+20:
+	IF NOT rig.stOut.bBrakeAzEl THEN
+		Check(NOT rig.StepTime(T#300MS), 'the brake output drops at once');
+		Check(NOT rig.fb.bBrakeOpen, 'closed is reported');
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#1S) THEN
+		Check(FALSE, 'the switch off did not close the brake');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Manual_Brake_Stays_Closed_After_Pump_Restart" Id="{481dd080-73c3-403c-b0f7-09a40af86505}">
+      <Declaration><![CDATA[// #31: a pump stop closes the brake; the pump runs again with the switch still on: the brake stays closed.
+METHOD PRIVATE Manual_Brake_Stays_Closed_After_Pump_Restart
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Manual_Brake_Stays_Closed_After_Pump_Restart');
+sCurrent := 'Manual_Brake_Stays_Closed_After_Pump_Restart: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bManual := TRUE;
+	rig.bSwitch := TRUE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.fb.bBrakeOpen THEN
+		rig.fb.ManualStopPump := TRUE;
+		rig.StepStart();
+		nStep := 20;
+	ELSIF rig.StepTime(T#8S) THEN
+		Check(FALSE, 'the brake never opened');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+20:
+	IF NOT rig.stOut.bBrakeAzEl THEN
+		Check(NOT rig.StepTime(T#300MS), 'the pump stop closes the brake at once');
+		rig.StepStart();
+		nStep := 30;
+	ELSIF rig.StepTime(T#1S) THEN
+		Check(FALSE, 'the pump stop did not close the brake');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+30:
+	IF rig.StepTime(T#500MS) THEN
+		rig.fb.ManualStopPump := FALSE;
+		bViol := FALSE;
+		rig.StepStart();
+		nStep := 40;
+	END_IF
+40:
+	bViol := bViol OR rig.stOut.bBrakeAzEl;
+	IF rig.StepTime(T#4S500MS) THEN
+		Check(rig.fb.PumpRunning AND rig.fb.OilPressureOK, 'the pump runs again with pressure');
+		Check(NOT bViol, 'the brake is not opened again while the switch stays on');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Oil_Low_Is_Error_Until_Reset" Id="{7dd770d3-8939-424d-90a7-90bf5eda9856}">
+      <Declaration><![CDATA[// Oil low is a latched error that stops the pump; Reset() clears it once the oil is back and the pump starts again (Enable is still set).
+METHOD PRIVATE Oil_Low_Is_Error_Until_Reset
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Oil_Low_Is_Error_Until_Reset');
+sCurrent := 'Oil_Low_Is_Error_Until_Reset: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.nStepScans >= 5 THEN
+		rig.stIn.bOilLow := FALSE;
+		rig.StepStart();
+		nStep := 20;
+	END_IF
+20:
+	IF rig.nStepScans >= 3 THEN
+		Check(rig.fb.Error AND rig.fb.bOilLow, 'oil low is an error');
+		Check(NOT rig.stOut.bOilPumpEnable, 'the error stops the pump');
+		rig.stIn.bOilLow := TRUE;
+		rig.StepStart();
+		nStep := 30;
+	END_IF
+30:
+	IF rig.nStepScans >= 3 THEN
+		Check(rig.fb.Error, 'the error stays latched with the oil back');
+		rig.fb.Reset();
+		rig.StepStart();
+		nStep := 40;
+	END_IF
+40:
+	IF rig.nStepScans >= 4 THEN
+		Check(NOT rig.fb.Error, 'Reset() clears the error');
+		Check(rig.stOut.bOilPumpEnable, 'the pump starts again, Enable is still set');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Hydraulics_Watchdog_Is_Error" Id="{5260d9cf-7d7a-401c-86a7-3ba333c19765}">
+      <Declaration><![CDATA[// The pump running without the suction pump for tHydraulicsWatchdog (1 s here, 140 s default, #10) is a latched error.
+METHOD PRIVATE Hydraulics_Watchdog_Is_Error
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Hydraulics_Watchdog_Is_Error');
+sCurrent := 'Hydraulics_Watchdog_Is_Error: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.tHydraulicsWatchdog := T#1S;
+	rig.bSuctionFollows := FALSE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	bViol := bViol OR rig.fb.bHydraulicsFailure;
+	IF rig.fb.Error THEN
+		Check(rig.StepTime(T#800MS), 'not before the configured time');
+		Check(bViol, 'the hydraulics failure was reported');
+		Check(NOT rig.stOut.bOilPumpEnable, 'the error stops the pump');
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#4S) THEN
+		Check(FALSE, 'no hydraulics failure');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Main_Pump_Without_Feedback_Is_Error" Id="{e48d4719-06e7-49a0-a03b-98d4cf43715c}">
+      <Declaration><![CDATA[// No run feedback 10 s after the pump enable is a latched error (main pump failure).
+METHOD PRIVATE Main_Pump_Without_Feedback_Is_Error
+VAR_INST
+	rig		: FB_HydraulicsRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Main_Pump_Without_Feedback_Is_Error');
+sCurrent := 'Main_Pump_Without_Feedback_Is_Error: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.bPumpFollows := FALSE;
+	rig.fb.Enable := TRUE;
+	rig.StepStart();
+	nStep := 10;
+10:
+	bViol := bViol OR rig.fb.bMainPumpFailure;
+	IF rig.fb.Error THEN
+		Check(rig.StepTime(T#9S500MS), 'not before the 10 s');
+		Check(bViol, 'the main pump failure was reported');
+		Check(NOT rig.stOut.bOilPumpEnable, 'the error stops the pump');
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#13S) THEN
+		Check(FALSE, 'no main pump failure');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

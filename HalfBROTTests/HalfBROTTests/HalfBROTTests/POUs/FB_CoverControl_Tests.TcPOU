@@ -1,0 +1,371 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_CoverControl_Tests" Id="{e14b6606-8012-42d1-b1e1-082d5c7d8fef}" SpecialFunc="None">
+    <Declaration><![CDATA[// Characterisation tests of HalfBROT.FB_CoverControl (HalfBROT#32 step 3) through the I/O structs: the sequence 1->3->2 and
+// 2->3->1, the last call of Open()/Close() wins, Stop(), the latched error of a limit switch fault (#28), the move timeout and
+// the reversal dead time (#27). They pin what the block does today, they are not a specification. Every test owns a rig
+// (FB_CoverRig, the limit switches set by hand) and runs over several PLC cycles; the timeout and reversal tests take real time.
+FUNCTION_BLOCK FB_CoverControl_Tests EXTENDS FB_TestBase
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Open_Sequence_1_3_2();
+Close_Sequence_2_3_1();
+Last_Call_Wins_Open_After_Close();
+Last_Call_Wins_Close_After_Open();
+Stop_Drops_Outputs_And_Command();
+Limit_Switch_Fault_Stops_All_Until_Reset();
+Move_Timeout_Is_Error();
+Reversal_Waits_Dead_Time();
+]]></ST>
+    </Implementation>
+    <Method Name="Open_Sequence_1_3_2" Id="{b6b42297-b9d7-4ec5-9660-1811028fdfc4}">
+      <Declaration><![CDATA[// Open(): cover 1 starts, cover 3 only when 1 is at its open switch, cover 2 only when 1 and 3 are; then all outputs are off.
+METHOD PRIVATE Open_Sequence_1_3_2
+VAR_INST
+	rig		: FB_CoverRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Open_Sequence_1_3_2');
+sCurrent := 'Open_Sequence_1_3_2: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'no output without a command');
+	rig.fb.Open();
+	nStep := 10;
+10:
+	Check(rig.OpenOutputs() = 'x--' AND rig.CloseOutputs() = '---', 'only cover 1 starts');
+	rig.SetMid(1);
+	nStep := 15;
+15:
+	Check(rig.OpenOutputs() = 'x--', 'cover 3 waits while cover 1 is on its way');
+	rig.SetOpen(1);
+	nStep := 20;
+20:
+	Check(rig.OpenOutputs() = '-x-', 'cover 3 starts when cover 1 is open');
+	rig.SetMid(3);
+	nStep := 25;
+25:
+	Check(rig.OpenOutputs() = '-x-', 'cover 2 waits while cover 3 is on its way');
+	rig.SetOpen(3);
+	nStep := 30;
+30:
+	Check(rig.OpenOutputs() = '--x', 'cover 2 starts when 1 and 3 are open');
+	rig.SetOpen(2);
+	nStep := 40;
+40:
+	Check(rig.fb.bAllOpen AND rig.fb.Opened AND NOT rig.fb.Closed, 'all covers open');
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'all outputs off');
+	nStep := 50;
+50:
+	Check(rig.OpenOutputs() = '---', 'the command ended with the last cover');
+	nStep := 99;
+	TEST_FINISHED();
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Close_Sequence_2_3_1" Id="{57c7660e-2eee-4055-b869-f43f4efd822f}">
+      <Declaration><![CDATA[// Close(): cover 2 starts, cover 3 only when 2 is at its closed switch, cover 1 only when 2 and 3 are; then all outputs are off.
+METHOD PRIVATE Close_Sequence_2_3_1
+VAR_INST
+	rig		: FB_CoverRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Close_Sequence_2_3_1');
+sCurrent := 'Close_Sequence_2_3_1: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.AllOpen();
+	nStep := 5;
+5:
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'no output without a command');
+	rig.fb.Close();
+	nStep := 10;
+10:
+	Check(rig.CloseOutputs() = '-x-' AND rig.OpenOutputs() = '---', 'only cover 2 starts');
+	rig.SetMid(2);
+	nStep := 15;
+15:
+	Check(rig.CloseOutputs() = '-x-', 'cover 3 waits while cover 2 is on its way');
+	rig.SetClosed(2);
+	nStep := 20;
+20:
+	Check(rig.CloseOutputs() = '--x', 'cover 3 starts when cover 2 is closed');
+	rig.SetMid(3);
+	nStep := 25;
+25:
+	Check(rig.CloseOutputs() = '--x', 'cover 1 waits while cover 3 is on its way');
+	rig.SetClosed(3);
+	nStep := 30;
+30:
+	Check(rig.CloseOutputs() = 'x--', 'cover 1 starts when 2 and 3 are closed');
+	rig.SetClosed(1);
+	nStep := 40;
+40:
+	Check(rig.fb.bAllClosed AND rig.fb.Closed AND NOT rig.fb.Opened, 'all covers closed');
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'all outputs off');
+	nStep := 50;
+50:
+	Check(rig.CloseOutputs() = '---', 'the command ended with the last cover');
+	nStep := 99;
+	TEST_FINISHED();
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Last_Call_Wins_Open_After_Close" Id="{44987330-269b-45b0-8ef7-738aa61656ea}">
+      <Declaration><![CDATA[// Close() then Open() in one cycle: the open request wins (Open() drops the close request).
+METHOD PRIVATE Last_Call_Wins_Open_After_Close
+VAR_INST
+	rig		: FB_CoverRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Last_Call_Wins_Open_After_Close');
+sCurrent := 'Last_Call_Wins_Open_After_Close: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.AllMid();
+	rig.fb.Close();
+	rig.fb.Open();
+	nStep := 10;
+10:
+	Check(rig.CloseOutputs() = '---', 'no close output');
+	Check(rig.OpenOutputs() = 'x--', 'cover 1 opens');
+	nStep := 99;
+	TEST_FINISHED();
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Last_Call_Wins_Close_After_Open" Id="{938ac0b5-c531-4901-9465-7e5ccc9d5df6}">
+      <Declaration><![CDATA[// Open() then Close() in one cycle: the close request wins (Close() drops the open request).
+METHOD PRIVATE Last_Call_Wins_Close_After_Open
+VAR_INST
+	rig		: FB_CoverRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Last_Call_Wins_Close_After_Open');
+sCurrent := 'Last_Call_Wins_Close_After_Open: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.AllMid();
+	rig.fb.Open();
+	rig.fb.Close();
+	nStep := 10;
+10:
+	Check(rig.OpenOutputs() = '---', 'no open output');
+	Check(rig.CloseOutputs() = '-x-', 'cover 2 closes');
+	nStep := 99;
+	TEST_FINISHED();
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Stop_Drops_Outputs_And_Command" Id="{05dcc39e-1485-46a3-9131-fcc1221538ec}">
+      <Declaration><![CDATA[// Stop() drops the running output in the next scan and the command with it: nothing restarts.
+METHOD PRIVATE Stop_Drops_Outputs_And_Command
+VAR_INST
+	rig		: FB_CoverRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Stop_Drops_Outputs_And_Command');
+sCurrent := 'Stop_Drops_Outputs_And_Command: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.fb.Open();
+	nStep := 10;
+10:
+	Check(rig.OpenOutputs() = 'x--', 'cover 1 opens');
+	rig.fb.Stop();
+	nStep := 20;
+20:
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'the outputs are off after Stop()');
+	nStep := 30;
+30:
+	Check(rig.OpenOutputs() = '---', 'nothing restarts');
+	nStep := 40;
+40:
+	Check(rig.OpenOutputs() = '---' AND NOT rig.fb.Error, 'still off, no error');
+	nStep := 99;
+	TEST_FINISHED();
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Limit_Switch_Fault_Stops_All_Until_Reset" Id="{d278abd6-c27c-44c5-ab64-8ef123594d5d}">
+      <Declaration><![CDATA[// Both switches of one cover (#28): the error stops all covers and drops the command; it stays latched until Reset(), and the move needs a new Open() after it.
+METHOD PRIVATE Limit_Switch_Fault_Stops_All_Until_Reset
+VAR_INST
+	rig		: FB_CoverRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Limit_Switch_Fault_Stops_All_Until_Reset');
+sCurrent := 'Limit_Switch_Fault_Stops_All_Until_Reset: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.fb.Open();
+	nStep := 10;
+10:
+	Check(rig.OpenOutputs() = 'x--', 'cover 1 opens');
+	rig.SetBoth(3);
+	nStep := 20;
+20:
+	Check(rig.fb.Error AND rig.fb.bError, 'the fault is an error');
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'all covers stop, also those without the fault');
+	rig.SetClosed(3);
+	rig.fb.Open();
+	nStep := 30;
+30:
+	Check(rig.fb.Error, 'the error stays latched with the switch fixed');
+	Check(rig.OpenOutputs() = '---', 'no output while the error is latched');
+	rig.fb.Reset();
+	nStep := 40;
+40:
+	Check(NOT rig.fb.Error, 'Reset() clears the error');
+	Check(rig.OpenOutputs() = '---', 'the command was dropped by the error: nothing moves');
+	rig.fb.Open();
+	nStep := 50;
+50:
+	Check(rig.OpenOutputs() = 'x--', 'a new Open() moves again');
+	nStep := 99;
+	TEST_FINISHED();
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Move_Timeout_Is_Error" Id="{3e9cb4d0-dcb7-4623-b2f5-c662490d1400}">
+      <Declaration><![CDATA[// A cover driven for tMoveTimeout (300 ms here, 60 s default) without reaching its switch stops and latches an error until Reset().
+METHOD PRIVATE Move_Timeout_Is_Error
+VAR_INST
+	rig		: FB_CoverRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Move_Timeout_Is_Error');
+sCurrent := 'Move_Timeout_Is_Error: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.tMoveTimeout := T#300MS;
+	rig.fb.Open();
+	rig.StepStart();
+	nStep := 10;
+10:
+	IF rig.fb.Error THEN
+		Check(rig.StepTime(T#250MS), 'not before the timeout');
+		Check(rig.OpenOutputs() = '---', 'the output is off');
+		rig.fb.Reset();
+		nStep := 20;
+	ELSIF rig.StepTime(T#2S) THEN
+		Check(FALSE, 'no timeout error');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+20:
+	Check(NOT rig.fb.Error, 'Reset() clears the timeout error');
+	Check(rig.OpenOutputs() = '---', 'nothing moves by itself after the reset');
+	nStep := 99;
+	TEST_FINISHED();
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Reversal_Waits_Dead_Time" Id="{c1dec910-8a5d-4703-bb84-cc9fb26d1fad}">
+      <Declaration><![CDATA[// Open() under way, then Close() (#27): the close output waits tReversalDeadTime (300 ms here, 1 s default) after the open output dropped.
+METHOD PRIVATE Reversal_Waits_Dead_Time
+VAR_INST
+	rig		: FB_CoverRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Reversal_Waits_Dead_Time');
+sCurrent := 'Reversal_Waits_Dead_Time: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+rig.Scan();
+CASE nStep OF
+0:
+	rig.tReversalDeadTime := T#300MS;
+	rig.fb.Open();
+	nStep := 10;
+10:
+	Check(rig.OpenOutputs() = 'x--', 'cover 1 opens');
+	rig.SetMid(1);
+	rig.fb.Close();
+	rig.StepStart();
+	nStep := 20;
+20:
+	Check(rig.OpenOutputs() = '---', 'the open output is dropped at once');
+	Check(rig.CloseOutputs() = '---', 'the close output waits for the dead time');
+	nStep := 30;
+30:
+	bViol := bViol OR (rig.CloseOutputs() <> '---' AND NOT rig.StepTime(T#250MS));
+	IF rig.CloseOutputs() <> '---' THEN
+		Check(NOT bViol, 'no close output before the dead time');
+		Check(rig.StepTime(T#250MS) AND NOT rig.StepTime(T#1S), 'the close output comes after the dead time');
+		Check(rig.CloseOutputs() = 'x--', 'cover 1 closes');
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#2S) THEN
+		Check(FALSE, 'the close output never came');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>
