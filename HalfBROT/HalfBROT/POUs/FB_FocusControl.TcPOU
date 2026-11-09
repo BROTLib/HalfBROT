@@ -21,10 +21,6 @@ VAR_INPUT
 	// ADS port of the PLC runtime whose persistent data are written (#8), 851 = first PLC runtime
 	nPersistentAdsPort		: UINT := 851;
 
-	// Set TRUE (online in XAE, by ADS or from a program, or by the Visu Start button) to home the focus on its cam, calibrated
-	// or not, e.g. when the stored position is in doubt. Cleared by the block; a request that is not accepted is logged. Not for the MAIN call, which
-	// would overwrite every online write.
-	bManualHome				: BOOL;
 END_VAR
 VAR_OUTPUT
 	bFocusUnlocked		: BOOL;
@@ -44,6 +40,9 @@ VAR
 	tonFocusDelay		: TON;
 	fbDriveEnable		: FB_FocusDriveEnable;		// the only writer of bEnable in this block (#108, #110, #111, #114)
 	bManualUnlock		: BOOL;		// manual override to unlock the focus
+	// Request to home the focus on its cam, calibrated or not, e.g. when the stored position is in doubt: call ManualHome()
+	// (or set it TRUE online in XAE). Cleared by the block; a request that is not accepted is logged and eManualHome says why (#31).
+	bManualHome			: BOOL;
 	tonComm 			: TON := (PT:=fTelemetryInterval);
 	//getlastposition:	BOOL := TRUE;
 	fbAxisEvent			: FB_EventLog;
@@ -468,6 +467,15 @@ persistWriteEvent(
 ]]></ST>
       </Implementation>
     </Method>
+    <Method Name="ManualHome" Id="{53fb6dbe-8a2e-46a5-8655-6c86c7bb7980}">
+      <Declaration><![CDATA[// Request a manual re-home on the cam, calibrated or not (HalfBROT#138). The result of the request is eManualHome.
+METHOD ManualHome : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bManualHome := TRUE;
+ManualHome := TRUE;]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="Stop" Id="{afb66802-078c-4672-893d-9d18ed5b7993}">
       <Declaration><![CDATA[// Stop a running focus move (MC_Stop) and hold the position reached: the target becomes the actual position at
 // StopDone, so the automatic positioning does not restart the move. A new Position afterwards moves again.
@@ -607,6 +615,9 @@ fbComm.PublishLREAL('telescope', 'dome', 'POSITION.INSTRUMENTAL.FOCUS.CURRSPEED'
     <LineIds Name="FB_FocusControl">
       <LineId Id="6020" Count="115" />
       <LineId Id="136" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FocusControl.ManualHome">
+      <LineId Id="1" Count="1" />
     </LineIds>
     <LineIds Name="FB_FocusControl.HandleEvents">
       <LineId Id="1" Count="14" />
