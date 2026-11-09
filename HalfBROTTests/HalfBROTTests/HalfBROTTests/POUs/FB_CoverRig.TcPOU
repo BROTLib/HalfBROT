@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="FB_CoverRig" Id="{4b5c6814-d6df-4a7e-907e-fb6d8f460b7d}" SpecialFunc="None">
+  <POU Name="FB_CoverRig" Id="{9a4ddb7e-c4bd-498c-9173-d06fb9332917}" SpecialFunc="None">
     <Declaration><![CDATA[// FB_CoverControl with limit switches the test sets by hand. The switches are inverted (TRUE = the cover is NOT at the
 // switch), see the block: SetClosed(i) puts cover i at its closed switch, SetOpen(i) at its open switch, SetMid(i) between
 // them, SetBoth(i) is the limit switch fault (both switches reached). All covers start closed.
@@ -24,7 +24,7 @@ END_VAR
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Method Name="Scan" Id="{fa45e1cf-0199-4bdb-b285-1257bd1367cb}">
+    <Method Name="Scan" Id="{e34593e1-f0b9-429b-87c8-ccc2e8ade63a}">
       <Declaration><![CDATA[METHOD Scan
 ]]></Declaration>
       <Implementation>
@@ -40,7 +40,7 @@ tonStep(IN := TRUE, PT := T#1H);
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetClosed" Id="{f07ddbd3-6f74-4673-9748-4424d8485212}">
+    <Method Name="SetClosed" Id="{9cb551c6-d738-47cb-8140-18dae3bd606f}">
       <Declaration><![CDATA[METHOD SetClosed
 VAR_INPUT
 	nCover	: INT;
@@ -52,7 +52,7 @@ stIn.abClosed[nCover] := FALSE;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetOpen" Id="{490f400d-03d5-45e3-9722-899811e7dead}">
+    <Method Name="SetOpen" Id="{94acc655-8465-430a-a94a-b4f914f6a692}">
       <Declaration><![CDATA[METHOD SetOpen
 VAR_INPUT
 	nCover	: INT;
@@ -64,7 +64,7 @@ stIn.abClosed[nCover] := TRUE;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetMid" Id="{00c9a2be-14d1-4ba4-916a-b49727fa7475}">
+    <Method Name="SetMid" Id="{bc030eef-5c4e-4ce7-b27f-2cb32044050d}">
       <Declaration><![CDATA[METHOD SetMid
 VAR_INPUT
 	nCover	: INT;
@@ -76,7 +76,7 @@ stIn.abClosed[nCover] := TRUE;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetBoth" Id="{c55037bc-0947-40f8-bb50-0760597b1d51}">
+    <Method Name="SetBoth" Id="{9ff41d8c-3c46-42ab-8269-29dd990c5d43}">
       <Declaration><![CDATA[METHOD SetBoth
 VAR_INPUT
 	nCover	: INT;
@@ -88,7 +88,7 @@ stIn.abClosed[nCover] := FALSE;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="AllOpen" Id="{73840876-7b9b-44ae-a0e9-8c3c372ee6d5}">
+    <Method Name="AllOpen" Id="{76d425ce-2d2e-48bb-9b5c-5296fb343b4b}">
       <Declaration><![CDATA[METHOD AllOpen
 ]]></Declaration>
       <Implementation>
@@ -98,7 +98,7 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="AllMid" Id="{e4b375c9-b861-4bff-a38f-1f8331c77bf5}">
+    <Method Name="AllMid" Id="{aa4ef736-8ef0-4944-8705-6f08efc3d629}">
       <Declaration><![CDATA[METHOD AllMid
 ]]></Declaration>
       <Implementation>
@@ -108,7 +108,7 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="OpenOutputs" Id="{101878b9-bf35-465b-8353-18f722dcbb0f}">
+    <Method Name="OpenOutputs" Id="{2c7bf330-1d56-4c01-996b-5cc2bd36df37}">
       <Declaration><![CDATA[METHOD OpenOutputs : STRING(3)
 ]]></Declaration>
       <Implementation>
@@ -124,7 +124,7 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="CloseOutputs" Id="{66e6a041-fb0d-443c-9f1a-8dc8d573f0a3}">
+    <Method Name="CloseOutputs" Id="{17fd7d57-359f-4cfa-b49e-4b4de008e6ad}">
       <Declaration><![CDATA[METHOD CloseOutputs : STRING(3)
 ]]></Declaration>
       <Implementation>
@@ -140,7 +140,16 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="StepStart" Id="{2ddc484f-e7ee-4fb1-8e0c-d1dc62354862}">
+    <Method Name="State" Id="{8c4960f2-d163-45ee-9eb3-b133d3d277d9}">
+      <Declaration><![CDATA[METHOD State : STRING(60)
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[State := CONCAT(CONCAT(CONCAT(CONCAT('[open ', OpenOutputs()), ' close '), CloseOutputs()), CONCAT(' err ', BOOL_TO_STRING(fb.bError)));
+State := CONCAT(State, ']');
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepStart" Id="{19bdd6ad-e678-4987-8e1f-dd785f506471}">
       <Declaration><![CDATA[METHOD StepStart
 ]]></Declaration>
       <Implementation>
@@ -148,7 +157,7 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="StepTime" Id="{c5bfb60f-9611-459a-a04e-a2094c9e2d69}">
+    <Method Name="StepTime" Id="{5d8d0b08-48a0-4730-abec-e939eded830e}">
       <Declaration><![CDATA[METHOD StepTime : BOOL
 VAR_INPUT
 	tTime	: TIME;

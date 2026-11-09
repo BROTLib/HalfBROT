@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="FB_CoverControl_Tests" Id="{2fa2eb3f-8816-42e6-a38c-b0e45a22a2ce}" SpecialFunc="None">
+  <POU Name="FB_CoverControl_Tests" Id="{6b76f163-7c7b-439c-9695-4313f6ed48d8}" SpecialFunc="None">
     <Declaration><![CDATA[// Characterisation tests of HalfBROT.FB_CoverControl (HalfBROT#32 step 3) through the I/O structs: the sequence 1->3->2 and
 // 2->3->1, the last call of Open()/Close() wins, Stop(), the latched error of a limit switch fault (#28), the move timeout and
 // the reversal dead time (#27). They pin what the block does today, they are not a specification. Every test owns a rig
@@ -20,7 +20,7 @@ Move_Timeout_Is_Error();
 Reversal_Waits_Dead_Time();
 ]]></ST>
     </Implementation>
-    <Method Name="Open_Sequence_1_3_2" Id="{9a060362-c682-40b1-af67-c60dc16565cf}">
+    <Method Name="Open_Sequence_1_3_2" Id="{08739d91-8c08-4c6d-b4de-f8dfc8c2458f}">
       <Declaration><![CDATA[// Open(): cover 1 starts, cover 3 only when 1 is at its open switch, cover 2 only when 1 and 3 are; then all outputs are off.
 METHOD PRIVATE Open_Sequence_1_3_2
 VAR_INST
@@ -38,42 +38,42 @@ END_IF
 rig.Scan();
 CASE nStep OF
 0:
-	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'no output without a command');
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', CONCAT('no output without a command ', rig.State()));
 	rig.fb.Open();
 	nStep := 10;
 10:
-	Check(rig.OpenOutputs() = 'x--' AND rig.CloseOutputs() = '---', 'only cover 1 starts');
+	Check(rig.OpenOutputs() = 'x--' AND rig.CloseOutputs() = '---', CONCAT('only cover 1 starts ', rig.State()));
 	rig.SetMid(1);
 	nStep := 15;
 15:
-	Check(rig.OpenOutputs() = 'x--', 'cover 3 waits while cover 1 is on its way');
+	Check(rig.OpenOutputs() = 'x--', CONCAT('cover 3 waits while cover 1 is on its way ', rig.State()));
 	rig.SetOpen(1);
 	nStep := 20;
 20:
-	Check(rig.OpenOutputs() = '-x-', 'cover 3 starts when cover 1 is open');
+	Check(rig.OpenOutputs() = '-x-', CONCAT('cover 3 starts when cover 1 is open ', rig.State()));
 	rig.SetMid(3);
 	nStep := 25;
 25:
-	Check(rig.OpenOutputs() = '-x-', 'cover 2 waits while cover 3 is on its way');
+	Check(rig.OpenOutputs() = '-x-', CONCAT('cover 2 waits while cover 3 is on its way ', rig.State()));
 	rig.SetOpen(3);
 	nStep := 30;
 30:
-	Check(rig.OpenOutputs() = '--x', 'cover 2 starts when 1 and 3 are open');
+	Check(rig.OpenOutputs() = '--x', CONCAT('cover 2 starts when 1 and 3 are open ', rig.State()));
 	rig.SetOpen(2);
 	nStep := 40;
 40:
-	Check(rig.fb.bAllOpen AND rig.fb.Opened AND NOT rig.fb.Closed, 'all covers open');
-	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'all outputs off');
+	Check(rig.fb.bAllOpen AND rig.fb.Opened AND NOT rig.fb.Closed, CONCAT('all covers open ', rig.State()));
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', CONCAT('all outputs off ', rig.State()));
 	nStep := 50;
 50:
-	Check(rig.OpenOutputs() = '---', 'the command ended with the last cover');
+	Check(rig.OpenOutputs() = '---', CONCAT('the command ended with the last cover ', rig.State()));
 	nStep := 99;
 	TEST_FINISHED();
 END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Close_Sequence_2_3_1" Id="{10321f10-ebd0-4022-b2f5-cda955031643}">
+    <Method Name="Close_Sequence_2_3_1" Id="{0ff6de04-f960-4790-960c-939ef40a9b42}">
       <Declaration><![CDATA[// Close(): cover 2 starts, cover 3 only when 2 is at its closed switch, cover 1 only when 2 and 3 are; then all outputs are off.
 METHOD PRIVATE Close_Sequence_2_3_1
 VAR_INST
@@ -94,42 +94,42 @@ CASE nStep OF
 	rig.AllOpen();
 	nStep := 5;
 5:
-	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'no output without a command');
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', CONCAT('no output without a command ', rig.State()));
 	rig.fb.Close();
 	nStep := 10;
 10:
-	Check(rig.CloseOutputs() = '-x-' AND rig.OpenOutputs() = '---', 'only cover 2 starts');
+	Check(rig.CloseOutputs() = '-x-' AND rig.OpenOutputs() = '---', CONCAT('only cover 2 starts ', rig.State()));
 	rig.SetMid(2);
 	nStep := 15;
 15:
-	Check(rig.CloseOutputs() = '-x-', 'cover 3 waits while cover 2 is on its way');
+	Check(rig.CloseOutputs() = '-x-', CONCAT('cover 3 waits while cover 2 is on its way ', rig.State()));
 	rig.SetClosed(2);
 	nStep := 20;
 20:
-	Check(rig.CloseOutputs() = '--x', 'cover 3 starts when cover 2 is closed');
+	Check(rig.CloseOutputs() = '--x', CONCAT('cover 3 starts when cover 2 is closed ', rig.State()));
 	rig.SetMid(3);
 	nStep := 25;
 25:
-	Check(rig.CloseOutputs() = '--x', 'cover 1 waits while cover 3 is on its way');
+	Check(rig.CloseOutputs() = '--x', CONCAT('cover 1 waits while cover 3 is on its way ', rig.State()));
 	rig.SetClosed(3);
 	nStep := 30;
 30:
-	Check(rig.CloseOutputs() = 'x--', 'cover 1 starts when 2 and 3 are closed');
+	Check(rig.CloseOutputs() = 'x--', CONCAT('cover 1 starts when 2 and 3 are closed ', rig.State()));
 	rig.SetClosed(1);
 	nStep := 40;
 40:
-	Check(rig.fb.bAllClosed AND rig.fb.Closed AND NOT rig.fb.Opened, 'all covers closed');
-	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'all outputs off');
+	Check(rig.fb.bAllClosed AND rig.fb.Closed AND NOT rig.fb.Opened, CONCAT('all covers closed ', rig.State()));
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', CONCAT('all outputs off ', rig.State()));
 	nStep := 50;
 50:
-	Check(rig.CloseOutputs() = '---', 'the command ended with the last cover');
+	Check(rig.CloseOutputs() = '---', CONCAT('the command ended with the last cover ', rig.State()));
 	nStep := 99;
 	TEST_FINISHED();
 END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Last_Call_Wins_Open_After_Close" Id="{751580d1-4d75-4b15-8e97-d4be26607515}">
+    <Method Name="Last_Call_Wins_Open_After_Close" Id="{1596cadb-f74e-42be-b4c5-26a79c43d641}">
       <Declaration><![CDATA[// Close() then Open() in one cycle: the open request wins (Open() drops the close request).
 METHOD PRIVATE Last_Call_Wins_Open_After_Close
 VAR_INST
@@ -152,15 +152,15 @@ CASE nStep OF
 	rig.fb.Open();
 	nStep := 10;
 10:
-	Check(rig.CloseOutputs() = '---', 'no close output');
-	Check(rig.OpenOutputs() = 'x--', 'cover 1 opens');
+	Check(rig.CloseOutputs() = '---', CONCAT('no close output ', rig.State()));
+	Check(rig.OpenOutputs() = 'x--', CONCAT('cover 1 opens ', rig.State()));
 	nStep := 99;
 	TEST_FINISHED();
 END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Last_Call_Wins_Close_After_Open" Id="{a6df678f-8f31-4d6b-b7e5-cfea0edcdd69}">
+    <Method Name="Last_Call_Wins_Close_After_Open" Id="{43cde43c-4f35-452b-aa69-481e3dbcc27b}">
       <Declaration><![CDATA[// Open() then Close() in one cycle: the close request wins (Close() drops the open request).
 METHOD PRIVATE Last_Call_Wins_Close_After_Open
 VAR_INST
@@ -183,15 +183,15 @@ CASE nStep OF
 	rig.fb.Close();
 	nStep := 10;
 10:
-	Check(rig.OpenOutputs() = '---', 'no open output');
-	Check(rig.CloseOutputs() = '-x-', 'cover 2 closes');
+	Check(rig.OpenOutputs() = '---', CONCAT('no open output ', rig.State()));
+	Check(rig.CloseOutputs() = '-x-', CONCAT('cover 2 closes ', rig.State()));
 	nStep := 99;
 	TEST_FINISHED();
 END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Stop_Drops_Outputs_And_Command" Id="{515890df-eb71-40ec-8127-d169c16d4ef5}">
+    <Method Name="Stop_Drops_Outputs_And_Command" Id="{b26be3e9-8ebe-4ab7-b85a-544c45778381}">
       <Declaration><![CDATA[// Stop() drops the running output in the next scan and the command with it: nothing restarts.
 METHOD PRIVATE Stop_Drops_Outputs_And_Command
 VAR_INST
@@ -212,24 +212,24 @@ CASE nStep OF
 	rig.fb.Open();
 	nStep := 10;
 10:
-	Check(rig.OpenOutputs() = 'x--', 'cover 1 opens');
+	Check(rig.OpenOutputs() = 'x--', CONCAT('cover 1 opens ', rig.State()));
 	rig.fb.Stop();
 	nStep := 20;
 20:
-	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'the outputs are off after Stop()');
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', CONCAT('the outputs are off after Stop() ', rig.State()));
 	nStep := 30;
 30:
-	Check(rig.OpenOutputs() = '---', 'nothing restarts');
+	Check(rig.OpenOutputs() = '---', CONCAT('nothing restarts ', rig.State()));
 	nStep := 40;
 40:
-	Check(rig.OpenOutputs() = '---' AND NOT rig.fb.Error, 'still off, no error');
+	Check(rig.OpenOutputs() = '---' AND NOT rig.fb.Error, CONCAT('still off, no error ', rig.State()));
 	nStep := 99;
 	TEST_FINISHED();
 END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Limit_Switch_Fault_Stops_All_Until_Reset" Id="{ff90981b-47da-4a72-945e-577e6960a956}">
+    <Method Name="Limit_Switch_Fault_Stops_All_Until_Reset" Id="{fc048c49-e241-4a87-88c8-925668cd5541}">
       <Declaration><![CDATA[// Both switches of one cover (#28): the error stops all covers and drops the command; it stays latched until Reset(), and the move needs a new Open() after it.
 METHOD PRIVATE Limit_Switch_Fault_Stops_All_Until_Reset
 VAR_INST
@@ -250,34 +250,34 @@ CASE nStep OF
 	rig.fb.Open();
 	nStep := 10;
 10:
-	Check(rig.OpenOutputs() = 'x--', 'cover 1 opens');
+	Check(rig.OpenOutputs() = 'x--', CONCAT('cover 1 opens ', rig.State()));
 	rig.SetBoth(3);
 	nStep := 20;
 20:
-	Check(rig.fb.Error AND rig.fb.bError, 'the fault is an error');
-	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', 'all covers stop, also those without the fault');
+	Check(rig.fb.Error AND rig.fb.bError, CONCAT('the fault is an error ', rig.State()));
+	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', CONCAT('all covers stop, also those without the fault ', rig.State()));
 	rig.SetClosed(3);
 	rig.fb.Open();
 	nStep := 30;
 30:
-	Check(rig.fb.Error, 'the error stays latched with the switch fixed');
-	Check(rig.OpenOutputs() = '---', 'no output while the error is latched');
+	Check(rig.fb.Error, CONCAT('the error stays latched with the switch fixed ', rig.State()));
+	Check(rig.OpenOutputs() = '---', CONCAT('no output while the error is latched ', rig.State()));
 	rig.fb.Reset();
 	nStep := 40;
 40:
-	Check(NOT rig.fb.Error, 'Reset() clears the error');
-	Check(rig.OpenOutputs() = '---', 'the command was dropped by the error: nothing moves');
+	Check(NOT rig.fb.Error, CONCAT('Reset() clears the error ', rig.State()));
+	Check(rig.OpenOutputs() = '---', CONCAT('the command was dropped by the error: nothing moves ', rig.State()));
 	rig.fb.Open();
 	nStep := 50;
 50:
-	Check(rig.OpenOutputs() = 'x--', 'a new Open() moves again');
+	Check(rig.OpenOutputs() = 'x--', CONCAT('a new Open() moves again ', rig.State()));
 	nStep := 99;
 	TEST_FINISHED();
 END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Move_Timeout_Is_Error" Id="{90b727ae-ab3c-4016-b59c-b6241420cae0}">
+    <Method Name="Move_Timeout_Is_Error" Id="{23c1a989-d6c5-40a4-88b5-f6e359f4cf25}">
       <Declaration><![CDATA[// A cover driven for tMoveTimeout (300 ms here, 60 s default) without reaching its switch stops and latches an error until Reset().
 METHOD PRIVATE Move_Timeout_Is_Error
 VAR_INST
@@ -301,8 +301,8 @@ CASE nStep OF
 	nStep := 10;
 10:
 	IF rig.fb.Error THEN
-		Check(rig.StepTime(T#250MS), 'not before the timeout');
-		Check(rig.OpenOutputs() = '---', 'the output is off');
+		Check(rig.StepTime(T#250MS), CONCAT('not before the timeout ', rig.State()));
+		Check(rig.OpenOutputs() = '---', CONCAT('the output is off ', rig.State()));
 		rig.fb.Reset();
 		nStep := 20;
 	ELSIF rig.StepTime(T#2S) THEN
@@ -311,15 +311,15 @@ CASE nStep OF
 		TEST_FINISHED();
 	END_IF
 20:
-	Check(NOT rig.fb.Error, 'Reset() clears the timeout error');
-	Check(rig.OpenOutputs() = '---', 'nothing moves by itself after the reset');
+	Check(NOT rig.fb.Error, CONCAT('Reset() clears the timeout error ', rig.State()));
+	Check(rig.OpenOutputs() = '---', CONCAT('nothing moves by itself after the reset ', rig.State()));
 	nStep := 99;
 	TEST_FINISHED();
 END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Reversal_Waits_Dead_Time" Id="{cc1a2ed5-fe74-4f1f-bd6f-682a85bbe54f}">
+    <Method Name="Reversal_Waits_Dead_Time" Id="{0843083b-ff44-4991-a788-44b1cf4fb0e8}">
       <Declaration><![CDATA[// Open() under way, then Close() (#27): the close output waits tReversalDeadTime (300 ms here, 1 s default) after the open output dropped.
 METHOD PRIVATE Reversal_Waits_Dead_Time
 VAR_INST
@@ -341,21 +341,21 @@ CASE nStep OF
 	rig.fb.Open();
 	nStep := 10;
 10:
-	Check(rig.OpenOutputs() = 'x--', 'cover 1 opens');
+	Check(rig.OpenOutputs() = 'x--', CONCAT('cover 1 opens ', rig.State()));
 	rig.SetMid(1);
 	rig.fb.Close();
 	rig.StepStart();
 	nStep := 20;
 20:
-	Check(rig.OpenOutputs() = '---', 'the open output is dropped at once');
-	Check(rig.CloseOutputs() = '---', 'the close output waits for the dead time');
+	Check(rig.OpenOutputs() = '---', CONCAT('the open output is dropped at once ', rig.State()));
+	Check(rig.CloseOutputs() = '---', CONCAT('the close output waits for the dead time ', rig.State()));
 	nStep := 30;
 30:
 	bViol := bViol OR (rig.CloseOutputs() <> '---' AND NOT rig.StepTime(T#250MS));
 	IF rig.CloseOutputs() <> '---' THEN
-		Check(NOT bViol, 'no close output before the dead time');
-		Check(rig.StepTime(T#250MS) AND NOT rig.StepTime(T#1S), 'the close output comes after the dead time');
-		Check(rig.CloseOutputs() = 'x--', 'cover 1 closes');
+		Check(NOT bViol, CONCAT('no close output before the dead time ', rig.State()));
+		Check(rig.StepTime(T#250MS) AND NOT rig.StepTime(T#1S), CONCAT('the close output comes after the dead time ', rig.State()));
+		Check(rig.CloseOutputs() = 'x--', CONCAT('cover 1 closes ', rig.State()));
 		nStep := 99;
 		TEST_FINISHED();
 	ELSIF rig.StepTime(T#2S) THEN
