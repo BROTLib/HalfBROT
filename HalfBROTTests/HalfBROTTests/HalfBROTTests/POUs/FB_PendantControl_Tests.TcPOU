@@ -124,6 +124,7 @@ CASE nStep OF
 10:
 	IF rig.nStepScans >= 6 THEN
 		Check(rig.Lamps() = '----x', CONCAT('only the error lamp ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_PendantState.Disconnected, CONCAT('state Disconnected ', rig.State()));
 		Check(rig.cov.OpenOutputs() = '---' AND rig.cov.CloseOutputs() = '---', CONCAT('no cover moves ', rig.State()));
 		Check(NOT rig.hyd.stOut.bOilPumpEnable, CONCAT('no pump ', rig.State()));
 		nStep := 99;
@@ -202,6 +203,7 @@ CASE nStep OF
 10:
 	IF rig.nStepScans >= 4 THEN
 		Check(rig.Lamps() = '----x', CONCAT('selector 5: block not connected ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_PendantState.ReferencesMissing, CONCAT('state ReferencesMissing ', rig.State()));
 		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(6);
 		rig.StepStart();
 		nStep := 20;
@@ -209,6 +211,7 @@ CASE nStep OF
 20:
 	IF rig.nStepScans >= 4 THEN
 		Check(rig.Lamps() = '----x', CONCAT('selector 6: block not connected ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_PendantState.ReferencesMissing, CONCAT('state ReferencesMissing ', rig.State()));
 		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(7);
 		rig.StepStart();
 		nStep := 30;
@@ -216,6 +219,7 @@ CASE nStep OF
 30:
 	IF rig.nStepScans >= 4 THEN
 		Check(rig.Lamps() = '----x', CONCAT('selector 7: block not connected ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_PendantState.ReferencesMissing, CONCAT('state ReferencesMissing ', rig.State()));
 		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(8);
 		rig.StepStart();
 		nStep := 40;
@@ -223,6 +227,7 @@ CASE nStep OF
 40:
 	IF rig.nStepScans >= 4 THEN
 		Check(rig.Lamps() = '----x', CONCAT('selector 8: block not connected ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_PendantState.ReferencesMissing, CONCAT('state ReferencesMissing ', rig.State()));
 		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(11);
 		rig.StepStart();
 		nStep := 50;
@@ -230,6 +235,7 @@ CASE nStep OF
 50:
 	IF rig.nStepScans >= 4 THEN
 		Check(rig.Lamps() = '----x', CONCAT('selector 11: block not connected ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_PendantState.ReferencesMissing, CONCAT('state ReferencesMissing ', rig.State()));
 		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(12);
 		rig.StepStart();
 		nStep := 60;
@@ -237,6 +243,7 @@ CASE nStep OF
 60:
 	IF rig.nStepScans >= 4 THEN
 		Check(rig.Lamps() = '----x', CONCAT('selector 12: block not connected ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_PendantState.ReferencesMissing, CONCAT('state ReferencesMissing ', rig.State()));
 		rig.SetKey(TRUE); rig.SetStart(TRUE); rig.SetUp(TRUE); rig.SetSelector(13);
 		rig.StepStart();
 		nStep := 70;
@@ -244,6 +251,7 @@ CASE nStep OF
 70:
 	IF rig.nStepScans >= 4 THEN
 		Check(rig.Lamps() = '----x', CONCAT('selector 13: block not connected ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_PendantState.ReferencesMissing, CONCAT('state ReferencesMissing ', rig.State()));
 		nStep := 99;
 		TEST_FINISHED();
 	END_IF
@@ -275,6 +283,7 @@ CASE nStep OF
 10:
 	IF rig.nStepScans >= 3 THEN
 		Check(rig.Lamps() = '-----', CONCAT('key off: no lamp ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_PendantState.Automatic, CONCAT('key off: state Automatic ', rig.State()));
 		Check(NOT rig.fb.horn, CONCAT('key off: no horn ', rig.State()));
 		rig.SetKey(TRUE);
 		rig.StepStart();
@@ -283,6 +292,7 @@ CASE nStep OF
 20:
 	IF rig.nStepScans >= 3 THEN
 		Check(rig.Lamps() = 'xxxx-', CONCAT('key on: four lamps, no error lamp ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_PendantState.Manual, CONCAT('key on: state Manual ', rig.State()));
 		Check(rig.fb.horn, CONCAT('key on: horn ', rig.State()));
 		rig.SetKey(FALSE);
 		rig.StepStart();
