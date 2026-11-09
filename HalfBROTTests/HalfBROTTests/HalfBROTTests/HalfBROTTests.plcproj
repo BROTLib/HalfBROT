@@ -43,10 +43,16 @@
     <Compile Include="POUs\FB_CoverRig.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\FB_PendantRig.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\FB_HydraulicsControl_Tests.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\FB_CoverControl_Tests.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\FB_PendantControl_Tests.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\MAIN.TcPOU">
