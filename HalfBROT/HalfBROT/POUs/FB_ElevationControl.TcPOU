@@ -27,7 +27,8 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[// limit the position input to a sane value
+      <ST><![CDATA[_ReadIn();
+// limit the position input to a sane value
 // fMinPosition/fMaxPosition narrow the range (#17), 0-90 deg stays the hard limit
 fTarget := LIMIT(MAX(0.0, fMinPosition), fPosition, MIN(90.0, fMaxPosition));
 

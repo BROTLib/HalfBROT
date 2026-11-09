@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="ST_AxisIn" Id="{005f5835-82e6-4a31-8c66-454cf3b9cc39}">
+    <Declaration><![CDATA[// Process inputs of an axis block (FB_AzimuthControl, FB_ElevationControl, FB_DerotatorControl), linked in the application (GVL_IO) (#30, #31).
+TYPE ST_AxisIn :
+STRUCT
+	nDigitalInputs	: WORD;	// digital inputs of the end positions
+	nDiagnostic	: UDINT;	// diagnostic number
+	nTorque	: INT;	// torque feedback of the drive in 0.1 %
+	bSTO	: BOOL;	// STO state of the drive (shown in the Safety Visu, not used by the axis logic)
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

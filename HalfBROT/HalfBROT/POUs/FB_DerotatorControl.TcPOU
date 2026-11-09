@@ -13,7 +13,8 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(*
+      <ST><![CDATA[_ReadIn();
+(*
 Selection 6
 Homing in Endlage:
 
