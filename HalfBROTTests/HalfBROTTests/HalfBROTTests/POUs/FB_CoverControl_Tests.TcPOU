@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="FB_CoverControl_Tests" Id="{e14b6606-8012-42d1-b1e1-082d5c7d8fef}" SpecialFunc="None">
+  <POU Name="FB_CoverControl_Tests" Id="{78064fca-a868-4e26-9a59-35b2bda71705}" SpecialFunc="None">
     <Declaration><![CDATA[// Characterisation tests of HalfBROT.FB_CoverControl (HalfBROT#32 step 3) through the I/O structs: the sequence 1->3->2 and
 // 2->3->1, the last call of Open()/Close() wins, Stop(), the latched error of a limit switch fault (#28), the move timeout and
 // the reversal dead time (#27). They pin what the block does today, they are not a specification. Every test owns a rig
@@ -20,7 +20,7 @@ Move_Timeout_Is_Error();
 Reversal_Waits_Dead_Time();
 ]]></ST>
     </Implementation>
-    <Method Name="Open_Sequence_1_3_2" Id="{b6b42297-b9d7-4ec5-9660-1811028fdfc4}">
+    <Method Name="Open_Sequence_1_3_2" Id="{173ed05f-8213-4d0c-9fb6-33d402c41588}">
       <Declaration><![CDATA[// Open(): cover 1 starts, cover 3 only when 1 is at its open switch, cover 2 only when 1 and 3 are; then all outputs are off.
 METHOD PRIVATE Open_Sequence_1_3_2
 VAR_INST
@@ -73,7 +73,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Close_Sequence_2_3_1" Id="{57c7660e-2eee-4055-b869-f43f4efd822f}">
+    <Method Name="Close_Sequence_2_3_1" Id="{ca0b98db-fd27-430d-a81c-b6a778979e58}">
       <Declaration><![CDATA[// Close(): cover 2 starts, cover 3 only when 2 is at its closed switch, cover 1 only when 2 and 3 are; then all outputs are off.
 METHOD PRIVATE Close_Sequence_2_3_1
 VAR_INST
@@ -129,7 +129,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Last_Call_Wins_Open_After_Close" Id="{44987330-269b-45b0-8ef7-738aa61656ea}">
+    <Method Name="Last_Call_Wins_Open_After_Close" Id="{c2487ba9-abc3-4469-be75-a7ba401ad19b}">
       <Declaration><![CDATA[// Close() then Open() in one cycle: the open request wins (Open() drops the close request).
 METHOD PRIVATE Last_Call_Wins_Open_After_Close
 VAR_INST
@@ -160,7 +160,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Last_Call_Wins_Close_After_Open" Id="{938ac0b5-c531-4901-9465-7e5ccc9d5df6}">
+    <Method Name="Last_Call_Wins_Close_After_Open" Id="{b0e2aff6-d5bb-404a-94c2-349bbe86bb1e}">
       <Declaration><![CDATA[// Open() then Close() in one cycle: the close request wins (Close() drops the open request).
 METHOD PRIVATE Last_Call_Wins_Close_After_Open
 VAR_INST
@@ -191,7 +191,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Stop_Drops_Outputs_And_Command" Id="{05dcc39e-1485-46a3-9131-fcc1221538ec}">
+    <Method Name="Stop_Drops_Outputs_And_Command" Id="{c76631cd-a467-473e-9669-ae2355836065}">
       <Declaration><![CDATA[// Stop() drops the running output in the next scan and the command with it: nothing restarts.
 METHOD PRIVATE Stop_Drops_Outputs_And_Command
 VAR_INST
@@ -229,7 +229,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Limit_Switch_Fault_Stops_All_Until_Reset" Id="{d278abd6-c27c-44c5-ab64-8ef123594d5d}">
+    <Method Name="Limit_Switch_Fault_Stops_All_Until_Reset" Id="{59412b8b-c4ae-4db5-9bb1-fb8665b7f7f8}">
       <Declaration><![CDATA[// Both switches of one cover (#28): the error stops all covers and drops the command; it stays latched until Reset(), and the move needs a new Open() after it.
 METHOD PRIVATE Limit_Switch_Fault_Stops_All_Until_Reset
 VAR_INST
@@ -277,7 +277,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Move_Timeout_Is_Error" Id="{3e9cb4d0-dcb7-4623-b2f5-c662490d1400}">
+    <Method Name="Move_Timeout_Is_Error" Id="{04624771-7fc8-4fbf-9506-aae0b30555b2}">
       <Declaration><![CDATA[// A cover driven for tMoveTimeout (300 ms here, 60 s default) without reaching its switch stops and latches an error until Reset().
 METHOD PRIVATE Move_Timeout_Is_Error
 VAR_INST
@@ -319,7 +319,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Reversal_Waits_Dead_Time" Id="{c1dec910-8a5d-4703-bb84-cc9fb26d1fad}">
+    <Method Name="Reversal_Waits_Dead_Time" Id="{7990bf5c-1137-494c-a4e7-eb874c4d262e}">
       <Declaration><![CDATA[// Open() under way, then Close() (#27): the close output waits tReversalDeadTime (300 ms here, 1 s default) after the open output dropped.
 METHOD PRIVATE Reversal_Waits_Dead_Time
 VAR_INST
