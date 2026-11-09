@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="E_CoverState" Id="{35d03649-db76-49cf-a782-0347da68e570}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+// State of FB_CoverControl (HalfBROT#31 step 4).
+TYPE E_CoverState :
+(
+	Idle := 0,		// nothing moves
+	Opening := 1,	// Open(): covers drive open in the order 1, 3, 2 until the last one is at its open switch
+	Closing := 2,	// Close(): covers drive closed in the order 2, 3, 1
+	Error := 3		// limit switch fault or move timeout: all outputs off, left by Reset() only
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
