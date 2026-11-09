@@ -3,9 +3,6 @@
   <POU Name="FB_AxisControl" Id="{6fdef2a3-176a-42ec-90be-24250bb425eb}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK ABSTRACT FB_AxisControl EXTENDS FB_BaseAxis IMPLEMENTS I_Axis
 VAR_INPUT
-	bMoveAxis				: BOOL;		// Move azimuth to given position
-	bTracking				: BOOL;		// enable tracking
-	bStopAxis				: BOOL;		// stop the Axis
 	fMinPosition			: REAL := 0;
 	fMaxPosition			: REAL := 450.0;
 	fCalibPosition			: LREAL := 45.0; // position of the calibration cam, used by cam homing (elevation, azimuth): set it per telescope.
@@ -15,6 +12,11 @@ END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
+	// requests, set only through the properties MoveAxis, StopAxis, Tracking (#31); the block clears them itself
+	bMoveAxis				: BOOL;		// Move azimuth to given position
+	bTracking				: BOOL;		// enable tracking
+	bStopAxis				: BOOL;		// stop the Axis
+	fTarget					: LREAL;	// target position: fPosition clamped to the range, passed to fbAxis (the input fPosition is not overwritten) (#31)
 	fSlewTime				: LREAL;	// time to reach target position
 
 	InDigitalInputs	  AT%I*	: WORD;		// digitale inputs der Endlagen
