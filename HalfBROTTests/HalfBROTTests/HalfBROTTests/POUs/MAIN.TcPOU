@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="MAIN" Id="{37528f4d-171f-4670-946d-585349f8b7bb}" SpecialFunc="None">
+  <POU Name="MAIN" Id="{668ffea5-6a8c-4a88-a8a8-269268f68a10}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM MAIN
 VAR
 	// TcUnit finds every FB_TestSuite instance by itself; it is enough to declare them here.

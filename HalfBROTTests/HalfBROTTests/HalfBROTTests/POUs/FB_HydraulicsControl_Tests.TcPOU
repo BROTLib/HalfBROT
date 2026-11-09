@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="FB_HydraulicsControl_Tests" Id="{28fd0c41-41cf-4b84-977c-cff0696c18ad}" SpecialFunc="None">
+  <POU Name="FB_HydraulicsControl_Tests" Id="{88238a48-a059-4d0f-bacd-56ee7c177278}" SpecialFunc="None">
     <Declaration><![CDATA[// Characterisation tests of HalfBROT.FB_HydraulicsControl (HalfBROT#32 step 3) through the I/O structs and the command methods
 // (#30, #31): start-up, the brake (pressure delay, clearing, pressure loss, CloseBrake, pump stop, azimuth limit), the manual
 // brake re-arm of #31, and the latched errors that need no more than 13 s. They pin what the block does today, they are
@@ -29,7 +29,7 @@ Hydraulics_Watchdog_Is_Error();
 Main_Pump_Without_Feedback_Is_Error();
 ]]></ST>
     </Implementation>
-    <Method Name="Idle_Everything_Off" Id="{ff275141-d2d7-44d8-bce6-81835b2639f7}">
+    <Method Name="Idle_Everything_Off" Id="{97edd7e1-7f61-4ab7-8957-0b3361c03d7a}">
       <Declaration><![CDATA[// No request, healthy sensors: no pump, no brake, no error, no starter reset.
 METHOD PRIVATE Idle_Everything_Off
 VAR_INST
@@ -58,7 +58,7 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Enable_Runs_Pump" Id="{37171fa3-8bef-4fd9-8e11-a03df145a96c}">
+    <Method Name="Enable_Runs_Pump" Id="{6b634383-2599-4475-896e-9f76ec6db660}">
       <Declaration><![CDATA[// Enable starts the pump; the plant reports it running with pressure; the brake is not opened by the pump start.
 METHOD PRIVATE Enable_Runs_Pump
 VAR_INST
@@ -93,7 +93,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Open_Brake_After_Pressure_Delay" Id="{b2a78d0b-cfce-4e01-bd93-b4285e9e0d44}">
+    <Method Name="Open_Brake_After_Pressure_Delay" Id="{bf1fbb3f-5d23-4735-bb4d-bea7a7e0743d}">
       <Declaration><![CDATA[// OpenBrake() each scan: the brake output comes about 3 s after the pressure, the report 1 s after the output.
 METHOD PRIVATE Open_Brake_After_Pressure_Delay
 VAR_INST
@@ -147,7 +147,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="No_Clearing_Keeps_Brake_Closed" Id="{2b4383c9-fb99-40fa-b67c-06cb1c8d718d}">
+    <Method Name="No_Clearing_Keeps_Brake_Closed" Id="{2371bd5f-9b76-4f0a-a595-09971d389771}">
       <Declaration><![CDATA[// Without bBrakeClearing the brake is not opened although it is requested and the pressure is there.
 METHOD PRIVATE No_Clearing_Keeps_Brake_Closed
 VAR_INST
@@ -182,7 +182,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Pressure_Loss_Closes_Brake_Auto_Reopens" Id="{18fb90eb-f17e-4b22-9405-0b7fb3e7ce48}">
+    <Method Name="Pressure_Loss_Closes_Brake_Auto_Reopens" Id="{25232d91-10fc-46d7-94dd-5b881c1da3ae}">
       <Declaration><![CDATA[// Pressure loss closes the brake after the 2 s debounce; with the automatic request still there it opens again after the pressure delay.
 METHOD PRIVATE Pressure_Loss_Closes_Brake_Auto_Reopens
 VAR_INST
@@ -242,7 +242,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="CloseBrake_Closes_And_Ends_Request" Id="{686ee840-65f3-4ce1-882a-7f25ea77554c}">
+    <Method Name="CloseBrake_Closes_And_Ends_Request" Id="{2ec1f703-783a-4eb7-bf1f-15e3805d7b91}">
       <Declaration><![CDATA[// CloseBrake() closes the brake at once and the request ends: no automatic re-open without OpenBrake().
 METHOD PRIVATE CloseBrake_Closes_And_Ends_Request
 VAR_INST
@@ -298,7 +298,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Pump_Stop_Closes_Brake" Id="{ba2558ae-d82b-4f91-8133-be19896af9e2}">
+    <Method Name="Pump_Stop_Closes_Brake" Id="{6b726aa5-52b0-4fbb-b59a-f56e0a5d0226}">
       <Declaration><![CDATA[// ManualStopPump drops the pump enable; with the pump the brake closes.
 METHOD PRIVATE Pump_Stop_Closes_Brake
 VAR_INST
@@ -348,7 +348,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Azimuth_Limit_Closes_Brake" Id="{86d1d4e7-749c-4dd8-ab8b-0e52d2c825eb}">
+    <Method Name="Azimuth_Limit_Closes_Brake" Id="{2d2cb4ba-5f8f-4c05-8395-594411dc0f8b}">
       <Declaration><![CDATA[// The azimuth limit switch closes the brake and holds it closed while it is active, although the request goes on.
 METHOD PRIVATE Azimuth_Limit_Closes_Brake
 VAR_INST
@@ -402,7 +402,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Manual_Brake_Stays_Closed_After_Pressure_Loss" Id="{4f347b5f-aa16-4fc8-89d0-47855c472ece}">
+    <Method Name="Manual_Brake_Stays_Closed_After_Pressure_Loss" Id="{74c71f79-da1c-40cc-ad4e-81b14c3eba0a}">
       <Declaration><![CDATA[// #31: the cabinet switch opens the brake once; after a pressure loss it stays closed while the switch stays on, with the pressure back.
 METHOD PRIVATE Manual_Brake_Stays_Closed_After_Pressure_Loss
 VAR_INST
@@ -420,11 +420,17 @@ END_IF
 rig.Scan();
 CASE nStep OF
 0:
+	// the pump runs first: a switch edge before the pump runs is dropped by the block (the request is cleared while the pump is off)
 	rig.bManual := TRUE;
-	rig.bSwitch := TRUE;
 	rig.SetEnable(TRUE);
 	rig.StepStart();
-	nStep := 10;
+	nStep := 5;
+5:
+	IF rig.StepTime(T#500MS) THEN
+		rig.bSwitch := TRUE;
+		rig.StepStart();
+		nStep := 10;
+	END_IF
 10:
 	IF rig.fb.bBrakeOpen THEN
 		Check(rig.stOut.bBrakeAzEl, 'the switch opened the brake');
@@ -460,7 +466,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Manual_Brake_Reopens_After_Switch_Off_On" Id="{71ef2f56-c5b0-4028-8e63-49eb962c479c}">
+    <Method Name="Manual_Brake_Reopens_After_Switch_Off_On" Id="{989da814-5508-4fb6-ab19-8e224ea90915}">
       <Declaration><![CDATA[// #31: after CloseBrake() the brake stays closed while the switch stays on; switch off and on opens it again.
 METHOD PRIVATE Manual_Brake_Reopens_After_Switch_Off_On
 VAR_INST
@@ -478,11 +484,17 @@ END_IF
 rig.Scan();
 CASE nStep OF
 0:
+	// the pump runs first: a switch edge before the pump runs is dropped by the block (the request is cleared while the pump is off)
 	rig.bManual := TRUE;
-	rig.bSwitch := TRUE;
 	rig.SetEnable(TRUE);
 	rig.StepStart();
-	nStep := 10;
+	nStep := 5;
+5:
+	IF rig.StepTime(T#500MS) THEN
+		rig.bSwitch := TRUE;
+		rig.StepStart();
+		nStep := 10;
+	END_IF
 10:
 	IF rig.fb.bBrakeOpen THEN
 		rig.fb.CloseBrake();
@@ -533,7 +545,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Manual_Switch_Off_Closes_Brake" Id="{ef652b14-d8d4-4c57-83f3-ddff625fccee}">
+    <Method Name="Manual_Switch_Off_Closes_Brake" Id="{2537bbc5-0252-421d-84f6-e01d92999200}">
       <Declaration><![CDATA[// The permission: switch off closes the brake at once (bBrakeClearing) and ends the request.
 METHOD PRIVATE Manual_Switch_Off_Closes_Brake
 VAR_INST
@@ -551,11 +563,17 @@ END_IF
 rig.Scan();
 CASE nStep OF
 0:
+	// the pump runs first: a switch edge before the pump runs is dropped by the block (the request is cleared while the pump is off)
 	rig.bManual := TRUE;
-	rig.bSwitch := TRUE;
 	rig.SetEnable(TRUE);
 	rig.StepStart();
-	nStep := 10;
+	nStep := 5;
+5:
+	IF rig.StepTime(T#500MS) THEN
+		rig.bSwitch := TRUE;
+		rig.StepStart();
+		nStep := 10;
+	END_IF
 10:
 	IF rig.fb.bBrakeOpen THEN
 		rig.bSwitch := FALSE;
@@ -581,7 +599,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Manual_Brake_Stays_Closed_After_Pump_Restart" Id="{2b025ffe-d439-45b5-9385-d2994f0592c0}">
+    <Method Name="Manual_Brake_Stays_Closed_After_Pump_Restart" Id="{7347487b-f0e7-4179-ac62-4facb16dd3ec}">
       <Declaration><![CDATA[// #31: a pump stop closes the brake; the pump runs again with the switch still on: the brake stays closed.
 METHOD PRIVATE Manual_Brake_Stays_Closed_After_Pump_Restart
 VAR_INST
@@ -599,11 +617,17 @@ END_IF
 rig.Scan();
 CASE nStep OF
 0:
+	// the pump runs first: a switch edge before the pump runs is dropped by the block (the request is cleared while the pump is off)
 	rig.bManual := TRUE;
-	rig.bSwitch := TRUE;
 	rig.SetEnable(TRUE);
 	rig.StepStart();
-	nStep := 10;
+	nStep := 5;
+5:
+	IF rig.StepTime(T#500MS) THEN
+		rig.bSwitch := TRUE;
+		rig.StepStart();
+		nStep := 10;
+	END_IF
 10:
 	IF rig.fb.bBrakeOpen THEN
 		rig.SetStopPump(TRUE);
@@ -643,7 +667,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Oil_Low_Is_Error_Until_Reset" Id="{49f84ba4-55e4-4558-82c0-f450f5acfcd5}">
+    <Method Name="Oil_Low_Is_Error_Until_Reset" Id="{70e7b55e-a2c7-4491-ac1e-0affd7c5bf45}">
       <Declaration><![CDATA[// Oil low is a latched error that stops the pump; Reset() clears it once the oil is back and the pump starts again (Enable is still set).
 METHOD PRIVATE Oil_Low_Is_Error_Until_Reset
 VAR_INST
@@ -696,7 +720,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Hydraulics_Watchdog_Is_Error" Id="{1e6a15ad-25a5-4e1f-887d-b7b74d5a04fc}">
+    <Method Name="Hydraulics_Watchdog_Is_Error" Id="{f16c32be-e706-47d1-a395-de75d386297e}">
       <Declaration><![CDATA[// The pump running without the suction pump for tHydraulicsWatchdog (1 s here, 140 s default, #10) is a latched error.
 METHOD PRIVATE Hydraulics_Watchdog_Is_Error
 VAR_INST
@@ -736,7 +760,7 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Main_Pump_Without_Feedback_Is_Error" Id="{3adbce52-d73e-489b-a75f-abc1e04038a1}">
+    <Method Name="Main_Pump_Without_Feedback_Is_Error" Id="{513573b7-de73-44bc-8a92-abd923c27a28}">
       <Declaration><![CDATA[// No run feedback 10 s after the pump enable is a latched error (main pump failure).
 METHOD PRIVATE Main_Pump_Without_Feedback_Is_Error
 VAR_INST

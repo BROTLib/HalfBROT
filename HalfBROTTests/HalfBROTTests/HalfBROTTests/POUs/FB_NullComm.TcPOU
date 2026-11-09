@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="FB_NullComm" Id="{2ebd0003-370c-4e2b-9c85-89418b1a71e9}" SpecialFunc="None">
+  <POU Name="FB_NullComm" Id="{f203ce8c-0c38-49b2-8cef-f8fa2ac057b0}" SpecialFunc="None">
     <Declaration><![CDATA[// Minimal I_Comm stub for tests: every Publish/PublishLog call is a no-op that reports success,
 // so FBs under test can call fbComm.Publish(...) freely without a real MQTT connection.
 FUNCTION_BLOCK FB_NullComm IMPLEMENTS BROTLib.I_Comm
@@ -10,7 +10,7 @@ END_VAR
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Method Name="Publish" Id="{0112ab4f-a440-4653-b60c-0596d6ed84b1}">
+    <Method Name="Publish" Id="{ad509404-64b1-44db-b66e-7e66c35c878b}">
       <Declaration><![CDATA[METHOD Publish : BOOL
 VAR_INPUT
 	domain			: STRING(255) := 'environment';
@@ -27,7 +27,7 @@ END_VAR
 published := TRUE;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="PublishLREAL" Id="{9a1d9fc0-8e8d-4bd4-8725-9d2c9e8c16b6}">
+    <Method Name="PublishLREAL" Id="{d5bae253-6245-4068-97c7-b2b8121da886}">
       <Declaration><![CDATA[METHOD PublishLREAL : BOOL
 VAR_INPUT
 	domain			: STRING(255) := 'environment';
@@ -44,7 +44,7 @@ END_VAR
 published := TRUE;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="PublishINT" Id="{3ab51d0a-9891-4a1a-aee6-449891c96380}">
+    <Method Name="PublishINT" Id="{e7c57d37-b741-495c-9243-1ca10d422879}">
       <Declaration><![CDATA[METHOD PublishINT : BOOL
 VAR_INPUT
 	domain			: STRING(255) := 'environment';
@@ -61,7 +61,7 @@ END_VAR
 published := TRUE;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="PublishBOOL" Id="{67ff46ed-d92e-4e70-8e2b-f20b7a2ce022}">
+    <Method Name="PublishBOOL" Id="{bf241de8-1dac-497b-8ded-71c31437db2f}">
       <Declaration><![CDATA[METHOD PublishBOOL : BOOL
 VAR_INPUT
 	domain			: STRING(255) := 'environment';
@@ -78,7 +78,7 @@ END_VAR
 published := TRUE;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="PublishString" Id="{5df533ed-a19b-4b3f-a09e-f163dbfd5e95}">
+    <Method Name="PublishString" Id="{14cdf274-d6ee-4153-8719-20074cdaef9d}">
       <Declaration><![CDATA[METHOD PublishString : BOOL
 VAR_INPUT
 	domain			: STRING(255) := 'environment';
@@ -95,7 +95,7 @@ END_VAR
 published := TRUE;]]></ST>
       </Implementation>
     </Method>
-    <Method Name="PublishLog" Id="{beab6890-6af5-410a-a841-96f9dfe5f5a1}">
+    <Method Name="PublishLog" Id="{4832fd7d-5a46-4f3c-865e-888244ebbadd}">
       <Declaration><![CDATA[METHOD PublishLog : BOOL
 VAR_INPUT
 	level		: STRING(255) := 'INFO';
