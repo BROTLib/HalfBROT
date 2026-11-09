@@ -49,6 +49,7 @@ VAR
 	reset_trigger		: R_TRIG;
 	// all references the current selection uses are valid (#16)
 	bReferencesValid	: BOOL;
+	ePendantState		: E_PendantState;	// what the pendant is doing, see the state section of the body (#31 step 4)
 
 	//DIN17 2.0
 	BCD0: BOOL;
@@ -167,9 +168,21 @@ END_IF
 // a selection whose blocks are not connected does nothing and lights the error lamp:
 // using an unset reference stops the PLC task (#16)
 bReferencesValid := _ReferencesValid(nSelection := Selection);
-IF NOT bReferencesValid THEN
-	lamp_error := TRUE;
+// state: the selector at 0 is a pendant that is not connected; a selection whose blocks are not connected does nothing and
+// lights the error lamp; otherwise the key switch decides between manual and automatic. The functions run in Automatic and
+// Manual, each one checks the key itself.
+IF Selection = 0 THEN
+	ePendantState := E_PendantState.Disconnected;
+ELSIF NOT bReferencesValid THEN
+	ePendantState := E_PendantState.ReferencesMissing;
+ELSIF key_switch THEN
+	ePendantState := E_PendantState.Manual;
 ELSE
+	ePendantState := E_PendantState.Automatic;
+END_IF
+IF ePendantState = E_PendantState.ReferencesMissing THEN
+	lamp_error := TRUE;
+ELSIF ePendantState <> E_PendantState.Disconnected THEN
 	CASE Selection OF
 		1, 2, 3:	// covers: the whole sequence (hold-to-run above); single covers are not moved separately
 			lamp_up := fbCovers.IabCoverOpen[Selection];		// lit while the selected cover is not open
@@ -365,6 +378,18 @@ END_CASE
 ]]></ST>
       </Implementation>
     </Method>
+    <Property Name="State" Id="{bd9e36e6-fa01-480c-8082-1ea180f879ce}">
+      <Declaration><![CDATA[// Disconnected (selector at 0), ReferencesMissing (the selected block is not connected), Automatic or Manual (key switch).
+PROPERTY State : E_PendantState]]></Declaration>
+      <Get Name="Get" Id="{9eaaafa5-403f-4205-a616-daaa40c3d8b7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[State := ePendantState;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Method Name="FB_Init" Id="{377c4b19-44fb-4929-801b-86205f66218e}">
       <Declaration><![CDATA[//FB_Init is always available implicitly and it is used primarily for initialization.
 //The return value is not evaluated. For a specific influence, you can also declare the

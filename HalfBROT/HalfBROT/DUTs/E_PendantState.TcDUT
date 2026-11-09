@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="E_PendantState" Id="{f4d2aeb7-eec3-49c6-b528-37d37c4c3947}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+// State of FB_PendantControl (HalfBROT#31 step 4).
+TYPE E_PendantState :
+(
+	Disconnected := 0,		// selector at 0: pendant not connected, only the error lamp
+	ReferencesMissing := 1,	// the selected function needs a block that is not connected: error lamp, nothing else (#16)
+	Automatic := 2,			// key switch off
+	Manual := 3				// key switch on
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
