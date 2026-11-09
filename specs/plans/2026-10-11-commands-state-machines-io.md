@@ -178,8 +178,8 @@ risk of a silently lost link is covered by checking all links in XAE before acti
   timeout, reversal dead time); CI builds and runs it through `tcbuild.yml`. Pendant added 2026-11-09 (`FB_PendantControl_Tests`: selector,
   error lamp, unset references #16, covers, hydraulics start/brake; focus, derotator, elevation, azimuth and telescope selections only as "not
   connected"). Left: axes and focus: they run MC blocks on an NC axis (`AXIS_REF`) and `HalfBROTTests` has no NC axis, so they need a
-  simulated NC axis first (not tried: unknown whether the CI runtime supports it). The 15 s suction and 30 s pressure watchdogs need a time
-  seam (step 4: per-state timeouts).
+  simulated NC axis first (not tried: unknown whether the CI runtime supports it). The suction and pressure watchdogs are parameters now
+  (`tSuctionWatchdog`, `tPressureWatchdog`) and tested with 1 s; the pump/suction/error state machine is still to do.
 - `HalfBROTTests` project like `MONETcommonTests`, run by Tim in XAE and by CI through `tcbuild.yml` like `MONETcommonTests`. Possible for every
   block once step 2 is done (I/O is just struct members): a test sets the `In` struct and reads the `Out`
   struct.
