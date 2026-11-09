@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
-  <POU Name="FB_PendantRig" Id="{18dab1ee-83e9-5291-af29-6df26612cc86}" SpecialFunc="None">
+  <POU Name="FB_PendantRig" Id="{19e4a2ee-6635-5983-8090-2ff5ba25d08c}" SpecialFunc="None">
     <Declaration><![CDATA[// FB_PendantControl with the cover block and the hydraulics block behind it, each in its rig (FB_CoverRig, FB_HydraulicsRig).
 // The other blocks the pendant can reference (focus, elevation, azimuth, derotator, telescope) are not connected: the pendant
 // must light the error lamp and do nothing for those selections (#16). The test sets the pendant inputs through SetKey(),
@@ -24,7 +24,7 @@ END_VAR
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Method Name="Scan" Id="{d0baa10d-4fce-51a9-8f7d-dab00a24be35}">
+    <Method Name="Scan" Id="{6e9c1f40-0ef0-559b-8ff1-78659aeeba22}">
       <Declaration><![CDATA[METHOD Scan
 ]]></Declaration>
       <Implementation>
@@ -37,7 +37,7 @@ tonStep(IN := TRUE, PT := T#1H);
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetKey" Id="{dfb79628-541c-54bd-adbd-933177492483}">
+    <Method Name="SetKey" Id="{bacc161b-e70c-54fc-9c91-c195e2669dc1}">
       <Declaration><![CDATA[METHOD SetKey
 VAR_INPUT
 	bOn	: BOOL;
@@ -48,7 +48,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetUp" Id="{7881ccbc-3967-5ccd-87c8-8fe62922dba1}">
+    <Method Name="SetUp" Id="{1cf37d19-015c-527d-a70c-c6c1830182e1}">
       <Declaration><![CDATA[METHOD SetUp
 VAR_INPUT
 	bOn	: BOOL;
@@ -59,7 +59,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetDown" Id="{6e9c1f40-0ef0-559b-8ff1-78659aeeba22}">
+    <Method Name="SetDown" Id="{559f8eda-7cd6-5ce5-a064-6b29010bc0ca}">
       <Declaration><![CDATA[METHOD SetDown
 VAR_INPUT
 	bOn	: BOOL;
@@ -70,7 +70,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetLeft" Id="{bacc161b-e70c-54fc-9c91-c195e2669dc1}">
+    <Method Name="SetLeft" Id="{db106218-ab9f-5aab-9b03-f800a30a574d}">
       <Declaration><![CDATA[METHOD SetLeft
 VAR_INPUT
 	bOn	: BOOL;
@@ -81,7 +81,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetRight" Id="{1cf37d19-015c-527d-a70c-c6c1830182e1}">
+    <Method Name="SetRight" Id="{843c2ae9-5ce9-583d-b6f4-3816c74ee7a2}">
       <Declaration><![CDATA[METHOD SetRight
 VAR_INPUT
 	bOn	: BOOL;
@@ -92,7 +92,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetStart" Id="{559f8eda-7cd6-5ce5-a064-6b29010bc0ca}">
+    <Method Name="SetStart" Id="{28087647-e35c-5bd7-93b4-f12c3fd6740d}">
       <Declaration><![CDATA[METHOD SetStart
 VAR_INPUT
 	bOn	: BOOL;
@@ -103,7 +103,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetReset" Id="{db106218-ab9f-5aab-9b03-f800a30a574d}">
+    <Method Name="SetReset" Id="{4fb4742d-7569-5d2a-9f60-2d0377a4e72b}">
       <Declaration><![CDATA[METHOD SetReset
 VAR_INPUT
 	bOn	: BOOL;
@@ -114,7 +114,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetSelector" Id="{843c2ae9-5ce9-583d-b6f4-3816c74ee7a2}">
+    <Method Name="SetSelector" Id="{bf6403d8-ee24-529f-8f59-93f59fdaee83}">
       <Declaration><![CDATA[METHOD SetSelector
 VAR_INPUT
 	nSelector	: INT;
@@ -128,7 +128,7 @@ stIn.bBCD8 := (nSelector AND 8) <> 0;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="SetClearing" Id="{28087647-e35c-5bd7-93b4-f12c3fd6740d}">
+    <Method Name="SetClearing" Id="{94eb4b73-5509-5442-894d-135ed913d7c4}">
       <Declaration><![CDATA[METHOD SetClearing
 VAR_INPUT
 	bOn	: BOOL;
@@ -139,7 +139,7 @@ END_VAR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Lamps" Id="{4fb4742d-7569-5d2a-9f60-2d0377a4e72b}">
+    <Method Name="Lamps" Id="{8103a3b6-df76-502d-889c-8fa32aba49aa}">
       <Declaration><![CDATA[METHOD Lamps : STRING(5)
 ]]></Declaration>
       <Implementation>
@@ -172,7 +172,7 @@ END_IF
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="State" Id="{bf6403d8-ee24-529f-8f59-93f59fdaee83}">
+    <Method Name="State" Id="{18dab1ee-83e9-5291-af29-6df26612cc86}">
       <Declaration><![CDATA[METHOD State : STRING(100)
 ]]></Declaration>
       <Implementation>
@@ -185,7 +185,7 @@ State := CONCAT(State, ']');
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="StepStart" Id="{94eb4b73-5509-5442-894d-135ed913d7c4}">
+    <Method Name="StepStart" Id="{5843fba7-9088-53a9-90d6-44acab85be51}">
       <Declaration><![CDATA[METHOD StepStart
 ]]></Declaration>
       <Implementation>
@@ -194,7 +194,7 @@ nStepScans := 0;
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="StepTime" Id="{8103a3b6-df76-502d-889c-8fa32aba49aa}">
+    <Method Name="StepTime" Id="{6af8c895-718b-574b-9112-e16f110f59e6}">
       <Declaration><![CDATA[METHOD StepTime : BOOL
 VAR_INPUT
 	tTime	: TIME;

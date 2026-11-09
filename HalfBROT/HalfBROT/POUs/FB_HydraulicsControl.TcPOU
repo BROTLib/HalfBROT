@@ -14,6 +14,8 @@ VAR_INPUT
 	fMaxPanPercent		: REAL := 90;		// oil level percentage to be seen as full
 	fTelemetryInterval	: TIME := T#5S;		// publish at least this often, also without a change (#19)
 	tHydraulicsWatchdog	: TIME := T#140S;	// main pump running this long without the suction pump running = bHydraulicsFailure (#10)
+	tSuctionWatchdog	: TIME := T#15S;	// suction pump enabled this long without the run feedback = bSuctionFailure (a parameter so tests can shorten it)
+	tPressureWatchdog	: TIME := T#30S;	// main pump enabled this long without the oil pressure = bPressureFailure (a parameter so tests can shorten it)
 	nMinValidPanLevel	: INT := -32768;	// raw oil level below this is a sensor fault (wire break); the default accepts every value, no guard (MONETS#32)
 	nMaxValidPanLevel	: INT := 32767;		// raw oil level above this is a sensor fault (over-range); the default accepts every value, no guard
 	tPumpResetPulse		: TIME := T#1S;		// length of the reset pulse for the pump starters, also sent once before the first pump start after a PLC start and after a main pump failure; T#0S = old behaviour, reset outputs follow bReset (#120)
@@ -271,12 +273,12 @@ bSuctionLatched := F_OilSuctionLatch(
 ObOilSuctionEnable := bSuctionLatched OR bManualSuction;					
 tonSuctionWatchdog(
 	IN := ObOilSuctionEnable AND NOT bSuctionRunning,
-	PT := T#15S,
+	PT := tSuctionWatchdog,
 	Q  => bSuctionFailure);
 					
 tonPressureWatchdog(
 	IN := ObOilPumpEnable AND	NOT bOilPressureOK,
-	PT := T#30S,
+	PT := tPressureWatchdog,
 	Q  => bPressureFailure);
 // inherited unchanged from the STELLA1 control, purpose not documented (see #10): error if the main pump
 // runs for tHydraulicsWatchdog (140 s by default) without the suction pump running
