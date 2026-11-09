@@ -43,6 +43,7 @@ CASE nStep OF
 	nStep := 10;
 10:
 	Check(rig.OpenOutputs() = 'x--' AND rig.CloseOutputs() = '---', CONCAT('only cover 1 starts ', rig.State()));
+	Check(rig.fb.State = HalfBROT.E_CoverState.Opening, CONCAT('state Opening ', rig.State()));
 	rig.SetMid(1);
 	nStep := 15;
 15:
@@ -63,6 +64,7 @@ CASE nStep OF
 	nStep := 40;
 40:
 	Check(rig.fb.bAllOpen AND rig.fb.Opened AND NOT rig.fb.Closed, CONCAT('all covers open ', rig.State()));
+	Check(rig.fb.State = HalfBROT.E_CoverState.Idle, CONCAT('state Idle after the last cover ', rig.State()));
 	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', CONCAT('all outputs off ', rig.State()));
 	nStep := 50;
 50:
@@ -99,6 +101,7 @@ CASE nStep OF
 	nStep := 10;
 10:
 	Check(rig.CloseOutputs() = '-x-' AND rig.OpenOutputs() = '---', CONCAT('only cover 2 starts ', rig.State()));
+	Check(rig.fb.State = HalfBROT.E_CoverState.Closing, CONCAT('state Closing ', rig.State()));
 	rig.SetMid(2);
 	nStep := 15;
 15:
@@ -255,17 +258,20 @@ CASE nStep OF
 	nStep := 20;
 20:
 	Check(rig.fb.Error AND rig.fb.bError, CONCAT('the fault is an error ', rig.State()));
+	Check(rig.fb.State = HalfBROT.E_CoverState.Error, CONCAT('state Error ', rig.State()));
 	Check(rig.OpenOutputs() = '---' AND rig.CloseOutputs() = '---', CONCAT('all covers stop, also those without the fault ', rig.State()));
 	rig.SetClosed(3);
 	rig.fb.Open();
 	nStep := 30;
 30:
 	Check(rig.fb.Error, CONCAT('the error stays latched with the switch fixed ', rig.State()));
+	Check(rig.fb.State = HalfBROT.E_CoverState.Error, CONCAT('state stays Error until Reset() ', rig.State()));
 	Check(rig.OpenOutputs() = '---', CONCAT('no output while the error is latched ', rig.State()));
 	rig.fb.Reset();
 	nStep := 40;
 40:
 	Check(NOT rig.fb.Error, CONCAT('Reset() clears the error ', rig.State()));
+	Check(rig.fb.State = HalfBROT.E_CoverState.Idle, CONCAT('state Idle after Reset() ', rig.State()));
 	Check(rig.OpenOutputs() = '---', CONCAT('the command was dropped by the error: nothing moves ', rig.State()));
 	rig.fb.Open();
 	nStep := 50;
@@ -303,6 +309,7 @@ CASE nStep OF
 	IF rig.fb.Error THEN
 		Check(rig.StepTime(T#250MS), CONCAT('not before the timeout ', rig.State()));
 		Check(rig.OpenOutputs() = '---', CONCAT('the output is off ', rig.State()));
+		Check(rig.fb.State = HalfBROT.E_CoverState.Error, CONCAT('state Error after the timeout ', rig.State()));
 		rig.fb.Reset();
 		nStep := 20;
 	ELSIF rig.StepTime(T#2S) THEN
