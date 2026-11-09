@@ -51,6 +51,7 @@ IF rig.nScans >= 5 THEN
 	Check(NOT rig.stOut.bBrakeAzEl, 'brake output off');
 	Check(NOT rig.fb.bError, 'no error with healthy sensors');
 	Check(rig.fb.bBrakeClosed AND NOT rig.fb.bBrakeOpen, 'brake reported closed');
+	Check(rig.fb.BrakeState = HalfBROT.E_BrakeState.Closed, 'brake state Closed');
 	Check(NOT rig.stOut.bResetOilPump AND NOT rig.stOut.bResetSuctionPump, 'no starter reset');
 		nStep := 99;
 		TEST_FINISHED();
@@ -125,6 +126,7 @@ CASE nStep OF
 	IF rig.stOut.bBrakeAzEl THEN
 		Check(rig.StepTime(T#2S500MS) AND NOT rig.StepTime(T#4S), 'the brake output comes about 3 s after the start');
 		Check(NOT rig.fb.bBrakeOpen, 'open is reported 1 s after the output, not with it');
+		Check(rig.fb.BrakeState = HalfBROT.E_BrakeState.Opening, 'brake state Opening while the output is on and not reported');
 		rig.StepStart();
 		nStep := 30;
 	ELSIF rig.StepTime(T#6S) THEN
@@ -136,6 +138,7 @@ CASE nStep OF
 	IF rig.fb.bBrakeOpen THEN
 		Check(rig.StepTime(T#800MS) AND NOT rig.StepTime(T#2S), 'open is reported about 1 s after the output');
 		Check(rig.fb.BrakeOpen AND NOT rig.fb.bBrakeClosed, 'BrakeOpen property and bBrakeClosed agree');
+		Check(rig.fb.BrakeState = HalfBROT.E_BrakeState.Open, 'brake state Open when reported');
 		nStep := 99;
 		TEST_FINISHED();
 	ELSIF rig.StepTime(T#3S) THEN
@@ -280,6 +283,7 @@ CASE nStep OF
 	IF NOT rig.stOut.bBrakeAzEl THEN
 		Check(NOT rig.StepTime(T#300MS), 'the brake output drops at once');
 		Check(NOT rig.fb.bBrakeOpen, 'closed is reported');
+		Check(rig.fb.BrakeState = HalfBROT.E_BrakeState.Closed, 'brake state Closed after the close');
 		rig.StepStart();
 		nStep := 30;
 	ELSIF rig.StepTime(T#1S) THEN
@@ -588,6 +592,7 @@ CASE nStep OF
 	IF NOT rig.stOut.bBrakeAzEl THEN
 		Check(NOT rig.StepTime(T#300MS), 'the brake output drops at once');
 		Check(NOT rig.fb.bBrakeOpen, 'closed is reported');
+		Check(rig.fb.BrakeState = HalfBROT.E_BrakeState.Closed, 'brake state Closed after the close');
 		nStep := 99;
 		TEST_FINISHED();
 	ELSIF rig.StepTime(T#1S) THEN

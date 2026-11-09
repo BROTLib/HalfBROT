@@ -76,7 +76,8 @@ VAR
 	
 	rsOilPumpState		: RS;				// represents the state of the main pump
 	
-	rsBrakeState		: RS;				// represents the state of the brake
+	eBrakeState			: E_BrakeState;		// state of the brake output, see the brake section of the body (#31 step 4)
+	bBrakeRelease		: BOOL;				// a reason to close the brake this scan
 	tonBrakeOpenDelay	: TON;				// wait for the brake to open after pressure has been established
 	tonBrakeOpenedDelay	: TON;				// report brake opend after a short delay
 	tonPressureLossDelay	: TON;				// debounce for loss of oil pressure, which closes the brake
@@ -218,16 +219,31 @@ tonBrakeOpenDelay(
 	IN := bPumpRunning AND bOilPressureOK,
 	PT := T#3S);
 		
-rsBrakeState(
-	SET    := tonBrakeOpenDelay.Q AND bOpenBrake AND bBrakeClearing,
-	RESET1 := bAzimuthLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR tonPressureLossDelay.Q OR NOT bBrakeClearing,
-	Q1     => ObBrakeAzEl);
+// brake state machine. Closed: output off. The brake opens when the pressure delay has run out, the opening is requested and
+// the clearing is there. Opening: output on, not yet reported. Open: reported open one second after the output. Any reason
+// to close wins over the opening in the same scan and takes every state back to Closed. The output (ObBrakeAzEl) is written
+// from the state here only.
+bBrakeRelease := bAzimuthLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR tonPressureLossDelay.Q OR NOT bBrakeClearing;
+CASE eBrakeState OF
+	E_BrakeState.Closed:
+		IF tonBrakeOpenDelay.Q AND bOpenBrake AND bBrakeClearing AND NOT bBrakeRelease THEN
+			eBrakeState := E_BrakeState.Opening;
+		END_IF
+	E_BrakeState.Opening, E_BrakeState.Open:
+		IF bBrakeRelease THEN
+			eBrakeState := E_BrakeState.Closed;
+		END_IF
+END_CASE
+ObBrakeAzEl := eBrakeState <> E_BrakeState.Closed;
 
 // signal that the brake is open after one second
 tonBrakeOpenedDelay(
-	IN := rsBrakeState.Q1, 
+	IN := ObBrakeAzEl,
 	PT := T#1000MS,
 	Q  => bBrakeOpen);
+IF eBrakeState = E_BrakeState.Opening AND bBrakeOpen THEN
+	eBrakeState := E_BrakeState.Open;
+END_IF
 
 // brake closed?
 bBrakeClosed := NOT bBrakeOpen;
@@ -485,6 +501,18 @@ stOut.bBrakeAzEl := ObBrakeAzEl;
 stOut.bResetOilPump := ObResetOilPump;
 stOut.bResetSuctionPump := ObResetSuctionPump;]]></ST>
     </Implementation>
+    <Property Name="BrakeState" Id="{958fbfef-0097-463d-a934-b854bf7b66e5}">
+      <Declaration><![CDATA[// State of the brake output: Closed, Opening (output on, not reported yet) or Open (reported).
+PROPERTY BrakeState : E_BrakeState]]></Declaration>
+      <Get Name="Get" Id="{33866298-77c6-4756-bc86-4c1c32fd97e4}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[BrakeState := eBrakeState;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Property Name="BrakeOpen" Id="{0f49c805-8206-4d47-881c-fcf69eddebfe}">
       <Declaration><![CDATA[PROPERTY BrakeOpen : BOOL]]></Declaration>
       <Get Name="Get" Id="{119366c2-8763-4dc0-833d-a2c993e1da3b}">
