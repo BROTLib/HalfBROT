@@ -173,6 +173,10 @@ risk of a silently lost link is covered by checking all links in XAE before acti
   `HalfBROTTests` project, or `MAXNUMBEROFASSERTSFOREACHTESTSUITE` (256) is lowered first to make room.
   Also: do not run a manual XAE activation while CI runs, both use the same runtime and boot folder.
 
+- Started 2026-11-09 (PR "feat/halfbrot-tests-32"): `HalfBROTTests` exists with `FB_HydraulicsControl_Tests` (start-up, the brake, the
+  step 1 re-arm, the latched errors up to 13 s) and `FB_CoverControl_Tests` (sequence, last call wins, stop, limit switch fault,
+  timeout, reversal dead time); CI builds and runs it through `tcbuild.yml`. Left: pendant, axes, focus; the 15 s suction and 30 s
+  pressure watchdogs need a time seam (step 4: per-state timeouts).
 - `HalfBROTTests` project like `MONETcommonTests`, run by Tim in XAE and by CI through `tcbuild.yml` like `MONETcommonTests`. Possible for every
   block once step 2 is done (I/O is just struct members): a test sets the `In` struct and reads the `Out`
   struct.

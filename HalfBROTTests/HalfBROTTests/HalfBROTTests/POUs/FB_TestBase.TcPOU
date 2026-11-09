@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_TestBase" Id="{c0ae1aa7-8f7f-44f4-be49-5748ddad3a77}" SpecialFunc="None">
+    <Declaration><![CDATA[// Base of the HalfBROTTests suites: Check() is a TcUnit assertion that also notes a failed check in GVL_Diag.sFailures
+// (printed by tools/Run-Tests.ps1, TcUnit itself writes the failure text only to the ADS log). The test method sets
+// sCurrent to its name first.
+FUNCTION_BLOCK FB_TestBase EXTENDS TcUnit.FB_TestSuite
+VAR
+	sCurrent	: STRING(80);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="Check" Id="{4215c0a1-8d0d-46b3-a363-93cddfb50baa}">
+      <Declaration><![CDATA[METHOD Check
+VAR_INPUT
+	bCondition	: BOOL;
+	sMessage	: STRING(255);
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[AssertTrue(Condition := bCondition, Message := sMessage);
+F_Note(bFailed := NOT bCondition, sText := CONCAT(sCurrent, sMessage));
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

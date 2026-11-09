@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_CoverRig" Id="{9fd7e1aa-73a6-44f3-b662-c9c170125c9f}" SpecialFunc="None">
+    <Declaration><![CDATA[// FB_CoverControl with limit switches the test sets by hand. The switches are inverted (TRUE = the cover is NOT at the
+// switch), see the block: SetClosed(i) puts cover i at its closed switch, SetOpen(i) at its open switch, SetMid(i) between
+// them, SetBoth(i) is the limit switch fault (both switches reached). All covers start closed.
+// StepStart()/StepTime() measure real time from the start of a step (the block timers run on the system time).
+FUNCTION_BLOCK FB_CoverRig
+VAR_INPUT
+	stIn		: HalfBROT.ST_CoverIn;
+	tReversalDeadTime	: TIME := T#1S;
+	tMoveTimeout		: TIME := T#60S;
+END_VAR
+VAR
+	fbComm		: FB_NullComm;
+	fb			: HalfBROT.FB_CoverControl(comm := fbComm);
+	stOut		: HalfBROT.ST_CoverOut;
+	tonStep		: TON;
+	nScans		: UDINT;
+	bInit		: BOOL;
+	i			: INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="Scan" Id="{ad2fc567-fce9-4aa9-a789-49c4ce874f38}">
+      <Declaration><![CDATA[METHOD Scan
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT bInit THEN
+	bInit := TRUE;
+	FOR i := 1 TO 3 DO
+		SetClosed(i);
+	END_FOR
+END_IF
+nScans := nScans + 1;
+fb(stIn := stIn, tReversalDeadTime := tReversalDeadTime, tMoveTimeout := tMoveTimeout, stOut := stOut);
+tonStep(IN := TRUE, PT := T#1H);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetClosed" Id="{48df7946-6347-43c4-a3b0-bef42d354027}">
+      <Declaration><![CDATA[METHOD SetClosed
+VAR_INPUT
+	nCover	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.abOpen[nCover] := TRUE;
+stIn.abClosed[nCover] := FALSE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetOpen" Id="{8cf7aeb0-0001-495b-85cd-3b08518a859c}">
+      <Declaration><![CDATA[METHOD SetOpen
+VAR_INPUT
+	nCover	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.abOpen[nCover] := FALSE;
+stIn.abClosed[nCover] := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetMid" Id="{8473a13a-fea4-4921-959b-3123b5a6fb8f}">
+      <Declaration><![CDATA[METHOD SetMid
+VAR_INPUT
+	nCover	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.abOpen[nCover] := TRUE;
+stIn.abClosed[nCover] := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetBoth" Id="{bec05586-6316-483f-abe2-7cd52ea10a00}">
+      <Declaration><![CDATA[METHOD SetBoth
+VAR_INPUT
+	nCover	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[stIn.abOpen[nCover] := FALSE;
+stIn.abClosed[nCover] := FALSE;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AllOpen" Id="{db9cbc63-4bd3-4b59-93e0-07968b4b295a}">
+      <Declaration><![CDATA[METHOD AllOpen
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i := 1 TO 3 DO
+	SetOpen(i);
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AllMid" Id="{229deab3-27f9-4509-bf3f-ee56ddde4e86}">
+      <Declaration><![CDATA[METHOD AllMid
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i := 1 TO 3 DO
+	SetMid(i);
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="OpenOutputs" Id="{5a7423df-4bbf-4d7d-8557-5ba7aca8def2}">
+      <Declaration><![CDATA[METHOD OpenOutputs : STRING(3)
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// the open outputs of cover 1, 2 and 3 as "x" or "-"
+OpenOutputs := '';
+FOR i := 1 TO 3 DO
+	IF stOut.abOpen[i] THEN
+		OpenOutputs := CONCAT(OpenOutputs, 'x');
+	ELSE
+		OpenOutputs := CONCAT(OpenOutputs, '-');
+	END_IF
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="CloseOutputs" Id="{09c65e57-4ba9-43f5-b5a9-d8d823eeb1ca}">
+      <Declaration><![CDATA[METHOD CloseOutputs : STRING(3)
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// the close outputs of cover 1, 2 and 3 as "x" or "-"
+CloseOutputs := '';
+FOR i := 1 TO 3 DO
+	IF stOut.abClose[i] THEN
+		CloseOutputs := CONCAT(CloseOutputs, 'x');
+	ELSE
+		CloseOutputs := CONCAT(CloseOutputs, '-');
+	END_IF
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="State" Id="{d6ead045-1001-46b6-a4e7-3802605d8b38}">
+      <Declaration><![CDATA[METHOD State : STRING(60)
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[State := CONCAT(CONCAT(CONCAT(CONCAT('[open ', OpenOutputs()), ' close '), CloseOutputs()), CONCAT(' err ', BOOL_TO_STRING(fb.bError)));
+State := CONCAT(State, ']');
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepStart" Id="{b1bf3003-86c1-4f31-9f2c-6c463abf410b}">
+      <Declaration><![CDATA[METHOD StepStart
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tonStep(IN := FALSE, PT := T#1H);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepTime" Id="{7185b032-d575-4ad7-9572-8cc70e1beaf4}">
+      <Declaration><![CDATA[METHOD StepTime : BOOL
+VAR_INPUT
+	tTime	: TIME;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[StepTime := tonStep.ET >= tTime;
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>
