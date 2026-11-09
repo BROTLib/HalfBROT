@@ -52,6 +52,7 @@ IF rig.nScans >= 5 THEN
 	Check(NOT rig.stOut.bOilSuctionEnable, 'no suction enable');
 	Check(NOT rig.stOut.bBrakeAzEl, 'brake output off');
 	Check(NOT rig.fb.bError, 'no error with healthy sensors');
+	Check(rig.fb.PumpState = HalfBROT.E_PumpState.Off, 'pump state Off');
 	Check(rig.fb.bBrakeClosed AND NOT rig.fb.bBrakeOpen, 'brake reported closed');
 	Check(rig.fb.BrakeState = HalfBROT.E_BrakeState.Closed, 'brake state Closed');
 	Check(NOT rig.stOut.bResetOilPump AND NOT rig.stOut.bResetSuctionPump, 'no starter reset');
@@ -87,6 +88,7 @@ CASE nStep OF
 		Check(rig.fb.Enable, 'Enable reads back');
 		Check(rig.stOut.bOilPumpEnable, 'pump enable output');
 		Check(rig.fb.PumpRunning AND rig.fb.OilPressureOK, 'pump running and pressure reported');
+		Check(rig.fb.PumpState = HalfBROT.E_PumpState.Running, 'pump state Running');
 		Check(NOT rig.fb.Error, 'no error');
 		Check(NOT rig.stOut.bBrakeAzEl, 'the pump start does not open the brake');
 		nStep := 99;
@@ -704,6 +706,7 @@ CASE nStep OF
 20:
 	IF rig.nStepScans >= 3 THEN
 		Check(rig.fb.Error AND rig.fb.bOilLow, 'oil low is an error');
+		Check(rig.fb.PumpState = HalfBROT.E_PumpState.Error, 'pump state Error');
 		Check(NOT rig.stOut.bOilPumpEnable, 'the error stops the pump');
 		rig.stIn.bOilLow := TRUE;
 		rig.StepStart();
@@ -720,6 +723,7 @@ CASE nStep OF
 	IF rig.nStepScans >= 4 THEN
 		Check(NOT rig.fb.Error, 'Reset() clears the error');
 		Check(rig.stOut.bOilPumpEnable, 'the pump starts again, Enable is still set');
+		Check(rig.fb.PumpState = HalfBROT.E_PumpState.Running, 'pump state Running again after Reset()');
 		nStep := 99;
 		TEST_FINISHED();
 	END_IF
