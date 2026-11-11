@@ -16,9 +16,10 @@ through methods, so a test is a rig around one block: it sets the `In` struct, c
 |---|---|
 | `FB_HydraulicsControl_Tests` | `FB_HydraulicsControl` (characterisation, they pin what the block does today): no request means everything off; `Enable` starts the pump; the brake opens about 3 s after the pressure and is reported 1 s later; no brake without `bBrakeClearing`; pressure loss closes the brake after the 2 s debounce and the automatic request opens it again; `CloseBrake()`, a pump stop and the azimuth limit close it; the manual brake of #31 (the switch opens it once, it stays closed after a pressure loss, `CloseBrake()` or a pump restart while the switch stays on, switch off and on opens it again, switch off closes it); oil low, the hydraulics watchdog (#10) and a missing pump feedback are latched errors cleared by `Reset()` |
 | `FB_CoverControl_Tests` | `FB_CoverControl` (characterisation): open 1->3->2 and close 2->3->1, each cover only after the previous one reached its switch; the last call of `Open()`/`Close()` wins; `Stop()` drops the outputs and the command; a limit switch fault stops all covers and is latched until `Reset()` (#28); the move timeout; the reversal dead time (#27) |
+| `FB_FocusUnlock_Tests` | `FB_FocusUnlock`, the unlock sequence of `FB_FocusControl` (rig with a drive model and the real `FB_MoveFollower`): the drive is enabled with the lock closed, the lock opens only after the power status and the settle time; no move before `ptFocusDelay` after the unlock; no power status within the timeout keeps the lock closed and drops the drive until `Reset`; a lost power status closes the lock; an error, and a dropped request, close the lock and drop the drive in one cycle |
 
 Not covered yet: the 15 s suction and 30 s pressure watchdogs of the hydraulics (they need a time seam, the real time is too long
-for CI), the pendant, the axes and the focus block. The pure-logic helpers of HalfBROT (`FB_FocusJogLatch`, `FB_FocusManualHome`,
+for CI), the pendant, the axes and the focus block (only its unlock sequence, `FB_FocusUnlock`). The pure-logic helpers of HalfBROT (`FB_FocusJogLatch`, `FB_FocusManualHome`,
 `F_*`, ...) are tested in `MONETcommonTests` (suite `FB_HalfBROTHelpers_Tests` and others).
 
 ## Running the tests

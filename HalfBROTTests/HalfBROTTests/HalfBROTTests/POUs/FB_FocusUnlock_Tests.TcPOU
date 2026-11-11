@@ -1,0 +1,299 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_FocusUnlock_Tests" Id="{701aa46c-5fe3-40be-8265-4593d69152cf}" SpecialFunc="None">
+    <Declaration><![CDATA[// Unlock sequence of the focus (HalfBROT.FB_FocusUnlock, wired into FB_FocusControl): the drive is powered while the lock
+// is closed, the lock opens only after the power status, no move before ptFocusDelay after the unlock, a power timeout
+// keeps the lock closed (until Reset), an error and a dropped request close the lock and drop the drive in one cycle.
+// Every test owns a rig (FB_FocusUnlockRig: drive model + the real FB_MoveFollower) and runs over several PLC cycles
+// in real time (power up 200 ms, settle 50 ms, focus delay 300 ms unless the test sets other times).
+FUNCTION_BLOCK FB_FocusUnlock_Tests EXTENDS FB_TestBase
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Lock_Opens_Only_After_Power_Status();
+No_Move_Before_Focus_Delay();
+Power_Timeout_Keeps_Lock_Closed();
+Power_Lost_Closes_Lock();
+Error_Closes_Lock_And_Drops_Drive_In_One_Cycle();
+Request_Drop_Locks_In_One_Cycle();
+]]></ST>
+    </Implementation>
+    <Method Name="Lock_Opens_Only_After_Power_Status" Id="{725ff08f-8273-4ed0-b888-915405cf651f}">
+      <Declaration><![CDATA[// The request enables the drive at once with the lock closed; the lock opens only after the power status (200 ms) and
+// the settle time (50 ms), and bUnlocked (moves allowed) is still FALSE then.
+METHOD PRIVATE Lock_Opens_Only_After_Power_Status
+VAR_INST
+	rig		: FB_FocusUnlockRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Lock_Opens_Only_After_Power_Status');
+sCurrent := 'Lock_Opens_Only_After_Power_Status: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+CASE nStep OF
+0:
+	rig.bRequest := TRUE;
+	rig.StepStart();
+	rig.Scan();
+	Check(rig.fb.bDriveEnable, CONCAT('the drive is enabled with the request ', rig.State()));
+	Check(NOT rig.fb.bUnlock, CONCAT('the lock stays closed until the drive reports power ', rig.State()));
+	nStep := 10;
+10:
+	rig.Scan();
+	bViol := bViol OR (rig.fb.bUnlock AND NOT rig.bPowered) OR NOT rig.fb.bDriveEnable;
+	IF rig.fb.bUnlock THEN
+		Check(NOT bViol, CONCAT('no unlock without power status, the drive stays enabled ', rig.State()));
+		Check(rig.StepTime(T#240MS), CONCAT('the lock opens after power up and settle time ', rig.State()));
+		Check(NOT rig.fb.bUnlocked, CONCAT('no move allowed in the cycle the lock opens ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#2S) THEN
+		Check(FALSE, CONCAT('the lock never opened ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="No_Move_Before_Focus_Delay" Id="{1e2fc2d5-46c6-47ac-a897-dfaae99bbff0}">
+      <Declaration><![CDATA[// Automatic positioning with the focus off its target: the follower starts the move only when the lock has been open for
+// tFocusDelay (300 ms), never while the lock is closed or still releasing.
+METHOD PRIVATE No_Move_Before_Focus_Delay
+VAR_INST
+	rig		: FB_FocusUnlockRig;
+	nStep	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('No_Move_Before_Focus_Delay');
+sCurrent := 'No_Move_Before_Focus_Delay: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+CASE nStep OF
+0:
+	rig.bFollow := TRUE;
+	rig.bRequest := TRUE;
+	rig.StepStart();
+	rig.Scan();
+	nStep := 10;
+10:
+	rig.Scan();
+	IF rig.nStarts > 0 THEN
+		Check(NOT rig.bStartBeforeUnlocked, CONCAT('no move before bUnlocked ', rig.State()));
+		Check(rig.tUnlockAt < T#1H, CONCAT('the lock is open ', rig.State()));
+		Check(rig.tFirstStart >= rig.tUnlockAt + T#280MS, CONCAT('the move starts ptFocusDelay after the unlock ', rig.State()));
+		Check(rig.tFirstStart <= rig.tUnlockAt + T#500MS, CONCAT('and not much later ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#2S) THEN
+		Check(FALSE, CONCAT('the move never started ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Power_Timeout_Keeps_Lock_Closed" Id="{23ed1616-5586-4562-b242-0b3370249574}">
+      <Declaration><![CDATA[// The drive never reports power: after tPowerTimeout (400 ms here) bPowerTimeout, the drive is dropped and the lock never
+// opened. It stays so until Reset; after the reset the sequence runs again and unlocks once the drive powers.
+METHOD PRIVATE Power_Timeout_Keeps_Lock_Closed
+VAR_INST
+	rig		: FB_FocusUnlockRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Power_Timeout_Keeps_Lock_Closed');
+sCurrent := 'Power_Timeout_Keeps_Lock_Closed: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+CASE nStep OF
+0:
+	rig.bDrivePowers := FALSE;
+	rig.tPowerTimeout := T#400MS;
+	rig.bFollow := TRUE;
+	rig.bRequest := TRUE;
+	rig.StepStart();
+	rig.Scan();
+	nStep := 10;
+10:
+	rig.Scan();
+	bViol := bViol OR rig.fb.bUnlock OR rig.nStarts > 0;
+	IF rig.StepTime(T#800MS) THEN
+		Check(NOT bViol, CONCAT('the lock never opened, no move ', rig.State()));
+		Check(rig.fb.bPowerTimeout, CONCAT('power timeout ', rig.State()));
+		Check(rig.tTimeoutAt >= T#380MS AND rig.tTimeoutAt <= T#600MS, CONCAT('after tPowerTimeout ', rig.State()));
+		Check(NOT rig.fb.bDriveEnable, CONCAT('the drive is dropped ', rig.State()));
+		rig.bReset := TRUE;
+		nStep := 20;
+	END_IF
+20:
+	rig.Scan();
+	rig.bReset := FALSE;
+	Check(NOT rig.fb.bPowerTimeout, CONCAT('Reset clears the timeout ', rig.State()));
+	Check(rig.fb.bDriveEnable AND NOT rig.fb.bUnlock, CONCAT('the drive is enabled again, lock closed ', rig.State()));
+	rig.bDrivePowers := TRUE;
+	rig.StepStart();
+	nStep := 30;
+30:
+	rig.Scan();
+	IF rig.fb.bUnlock THEN
+		Check(rig.bPowered AND NOT rig.fb.bPowerTimeout, CONCAT('unlocked with power after the reset ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#2S) THEN
+		Check(FALSE, CONCAT('no unlock after the reset ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Power_Lost_Closes_Lock" Id="{7eeb5f6b-ce64-4790-9ebf-3da46cf53e69}">
+      <Declaration><![CDATA[// Unlocked, then the drive loses its power status without an axis error: the lock closes in the next cycle, no move is
+// allowed, and it is a power timeout after tPowerTimeout (400 ms here).
+METHOD PRIVATE Power_Lost_Closes_Lock
+VAR_INST
+	rig		: FB_FocusUnlockRig;
+	nStep	: INT;
+	bViol	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Power_Lost_Closes_Lock');
+sCurrent := 'Power_Lost_Closes_Lock: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+CASE nStep OF
+0:
+	rig.tPowerTimeout := T#400MS;
+	rig.bRequest := TRUE;
+	rig.StepStart();
+	rig.Scan();
+	nStep := 10;
+10:
+	rig.Scan();
+	IF rig.fb.bUnlocked THEN
+		rig.bDrivePowers := FALSE;	// takes effect in the "fbAxis call" of the next Scan
+		nStep := 20;
+	ELSIF rig.StepTime(T#2S) THEN
+		Check(FALSE, CONCAT('never unlocked ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+20:
+	rig.Scan();		// power status drops in this fbAxis call
+	rig.Scan();		// the unlock sequence sees it
+	Check(NOT rig.fb.bUnlock AND NOT rig.fb.bUnlocked, CONCAT('the lock closes when the power status is lost ', rig.State()));
+	rig.StepStart();
+	nStep := 30;
+30:
+	rig.Scan();
+	bViol := bViol OR rig.fb.bUnlock;
+	IF rig.StepTime(T#700MS) THEN
+		Check(NOT bViol, CONCAT('the lock stays closed ', rig.State()));
+		Check(rig.fb.bPowerTimeout AND NOT rig.fb.bDriveEnable, CONCAT('power timeout, drive dropped ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Error_Closes_Lock_And_Drops_Drive_In_One_Cycle" Id="{312b71e6-f9f9-49c1-ad63-9c44e06e3d88}">
+      <Declaration><![CDATA[// Unlocked and ready to move, then an axis error: the first call that sees bError closes the lock and drops the drive
+// (and bUnlocked). After the error is gone the sequence starts again with the lock closed.
+METHOD PRIVATE Error_Closes_Lock_And_Drops_Drive_In_One_Cycle
+VAR_INST
+	rig		: FB_FocusUnlockRig;
+	nStep	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Error_Closes_Lock_And_Drops_Drive_In_One_Cycle');
+sCurrent := 'Error_Closes_Lock_And_Drops_Drive_In_One_Cycle: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+CASE nStep OF
+0:
+	rig.bRequest := TRUE;
+	rig.StepStart();
+	rig.Scan();
+	nStep := 10;
+10:
+	rig.Scan();
+	IF rig.fb.bUnlocked THEN
+		rig.bError := TRUE;
+		rig.Scan();
+		Check(NOT rig.fb.bUnlock, CONCAT('the lock closes in the error cycle ', rig.State()));
+		Check(NOT rig.fb.bDriveEnable, CONCAT('the drive drops in the error cycle ', rig.State()));
+		Check(NOT rig.fb.bUnlocked, CONCAT('no move allowed ', rig.State()));
+		Check(NOT rig.fb.bPowerTimeout, CONCAT('an axis error is no power timeout ', rig.State()));
+		rig.bError := FALSE;
+		rig.Scan();
+		Check(rig.fb.bDriveEnable AND NOT rig.fb.bUnlock, CONCAT('after the error: drive first, lock closed ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#2S) THEN
+		Check(FALSE, CONCAT('never unlocked ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Request_Drop_Locks_In_One_Cycle" Id="{ed0c1a52-9e3b-4b7c-8f61-2a4d5c6e7f80}">
+      <Declaration><![CDATA[// Locking is unchanged: when the request drops (FB_FocusDriveEnable after ptBrakeDelay, or bManualUnlock off) the lock
+// closes and the drive drops in the same cycle.
+METHOD PRIVATE Request_Drop_Locks_In_One_Cycle
+VAR_INST
+	rig		: FB_FocusUnlockRig;
+	nStep	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Request_Drop_Locks_In_One_Cycle');
+sCurrent := 'Request_Drop_Locks_In_One_Cycle: ';
+IF nStep >= 90 THEN
+	RETURN;
+END_IF
+CASE nStep OF
+0:
+	rig.bRequest := TRUE;
+	rig.StepStart();
+	rig.Scan();
+	nStep := 10;
+10:
+	rig.Scan();
+	IF rig.fb.bUnlocked THEN
+		rig.bRequest := FALSE;
+		rig.Scan();
+		Check(NOT rig.fb.bUnlock AND NOT rig.fb.bDriveEnable AND NOT rig.fb.bUnlocked,
+			CONCAT('lock closed and drive off together ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	ELSIF rig.StepTime(T#2S) THEN
+		Check(FALSE, CONCAT('never unlocked ', rig.State()));
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

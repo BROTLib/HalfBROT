@@ -101,3 +101,6 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
 - [2026-11-06-manual-home-restore-after-abort-152.md](2026-11-06-manual-home-restore-after-abort-152.md) - manual focus re-home after an
   aborted one (stop in the sweep) kept "nothing to restore" and ended on the cam; now the first re-home's target is kept until done.
   **implemented** (branch `fix/manual-home-restore-after-abort-152`), not compiled or run on a PLC.
+- [2026-11-11-focus-power-before-unlock.md](2026-11-11-focus-power-before-unlock.md) - the focus fell up to 0.056 mm (el 85)
+  between unlock and drive power; now the drive is powered first (`FB_FocusUnlock`), the lock opens on the power status,
+  moves and homings wait `ptFocusDelay`, a power timeout keeps the lock closed. **implemented**, telescope test in section 5.

@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_FocusUnlockRig" Id="{399dc230-47ee-4ec0-ab77-eed5295f6663}" SpecialFunc="None">
+    <Declaration><![CDATA[// HalfBROT.FB_FocusUnlock in the order of FB_FocusControl, with a drive model and the real BROTLib.FB_MoveFollower behind
+// it: Scan() is one PLC cycle (unlock sequence, follower, then the "fbAxis call": the power status comes tPowerUp after
+// the enable, never with bDrivePowers FALSE, and drops with the enable). The follower gets bReady as in FB_FocusControl
+// (fbAxis.Ready AND bFocusUnlocked AND bEnable) and is active with bFollow; the axis does not move, a start is counted.
+// tUnlockAt / tFirstStart: the step time of the first cycle with the lock open / with a move started (T#1H = not yet).
+// StepStart()/StepTime() measure real time from the start of a step (the block timers run on the system time).
+FUNCTION_BLOCK FB_FocusUnlockRig
+VAR_INPUT
+	bRequest		: BOOL;		// bManualUnlock OR bEnable
+	bError			: BOOL;
+	bReset			: BOOL;
+	bDrivePowers	: BOOL := TRUE;		// FALSE: the power status never comes
+	bFollow			: BOOL;		// automatic positioning (follower active)
+	fTarget			: LREAL := 10.0;
+	fActual			: LREAL := 8.0;
+	tPowerUp		: TIME := T#200MS;	// enable -> power status of the drive model
+	tPowerSettle	: TIME := T#50MS;
+	tPowerTimeout	: TIME := T#2S;
+	tFocusDelay		: TIME := T#300MS;
+END_VAR
+VAR_OUTPUT
+	bPowered		: BOOL;		// fbAxis.Ready of the last "fbAxis call"
+	nStarts			: INT;		// cycles with bStartMove
+	bStartBeforeUnlocked	: BOOL;	// a move started while bUnlocked was FALSE
+	tUnlockAt		: TIME := T#1H;
+	tFirstStart		: TIME := T#1H;
+	tTimeoutAt		: TIME := T#1H;	// first cycle with bPowerTimeout
+END_VAR
+VAR
+	fb				: HalfBROT.FB_FocusUnlock;
+	fbFollower		: BROTLib.FB_MoveFollower;
+	tonPowerUp		: TON;
+	tonStep			: TON;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="Scan" Id="{668de342-9820-4374-b31a-2a005ebd461e}">
+      <Declaration><![CDATA[METHOD Scan
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fb(
+	bRequest		:= bRequest,
+	bError			:= bError,
+	bPowered		:= bPowered,
+	bReset			:= bReset,
+	tPowerSettle	:= tPowerSettle,
+	tPowerTimeout	:= tPowerTimeout,
+	tFocusDelay		:= tFocusDelay);
+IF fb.bUnlock AND tUnlockAt = T#1H THEN
+	tUnlockAt := tonStep.ET;
+END_IF
+IF fb.bPowerTimeout AND tTimeoutAt = T#1H THEN
+	tTimeoutAt := tonStep.ET;
+END_IF
+
+fbFollower(
+	fTarget		:= fTarget,
+	fActual		:= fActual,
+	fTolerance	:= 0.005,
+	bActive		:= bFollow,
+	bReady		:= bPowered AND fb.bUnlocked AND bRequest,
+	bMoveDone	:= FALSE,
+	bAborted	:= FALSE,
+	bError		:= bError,
+	bStopDone	:= FALSE);
+IF fbFollower.bStartMove THEN
+	nStarts := nStarts + 1;
+	bStartBeforeUnlocked := bStartBeforeUnlocked OR NOT fb.bUnlocked OR NOT fb.bUnlock;
+	IF tFirstStart = T#1H THEN
+		tFirstStart := tonStep.ET;
+	END_IF
+END_IF
+
+// the "fbAxis call": MC_Power gets fb.bDriveEnable
+tonPowerUp(IN := fb.bDriveEnable AND bDrivePowers, PT := tPowerUp);
+bPowered := tonPowerUp.Q;
+
+tonStep(IN := TRUE, PT := T#1H);
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepStart" Id="{d5b57398-c9a0-4430-b901-26b9d8f3cdeb}">
+      <Declaration><![CDATA[METHOD StepStart
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[tonStep(IN := FALSE, PT := T#1H);
+tUnlockAt := T#1H;
+tFirstStart := T#1H;
+tTimeoutAt := T#1H;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="StepTime" Id="{2ca26e4d-d4f0-4a30-86a1-64dd0d41d00e}">
+      <Declaration><![CDATA[METHOD StepTime : BOOL
+VAR_INPUT
+	tTime	: TIME;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[StepTime := tonStep.ET >= tTime;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="State" Id="{87e9229b-0413-4f18-b9b3-c1048c9da7a3}">
+      <Declaration><![CDATA[// 'enable=1 powered=0 unlock=0 unlocked=0 timeout=0 starts=0' for the failure texts
+METHOD State : STRING(255)
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[State := CONCAT('enable=', BOOL_TO_STRING(fb.bDriveEnable));
+State := CONCAT(State, CONCAT(' powered=', BOOL_TO_STRING(bPowered)));
+State := CONCAT(State, CONCAT(' unlock=', BOOL_TO_STRING(fb.bUnlock)));
+State := CONCAT(State, CONCAT(' unlocked=', BOOL_TO_STRING(fb.bUnlocked)));
+State := CONCAT(State, CONCAT(' timeout=', BOOL_TO_STRING(fb.bPowerTimeout)));
+State := CONCAT(State, CONCAT(' starts=', INT_TO_STRING(nStarts)));
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

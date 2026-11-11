@@ -7,6 +7,7 @@ VAR
 	fbHydraulicsTests	: FB_HydraulicsControl_Tests;
 	fbCoverTests		: FB_CoverControl_Tests;
 	fbPendantTests		: FB_PendantControl_Tests;
+	fbFocusUnlockTests	: FB_FocusUnlock_Tests;
 END_VAR
 ]]></Declaration>
     <Implementation>
