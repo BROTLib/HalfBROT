@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="F_FocusHoldOnStop" Id="{01de8cf7-d78e-4574-bbef-4369384a0398}" SpecialFunc="None">
+    <Declaration><![CDATA[// FB_FocusControl.Stop() holds the position reached: when the stop is done the target becomes the actual position, so the
+// follower does not restart the stopped move. Only while the target is still the one of the Stop(): a target set after it is
+// kept (MONETcommon#278: the park in place sets the focus park position in the scan after the stop of the axis-error ramp), and
+// the focus moves there once the stop has released the axis (BROTLib FB_Axis.StopLocked). Only a calibrated focus.
+FUNCTION F_FocusHoldOnStop : BOOL
+VAR_INPUT
+	bCalibrated	: BOOL;		// fbAxis.calibrated
+	fTarget		: LREAL;	// fPosition now
+	fStopTarget	: LREAL;	// fPosition at the Stop()
+	fTolerance	: LREAL;	// a change within it is the same target
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[F_FocusHoldOnStop := bCalibrated AND ABS(fTarget - fStopTarget) <= fTolerance;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

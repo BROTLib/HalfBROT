@@ -44,6 +44,7 @@ VAR
 	fHomingReference	: LREAL;	// reference of the running homing, fixed in _StartHoming (#115); 0 = not set
 	bHomeStopped		: BOOL;		// Stop() hit a homing: it ends the homing request once the axis is out of it, locked and not re-homed (#114)
 	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
+	fStopTarget			: LREAL;	// fPosition at the Stop(): a target set after it is kept (F_FocusHoldOnStop, MONETcommon#278)
 	ObFocusUnlock : BOOL;		// whether focus is unlocked (the lock output; only while the drive is powered and holds)
 	fbFocusUnlock		: FB_FocusUnlock;		// drive power first, then the lock, then ptFocusDelay (bFocusUnlocked)
 	bHomeDeferred		: BOOL;		// a Home() from _StartHoming that waits for bFocusUnlocked: no homing against the lock
@@ -163,10 +164,10 @@ IF rtTargetMissed.Q THEN
 		CONCAT(CONCAT(LREAL_TO_STRING(fbFollower.fMoveTarget), ' wanted, stays at '), LREAL_TO_STRING(fActualPosition)));
 END_IF
 
-// Stop(): hold the position reached when the stop is done
+// Stop(): hold the position reached when the stop is done, unless a new target was set during the stop (MONETcommon#278)
 IF bHoldOnStop AND (fbAxis.StopDone OR fbAxis.StandStill) THEN
 	bHoldOnStop := FALSE;
-	IF fbAxis.calibrated THEN
+	IF F_FocusHoldOnStop(bCalibrated := fbAxis.calibrated, fTarget := fPosition, fStopTarget := fStopTarget, fTolerance := fTolerance) THEN
 		fPosition := fActualPosition;
 	END_IF
 END_IF
@@ -537,7 +538,8 @@ ManualHome := TRUE;]]></ST>
     </Method>
     <Method Name="Stop" Id="{afb66802-078c-4672-893d-9d18ed5b7993}">
       <Declaration><![CDATA[// Stop a running focus move (MC_Stop) and hold the position reached: the target becomes the actual position at
-// StopDone, so the automatic positioning does not restart the move. A new Position afterwards moves again.
+// StopDone, so the automatic positioning does not restart the move. A new Position afterwards moves again, also one set
+// while the stop runs: it is kept, and the move starts once the stop has released the axis (FB_Axis.StopLocked, MONETcommon#278).
 // Returns TRUE when an MC_Stop was requested. A drive that is not enabled has nothing to stop: only the pending
 // target is dropped, as a stop pending on a disabled axis would run after the next enable. MONETcommon#122.
 METHOD Stop : BOOL
@@ -554,6 +556,7 @@ END_IF
 IF fbAxis.Ready AND (NOT fbAxis.StandStill OR fbAxis.HomeActive OR fbAxis.HomePending) THEN
 	Stop := fbAxis.Stop();
 	bHoldOnStop := TRUE;
+	fStopTarget := fPosition;
 ELSIF fbAxis.calibrated THEN
 	fPosition := fActualPosition;
 END_IF

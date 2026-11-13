@@ -22,7 +22,7 @@
     <AllowChecksForLibrary>false</AllowChecksForLibrary>
     <POUsForPropertyAccessIncluded>false</POUsForPropertyAccessIncluded>
     <GlobalVersionStructureIncluded>false</GlobalVersionStructureIncluded>
-    <ProjectVersion>0.15.0</ProjectVersion>
+    <ProjectVersion>0.16.0</ProjectVersion>
     <CompilerDefines>VISU_USEPROPERTYINFO</CompilerDefines>
   </PropertyGroup>
   <ItemGroup>
@@ -111,6 +111,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\F_FocusTargetFollowsActual.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\F_FocusHoldOnStop.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\F_FocusTrackStoredPosition.TcPOU">
