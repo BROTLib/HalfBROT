@@ -4,6 +4,7 @@
     <Declaration><![CDATA[FUNCTION_BLOCK FB_AzimuthControl EXTENDS FB_AxisControl
 VAR_INPUT
 	bBrakeOpen				: BOOL;		// azimuth break is open
+	tBrakeCloseHold			: TIME := T#5S;	// longest time the enable of the moving axis is kept after the brake closed, for its stop (MONETcommon#277); T#0S = none
 END_VAR
 VAR_OUTPUT
 END_VAR
@@ -12,6 +13,7 @@ VAR
 	tonTorqueError		: TON := (PT := T#3S);
 	tonRestTimer			: TON;
 	bAtRest				: BOOL;
+	fbBrakeCloseHold	: FB_BrakeCloseHold;	// keeps the enable for the stop when the brake closes under the moving axis (MONETcommon#277)
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -39,7 +41,8 @@ END_IF
 
 // enable the azimuth if not moved by the power chain. Sorry for the hack
 tonRestTimer(IN := bBrakeOpen AND (ABS(axisRef.NcToPlc.ActVelo) < 0.01), PT := T#2S);
-// if azimuth at rest or calibrated, allow enabling the azimuth (the brake must still be open, see Enable below)
+// if azimuth at rest or calibrated, allow enabling the azimuth (the brake must still be open, see Enable below; only the stop of
+// a moving axis keeps its enable when the brake closes, fbBrakeCloseHold)
 IF tonRestTimer.Q or bCalibrated THEN
 	bAtRest := TRUE;
 ELSIF NOT bBrakeOpen THEN
@@ -54,8 +57,12 @@ MC_SetAcceptBlockedDriveSignal(
 // jog requests only while the axis can jog (#148)
 _JogRequest(bAllowPos := inDigitalInputs.1, bAllowNeg := inDigitalInputs.0);
 
-fbAxis(	
-	Enable 			:= bEnable AND bAtRest AND bBrakeOpen,
+// MONETcommon#277: the shared brake closing under the moving azimuth (an elevation error) does not take the drive from its stop
+fbBrakeCloseHold(bEnable := bEnable, bBrakeEnable := bEnable AND bAtRest AND bBrakeOpen, bMoving := fbAxis.InMotion OR fbAxis.Stopping,
+	tMaxHold := tBrakeCloseHold);
+
+fbAxis(
+	Enable 			:= fbBrakeCloseHold.bAxisEnable,
 	Reset 			:= bReset,
 	Tracking 		:= bTracking,
 	Position 		:= fTarget, 

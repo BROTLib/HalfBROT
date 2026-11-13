@@ -8,6 +8,7 @@ VAR
 	fbCoverTests		: FB_CoverControl_Tests;
 	fbPendantTests		: FB_PendantControl_Tests;
 	fbFocusUnlockTests	: FB_FocusUnlock_Tests;
+	fbBrakeCloseHoldTests	: FB_BrakeCloseHold_Tests;	// MONETcommon#277
 END_VAR
 ]]></Declaration>
     <Implementation>
