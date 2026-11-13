@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_BrakeCloseHold" Id="{6a163c8c-5c78-44ee-9a41-602354e86abf}" SpecialFunc="None">
+    <Declaration><![CDATA[// Keeps the NC enable of a moving axis on when the brake closes under it (MONETcommon#277). The Az/El brake of MONET is shared: an
+// azimuth or elevation error closes it, and the brake gate of the healthy axis (bBrakeEnable: FB_BrakeSettleEnable for the
+// elevation, bEnable AND bAtRest AND bBrakeOpen for the azimuth) used to drop its enable in the same cycle, so the stop the
+// controller runs (MONETcommon#272: MC_Stop with the fast-stop dynamics) had no drive and the brake alone stopped the axis
+// (MONET/N 2026-11-12 and 2026-11-13: about +7 deg el, -19 deg az from slew speed). With the hold the drive runs the stop and
+// the brake helps it.
+// - Only an enable that was on in the last cycle is kept: a closed brake never enables an axis (the gate decides every start).
+// - Only while bEnable: an axis the controller disables (the faulty one) is never held.
+// - Only while the axis moves or is being stopped (bMoving), at most tMaxHold; then the enable drops as before and stays off until
+//   the gate gives it again. tMaxHold = T#0S is the old behaviour (no hold). bMoving must include the PLCopen state Stopping:
+//   BROTLib FB_Axis.InMotion is FALSE during an MC_Stop, so the caller passes InMotion OR Stopping.
+// The block does not stop the axis itself: the controller does. A stop of its own would meet the external setpoint generator
+// while tracking (0x4257), and the controller knows the stop dynamics.
+// Call once per cycle, after the brake gate and before the axis block that takes bAxisEnable.
+FUNCTION_BLOCK FB_BrakeCloseHold
+VAR_INPUT
+	bEnable			: BOOL;				// the axis is wanted enabled
+	bBrakeEnable	: BOOL;				// the enable the brake gate gives in this cycle
+	bMoving			: BOOL;				// the axis moves or stops (fbAxis.InMotion OR fbAxis.Stopping of the last cycle)
+	tMaxHold		: TIME := T#5S;		// longest hold, T#0S = no hold
+END_VAR
+VAR_OUTPUT
+	bAxisEnable		: BOOL;				// to the axis Enable
+	bHolding		: BOOL;				// the enable is held while the brake gate is closed
+END_VAR
+VAR
+	bAxisEnableLast	: BOOL;				// bAxisEnable of the last cycle
+	tonHold			: TON;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT bEnable OR bBrakeEnable OR NOT bMoving OR tMaxHold = T#0S THEN
+	bHolding := FALSE;
+ELSIF bAxisEnableLast THEN
+	// the gate closed under a moving, enabled axis (or the hold goes on)
+	bHolding := TRUE;
+END_IF
+tonHold(IN := bHolding, PT := tMaxHold);
+IF tonHold.Q THEN
+	bHolding := FALSE;
+END_IF
+bAxisEnable := bBrakeEnable OR bHolding;
+bAxisEnableLast := bAxisEnable;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

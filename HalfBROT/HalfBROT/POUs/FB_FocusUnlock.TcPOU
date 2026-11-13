@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_FocusUnlock" Id="{ed986276-4c68-43d1-a0b0-5719c7f74bdf}" SpecialFunc="None">
+    <Declaration><![CDATA[// Unlock sequence of the focus (FB_FocusControl): the drive is powered and holds its actual position BEFORE the lock
+// opens, so the focus is never unheld. Up to HalfBROT 0.14 the lock opened first and the drive got MC_Power only
+// ptFocusDelay later; for that time the focus fell under gravity (MONETN 2026-11-11: -0.005 mm at el 20 up to -0.056 mm
+// at el 85, recordings MONETN/MotorTuning/FocusEnable*.svdx).
+//   1. bRequest: the drive is enabled (bDriveEnable), the lock stays closed. With no setpoint change the drive only
+//      holds at standstill, it does not work against the brake.
+//   2. power status (bPowered, MC_Power.Status) for tPowerSettle: the lock opens (bUnlock).
+//   3. the lock open for tFocusDelay: moves, jogs and homings are allowed (bUnlocked). The motor must not drive
+//      against a lock that has not released yet.
+//   No power status within tPowerTimeout of the enable (or the power status lost while enabled): bPowerTimeout, the
+//   lock stays (or goes) closed and the drive is dropped, until bReset.
+// Locking is unchanged: without bRequest, or on bError, the lock closes and the drive drops in the same cycle.
+// No NC access, the caller passes bDriveEnable to fbAxis and bUnlock to the lock output. Pure logic, tested without
+// an NC axis (HalfBROTTests FB_FocusUnlock_Tests).
+FUNCTION_BLOCK FB_FocusUnlock
+VAR_INPUT
+	bRequest		: BOOL;		// bManualUnlock OR bEnable
+	bError			: BOOL;		// axis error (of the last fbAxis call): lock closed and drive off at once
+	bPowered		: BOOL;		// fbAxis.Ready (MC_Power.Status) of its last call
+	bReset			: BOOL;		// clears bPowerTimeout (FB_FocusControl.bReset)
+	tPowerSettle	: TIME;		// the drive reports power this long before the lock opens
+	tPowerTimeout	: TIME;		// no power status this long after the enable: bPowerTimeout
+	tFocusDelay		: TIME;		// the lock is open this long before a move, jog or homing may start
+END_VAR
+VAR_OUTPUT
+	bDriveEnable	: BOOL;		// fbAxis.enable (MC_Power)
+	bUnlock			: BOOL;		// lock output (ObFocusUnlock): the drive is powered and holds
+	bUnlocked		: BOOL;		// lock open for tFocusDelay: moves, jogs and homings allowed (bFocusUnlocked)
+	bPowerTimeout	: BOOL;		// the drive did not report power in time; latched until bReset
+END_VAR
+VAR
+	tonSettle		: TON;		// powered while enabled
+	tonTimeout		: TON;		// enabled, not powered
+	tonDelay		: TON;		// lock open
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bReset THEN
+	bPowerTimeout := FALSE;
+END_IF
+
+bDriveEnable := bRequest AND NOT bError AND NOT bPowerTimeout;
+
+tonTimeout(IN := bDriveEnable AND NOT bPowered, PT := tPowerTimeout);
+IF tonTimeout.Q THEN
+	bPowerTimeout := TRUE;
+	bDriveEnable := FALSE;
+	tonTimeout(IN := FALSE);
+END_IF
+
+tonSettle(IN := bDriveEnable AND bPowered, PT := tPowerSettle);
+bUnlock := bDriveEnable AND bPowered AND tonSettle.Q;
+
+tonDelay(IN := bUnlock, PT := tFocusDelay);
+bUnlocked := tonDelay.Q;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

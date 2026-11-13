@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <DUT Name="E_PumpState" Id="{77b96181-6990-46f7-8d11-e2eaa7936304}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+// State of the main pump of FB_HydraulicsControl (HalfBROT#31 step 4).
+TYPE E_PumpState :
+(
+	Off := 0,		// not requested, or stopped by hand or by the pan maximum
+	Starting := 1,	// enable on, no run feedback yet
+	Running := 2,	// run feedback
+	Error := 3		// hydraulics error (oil low, pressure, suction, main pump or hydraulics watchdog): pump off, left by Reset() only
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

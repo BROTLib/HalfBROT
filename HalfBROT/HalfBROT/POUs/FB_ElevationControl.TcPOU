@@ -6,12 +6,14 @@ VAR_INPUT
 	fbCovers		: I_MirrorCovers;
 	fbBrake			: I_Brake;
 	tBrakeSettle	: TIME := T#3S;	// wait after the brake reports open before the axis is enabled (#130), to be confirmed on site
+	tBrakeCloseHold	: TIME := T#5S;	// longest time the enable of the moving axis is kept after the brake closed, for its stop (MONETcommon#277); T#0S = none
 END_VAR
 VAR_OUTPUT
 	bWarning			: BOOL;		// warning condition
 END_VAR
 VAR
 	fbBrakeSettle			: FB_BrakeSettleEnable;	// axis enable after the brake settled, ready delay until commutator angle is measured (#130)
+	fbBrakeCloseHold		: FB_BrakeCloseHold;	// keeps the enable for the stop when the brake closes under the moving axis (MONETcommon#277)
 	tonBrakeWarning			: TON;	// the brake stays open with the axis disabled (MONETcommon#121)
 	enableTrigger			: F_TRIG;	// disable trigger for hydraulics
 	brakeEvent				: FB_EventLog;
@@ -100,12 +102,15 @@ MC_SetAcceptBlockedDriveSignal(
 	
 // the brake needs some seconds longer than bBrakeOpen says; enabling earlier fails the AX5000 Wake&Shake with F616 (#130)
 fbBrakeSettle(bEnable := bEnable, bBrakeOpen := bBrakeOpen, tSettle := tBrakeSettle, tReadyDelay := T#6000MS);
+// MONETcommon#277: the shared brake closing under the moving elevation (an azimuth error) does not take the drive from its stop
+fbBrakeCloseHold(bEnable := bEnable, bBrakeEnable := fbBrakeSettle.bAxisEnable, bMoving := fbAxis.InMotion OR fbAxis.Stopping,
+	tMaxHold := tBrakeCloseHold);
 
 // jog requests only while the axis can jog (#148)
 _JogRequest(bAllowPos := inDigitalInputs.0, bAllowNeg := inDigitalInputs.1);
 
 fbAxis(
-	Enable 			:= fbBrakeSettle.bAxisEnable,
+	Enable 			:= fbBrakeCloseHold.bAxisEnable,
 	Reset 			:= bReset,
 	Tracking 		:= bTracking,
 	Position 		:= fTarget, 

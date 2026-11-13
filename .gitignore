@@ -279,5 +279,9 @@ _Libraries/
 *.tclrq
 VSSettings/
 
+# The one vendored library: TcUnit, needed to build and run HalfBROTTests
+# (see HalfBROTTests/vendor/README.md)
+!HalfBROTTests/vendor/tcunit.library
+
 # IntelliJ/PyCharm module files
 *.iml

@@ -16,8 +16,12 @@ VAR_INPUT
 	
 	// telemetry interval
 	fTelemetryInterval		: TIME := T#5S;
-	ptFocusDelay			: TIME := T#500MS;
-	ptBrakeDelay			: TIME := T#4S;	
+	ptFocusDelay			: TIME := T#500MS;	// the lock is open this long before a move, jog or homing starts
+	ptBrakeDelay			: TIME := T#4S;
+	// unlock (FB_FocusUnlock): the drive is powered first, the lock opens once it has reported power for ptPowerSettle;
+	// no power status within ptPowerTimeout: focus error, the lock stays closed
+	ptPowerSettle			: TIME := T#100MS;
+	ptPowerTimeout			: TIME := T#2S;
 
 	// ADS port of the PLC runtime whose persistent data are written (#8), 851 = first PLC runtime
 	nPersistentAdsPort		: UINT := 851;
@@ -40,8 +44,10 @@ VAR
 	fHomingReference	: LREAL;	// reference of the running homing, fixed in _StartHoming (#115); 0 = not set
 	bHomeStopped		: BOOL;		// Stop() hit a homing: it ends the homing request once the axis is out of it, locked and not re-homed (#114)
 	bHoldOnStop			: BOOL;		// Stop() was called: the target becomes the position reached at StopDone
-	ObFocusUnlock : BOOL;		// whether focus is unlocked
-	tonFocusDelay		: TON;
+	ObFocusUnlock : BOOL;		// whether focus is unlocked (the lock output; only while the drive is powered and holds)
+	fbFocusUnlock		: FB_FocusUnlock;		// drive power first, then the lock, then ptFocusDelay (bFocusUnlocked)
+	bHomeDeferred		: BOOL;		// a Home() from _StartHoming that waits for bFocusUnlocked: no homing against the lock
+	powerTimeoutEvent	: FB_EventLog;
 	fbDriveEnable		: FB_FocusDriveEnable;		// the only writer of bEnable in this block (#108, #110, #111, #114)
 	bManualUnlock		: BOOL;		// manual override to unlock the focus
 	// Request to home the focus on its cam, calibrated or not, e.g. when the stored position is in doubt: call ManualHome()
@@ -74,6 +80,8 @@ END_VAR
 VAR CONSTANT
 	tPersistMinInterval		: TIME := T#60S;	// at most one write per minute
 	tPersistRetryInterval	: TIME := T#10M;	// after a failed write
+	// nErrorID of the power timeout (fbFocusUnlock.bPowerTimeout); not an NC error code, the NC axis itself has no error
+	nPowerTimeoutErrorID	: UDINT := 16#FF01;
 END_VAR
 VAR PERSISTENT
 	fLastPosition		: LREAL := -1.0;
@@ -98,6 +106,11 @@ Focus is locked by default
 *)
 
 _MigrateLastPosition();
+
+// a homing that waits for the unlock (bHomeDeferred) ends with the homing request: HomeAxis := FALSE, an axis error
+IF NOT bHomeAxis THEN
+	bHomeDeferred := FALSE;
+END_IF
 
 // the NC keeps the calibration over a PLC or TwinCAT restart while fPosition starts at 0, which the clamp below would turn
 // into fMinPosition and the follower would drive there (#115): the target takes the actual position once. Before the
@@ -211,14 +224,28 @@ ELSIF fbDriveEnable.bEnableOff THEN
 	bEnable := FALSE;
 END_IF
 
-// focus is unlocked if enabled or manually unlocked and no eror
-ObFocusUnlock := (bManualUnlock OR bEnable) AND NOT bError;
-
-// wait until the focus is unlocked for n milliseconds
-tonFocusDelay(IN := ObFocusUnlock, PT := ptFocusDelay, Q => bFocusUnlocked);
+// Unlock when enabled or manually unlocked and no error, in this order: the drive is powered (MC_Power) while the lock
+// is still closed, the lock opens once the drive reports power (it holds the actual position, no setpoint change, so
+// it does not work against the brake), and moves, jogs and homings wait ptFocusDelay after that (bFocusUnlocked), so
+// the motor never drives against a lock that has not released. Before, the lock opened first and the drive was
+// powered ptFocusDelay later: the focus fell under gravity for that time (up to 0.056 mm at el 85, MONETN 2026-11-11).
+// No power status within ptPowerTimeout: focus error (below), the lock stays closed. Locking is unchanged: without
+// the request or on bError the lock closes and the drive drops in this cycle. bError and fbAxis.Ready are those of the
+// last fbAxis call.
+fbFocusUnlock(
+	bRequest		:= bManualUnlock OR bEnable,
+	bError			:= bError,
+	bPowered		:= fbAxis.Ready,
+	bReset			:= bReset,
+	tPowerSettle	:= ptPowerSettle,
+	tPowerTimeout	:= ptPowerTimeout,
+	tFocusDelay		:= ptFocusDelay);
+ObFocusUnlock := fbFocusUnlock.bUnlock;
+bFocusUnlocked := fbFocusUnlock.bUnlocked;
 
 // store the actual position when the focus is calibrated, locked and not homing, in every mode: a focus jogged in
-// manual mode must not be restored to its pre-jog position by MC_Direct after a restart (#66)
+// manual mode must not be restored to its pre-jog position by MC_Direct after a restart (#66). While the drive is
+// powered before the unlock the lock is still closed and the drive holds: the focus cannot move, it counts as locked.
 IF F_FocusTrackStoredPosition(bCalibrated := fbAxis.calibrated, bLocked := NOT ObFocusUnlock, bHoming := bHomeAxis) THEN
 	fLastPosition := fActualPosition;
 END_IF
@@ -269,9 +296,17 @@ END_IF
 
 // deactivate limit switches on homing
 MC_SetAcceptBlockedDriveSignal(Axis := refAxis, enable := bHomeAxis);
-		
-fbAxis(	
-	enable 			:= bFocusUnlocked,
+
+// FB_Axis starts a Home() as soon as the drive is Ready, which is now before the lock opens: the homing requested in
+// _StartHoming is handed to fbAxis only when the lock has been open for ptFocusDelay (a cam homing moves, it must not
+// drive against the lock; an MC_Direct homing waits the same way)
+IF bHomeDeferred AND bFocusUnlocked AND fbAxis.Ready AND NOT bError THEN
+	bHomeDeferred := FALSE;
+	fbAxis.Home(fReference := fHomingReference);
+END_IF
+
+fbAxis(
+	enable 			:= fbFocusUnlock.bDriveEnable,
 	Reset 			:= bReset,
 	homingMode 		:= eHomingMode,
 	Position 		:= fPosition,
@@ -284,7 +319,15 @@ fbAxis(
 	ActualPosition 	=> fActualPosition,
 	Error 			=> bError,
 	ErrorID 		=> nErrorID,
-	axisRef 		:= refAxis);	
+	axisRef 		:= refAxis);
+
+// the drive did not report power in time: a focus error (the NC axis has none), cleared by Reset()
+IF fbFocusUnlock.bPowerTimeout THEN
+	bError := TRUE;
+	IF nErrorID = 0 THEN
+		nErrorID := nPowerTimeoutErrorID;
+	END_IF
+END_IF
 
 // only when the homing has finished: the NC sets Homed (HomeDone) before the homing procedure is done
 // HomeDone is a level (TRUE while the axis is homed), so only the first cycle after the homing is done is acted on (#80)
@@ -301,21 +344,23 @@ IF fbAxis.ResetDone THEN
 END_IF
 
 // HomeDone is the calibrated level (HomePending: a manual re-home starts on a calibrated axis)
-IF F_FocusHomeRelease(bCalibrated := fbAxis.calibrated, bHomeActive := fbAxis.HomeActive, bHomePending := fbAxis.HomePending, bError := bError) THEN
+// (a Home() that waits for the unlock, bHomeDeferred, is pending as well)
+IF F_FocusHomeRelease(bCalibrated := fbAxis.calibrated, bHomeActive := fbAxis.HomeActive,
+		bHomePending := fbAxis.HomePending OR bHomeDeferred, bError := bError) THEN
 	bHomeAxis := FALSE;
 END_IF
 
 // follow a manual re-home to its end
 fbManualHome(
 	bHomeActive		:= fbAxis.HomeActive,
-	bHomePending	:= fbAxis.HomePending,
+	bHomePending	:= fbAxis.HomePending OR bHomeDeferred,
 	bCalibrated		:= fbAxis.calibrated,
 	bAbortPulse		:= fbAxis.CommandAborted OR fbAxis.StopDone OR bError,
 	bError			:= bError);
 
 // Stop() hit a homing: when the axis is out of it (or failed), nothing holds the drive enabled or the far switch bypass
 // any more; an uncalibrated focus is not homed again by itself until the next power-on or manual re-home (#114)
-IF bHomeStopped AND ((NOT fbAxis.HomeActive AND NOT fbAxis.HomePending) OR bError) THEN
+IF bHomeStopped AND ((NOT fbAxis.HomeActive AND NOT fbAxis.HomePending AND NOT bHomeDeferred) OR bError) THEN
 	bHomeStopped := FALSE;
 	THIS^.HomeAxis := FALSE;
 	fbDriveEnable.RequestLock();
@@ -345,7 +390,9 @@ IF bError THEN
 END_IF
 
 bCalibrated := fbAxis.calibrated;
-bReady := fbAxis.Ready AND fbAxis.StandStill OR NOT ObFocusUnlock;
+// ready at rest, or locked with the drive off; not while the unlock sequence runs (drive powered, lock closed or open
+// for less than ptFocusDelay), as before when the drive came up ptFocusDelay after the lock had opened
+bReady := fbAxis.Ready AND fbAxis.StandStill AND bFocusUnlocked OR NOT fbFocusUnlock.bDriveEnable;
 
 // all writes to fLastPosition of this cycle are done: store it on disk when it changed (#8)
 _WritePersistentPosition();
@@ -377,7 +424,9 @@ ELSE
 	eHomingMode := MC_DefaultHoming;
 END_IF
 fHomingReference := fReference;	// the body keeps this as the target for the whole homing (#115)
-fbAxis.Home(fReference := fReference);
+// the body hands it to fbAxis.Home() once the lock has been open for ptFocusDelay (bFocusUnlocked): the drive is now
+// Ready before the lock opens, and FB_Axis would start the homing at once
+bHomeDeferred := TRUE;
 _StartHoming := TRUE;
 ]]></ST>
       </Implementation>
@@ -496,6 +545,7 @@ METHOD Stop : BOOL
       <Implementation>
         <ST><![CDATA[fbFollower.Stop();
 fbAxis.CancelMove();
+bHomeDeferred := FALSE;	// a homing that waits for the unlock does not start after the stop
 bHomeStopped := bHomeStopped OR bHomeAxis OR fbAxis.HomeActive OR fbAxis.HomePending;
 IF fbManualHome.bRunning THEN
 	fbAxis.CancelHome();	// a re-home that waits for the drive must not start after the stop
@@ -544,6 +594,14 @@ END_VAR
 	FormatString	:= 'Focus Axis Error: %S',
 	OnMessage 		:= NCError_TO_STRING(nErrorID),
 	OffMEssage 		:= 'OK',
+	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
+	comm 			:= fbComm);
+
+powerTimeoutEvent(
+	Trigger 		:= fbFocusUnlock.bPowerTimeout,
+	Level 			:= ADSLOG_MSGTYPE_ERROR,
+	OnMessage 		:= 'Focus: the drive did not report power, the lock stays closed',
+	OffMessage 		:= 'Focus: power timeout reset',
 	OffLevel 		:= ADSLOG_MSGTYPE_HINT,
 	comm 			:= fbComm);
 

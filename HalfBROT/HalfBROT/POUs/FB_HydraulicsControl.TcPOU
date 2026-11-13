@@ -14,6 +14,8 @@ VAR_INPUT
 	fMaxPanPercent		: REAL := 90;		// oil level percentage to be seen as full
 	fTelemetryInterval	: TIME := T#5S;		// publish at least this often, also without a change (#19)
 	tHydraulicsWatchdog	: TIME := T#140S;	// main pump running this long without the suction pump running = bHydraulicsFailure (#10)
+	tSuctionWatchdog	: TIME := T#15S;	// suction pump enabled this long without the run feedback = bSuctionFailure (a parameter so tests can shorten it)
+	tPressureWatchdog	: TIME := T#30S;	// main pump enabled this long without the oil pressure = bPressureFailure (a parameter so tests can shorten it)
 	nMinValidPanLevel	: INT := -32768;	// raw oil level below this is a sensor fault (wire break); the default accepts every value, no guard (MONETS#32)
 	nMaxValidPanLevel	: INT := 32767;		// raw oil level above this is a sensor fault (over-range); the default accepts every value, no guard
 	tPumpResetPulse		: TIME := T#1S;		// length of the reset pulse for the pump starters, also sent once before the first pump start after a PLC start and after a main pump failure; T#0S = old behaviour, reset outputs follow bReset (#120)
@@ -74,9 +76,12 @@ VAR
 	tonMainPumpWatchdog	: TON;				// monitors the activation of the main pump			
 	tonHydraulicsWatchdog	: TON;				// watch the hydraulics and suction pumps
 	
-	rsOilPumpState		: RS;				// represents the state of the main pump
+	ePumpState			: E_PumpState;		// state of the main pump, see the pump section of the body (#31 step 4)
+	bPumpAllowed		: BOOL;				// the pump may run: requested and no reason to stop
+	bPumpRequest		: BOOL;				// the pump enable wanted by the state (before the starter reset hold)
 	
-	rsBrakeState		: RS;				// represents the state of the brake
+	eBrakeState			: E_BrakeState;		// state of the brake output, see the brake section of the body (#31 step 4)
+	bBrakeRelease		: BOOL;				// a reason to close the brake this scan
 	tonBrakeOpenDelay	: TON;				// wait for the brake to open after pressure has been established
 	tonBrakeOpenedDelay	: TON;				// report brake opend after a short delay
 	tonPressureLossDelay	: TON;				// debounce for loss of oil pressure, which closes the brake
@@ -177,15 +182,36 @@ IF NOT bError THEN
 END_IF
 
 // pump state
-rsOilPumpState(
-	SET    := bEnable,
-	RESET1 := NOT bEnable OR bError OR bManualPumpStop OR IbOilpanMaximum);
+// pump state machine. Off: not requested or stopped by hand or by the pan maximum. Starting: the enable is on, the run feedback
+// is not there yet (the 10 s watchdog below fails it). Running: run feedback. Error: any error (srErrorState, latched until
+// Reset()) takes every state to Error and stops the pump. The enable (ObOilPumpEnable) is written from the state here only,
+// held off during a starter reset pulse (#120).
+bPumpAllowed := bEnable AND NOT bError AND NOT bManualPumpStop AND NOT IbOilpanMaximum;
+IF bError THEN
+	ePumpState := E_PumpState.Error;
+ELSIF NOT bPumpAllowed THEN
+	ePumpState := E_PumpState.Off;
+ELSE
+	CASE ePumpState OF
+		E_PumpState.Off, E_PumpState.Error:
+			ePumpState := E_PumpState.Starting;
+		E_PumpState.Starting:
+			IF bPumpRunning THEN
+				ePumpState := E_PumpState.Running;
+			END_IF
+		E_PumpState.Running:
+			IF NOT bPumpRunning THEN
+				ePumpState := E_PumpState.Starting;
+			END_IF
+	END_CASE
+END_IF
+bPumpRequest := ePumpState = E_PumpState.Starting OR ePumpState = E_PumpState.Running;
 
 // reset the pump starters before the pump is enabled; the enable is held off during the pulse, so the 10 s pump watchdog
 // starts after it (#120)
 fbPumpReset(
 	bResetRequest   := bResetRequested,
-	bPumpRequest    := rsOilPumpState.Q1,
+	bPumpRequest    := bPumpRequest,
 	bPumpFailure    := bMainPumpFailure,
 	bPumpRunning    := bPumpRunning,
 	bSuctionRunning := bSuctionRunning,
@@ -195,7 +221,7 @@ ObResetSuctionPump := fbPumpReset.bResetSuction;
 bPumpResetActive   := fbPumpReset.bActive;
 
 // switch oil pump
-ObOilPumpEnable := rsOilPumpState.Q1 AND NOT fbPumpReset.bHoldPump;
+ObOilPumpEnable := bPumpRequest AND NOT fbPumpReset.bHoldPump;
 
 (* This section controls the hydraulic brake responsible for azimuth and elevation.
 The brake needs oil pressure to stay open. There is no brake feedback input, so the
@@ -218,16 +244,31 @@ tonBrakeOpenDelay(
 	IN := bPumpRunning AND bOilPressureOK,
 	PT := T#3S);
 		
-rsBrakeState(
-	SET    := tonBrakeOpenDelay.Q AND bOpenBrake AND bBrakeClearing,
-	RESET1 := bAzimuthLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR tonPressureLossDelay.Q OR NOT bBrakeClearing,
-	Q1     => ObBrakeAzEl);
+// brake state machine. Closed: output off. The brake opens when the pressure delay has run out, the opening is requested and
+// the clearing is there. Opening: output on, not yet reported. Open: reported open one second after the output. Any reason
+// to close wins over the opening in the same scan and takes every state back to Closed. The output (ObBrakeAzEl) is written
+// from the state here only.
+bBrakeRelease := bAzimuthLimitSwitch OR bCloseBrake OR NOT bPumpRunning OR tonPressureLossDelay.Q OR NOT bBrakeClearing;
+CASE eBrakeState OF
+	E_BrakeState.Closed:
+		IF tonBrakeOpenDelay.Q AND bOpenBrake AND bBrakeClearing AND NOT bBrakeRelease THEN
+			eBrakeState := E_BrakeState.Opening;
+		END_IF
+	E_BrakeState.Opening, E_BrakeState.Open:
+		IF bBrakeRelease THEN
+			eBrakeState := E_BrakeState.Closed;
+		END_IF
+END_CASE
+ObBrakeAzEl := eBrakeState <> E_BrakeState.Closed;
 
 // signal that the brake is open after one second
 tonBrakeOpenedDelay(
-	IN := rsBrakeState.Q1, 
+	IN := ObBrakeAzEl,
 	PT := T#1000MS,
 	Q  => bBrakeOpen);
+IF eBrakeState = E_BrakeState.Opening AND bBrakeOpen THEN
+	eBrakeState := E_BrakeState.Open;
+END_IF
 
 // brake closed?
 bBrakeClosed := NOT bBrakeOpen;
@@ -255,12 +296,12 @@ bSuctionLatched := F_OilSuctionLatch(
 ObOilSuctionEnable := bSuctionLatched OR bManualSuction;					
 tonSuctionWatchdog(
 	IN := ObOilSuctionEnable AND NOT bSuctionRunning,
-	PT := T#15S,
+	PT := tSuctionWatchdog,
 	Q  => bSuctionFailure);
 					
 tonPressureWatchdog(
 	IN := ObOilPumpEnable AND	NOT bOilPressureOK,
-	PT := T#30S,
+	PT := tPressureWatchdog,
 	Q  => bPressureFailure);
 // inherited unchanged from the STELLA1 control, purpose not documented (see #10): error if the main pump
 // runs for tHydraulicsWatchdog (140 s by default) without the suction pump running
@@ -485,6 +526,18 @@ stOut.bBrakeAzEl := ObBrakeAzEl;
 stOut.bResetOilPump := ObResetOilPump;
 stOut.bResetSuctionPump := ObResetSuctionPump;]]></ST>
     </Implementation>
+    <Property Name="BrakeState" Id="{958fbfef-0097-463d-a934-b854bf7b66e5}">
+      <Declaration><![CDATA[// State of the brake output: Closed, Opening (output on, not reported yet) or Open (reported).
+PROPERTY BrakeState : E_BrakeState]]></Declaration>
+      <Get Name="Get" Id="{33866298-77c6-4756-bc86-4c1c32fd97e4}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[BrakeState := eBrakeState;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Property Name="BrakeOpen" Id="{0f49c805-8206-4d47-881c-fcf69eddebfe}">
       <Declaration><![CDATA[PROPERTY BrakeOpen : BOOL]]></Declaration>
       <Get Name="Get" Id="{119366c2-8763-4dc0-833d-a2c993e1da3b}">
@@ -639,6 +692,18 @@ END_IF;
 RETURN(bBrakeOpen);]]></ST>
       </Implementation>
     </Method>
+    <Property Name="PumpState" Id="{ca58c450-5cfb-461b-92be-44d760011b2c}">
+      <Declaration><![CDATA[// State of the main pump: Off, Starting (enable on, no run feedback yet), Running or Error (latched until Reset()).
+PROPERTY PumpState : E_PumpState]]></Declaration>
+      <Get Name="Get" Id="{2ffca432-49a5-41e5-99cd-09d2db6151d2}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[PumpState := ePumpState;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
     <Property Name="PumpRunning" Id="{4eace808-c8ba-4076-9aa9-0ca7df3e16d9}">
       <Declaration><![CDATA[PROPERTY PumpRunning : BOOL]]></Declaration>
       <Get Name="Get" Id="{34e9dc24-5ef4-46b0-8597-f34d6448be4d}">

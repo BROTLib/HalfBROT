@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="F_Note" Id="{0a2be23a-4d48-4bbf-8674-b08cd16d6982}" SpecialFunc="None">
+    <Declaration><![CDATA[// Records a failed check in GVL_Diag.sFailures (see there). Called next to the TcUnit assertion, which does the actual test result.
+FUNCTION F_Note : BOOL
+VAR_INPUT
+	bFailed	: BOOL;
+	sText	: STRING(255);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bFailed AND LEN(GVL_Diag.sFailures) < 700 THEN
+	GVL_Diag.sFailures := CONCAT(CONCAT(GVL_Diag.sFailures, sText), '; ');
+END_IF
+F_Note := bFailed;
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

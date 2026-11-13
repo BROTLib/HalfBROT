@@ -1,0 +1,214 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="FB_BrakeCloseHold_Tests" Id="{1ff0a82a-c720-4443-9db9-fc43c3a741e6}" SpecialFunc="None">
+    <Declaration><![CDATA[// HalfBROT.FB_BrakeCloseHold (MONETcommon#277): the NC enable of a moving, enabled axis is kept when the brake gate closes under
+// it, for its stop; never a new enable against a closed brake, never for a disabled axis, never at standstill, at most tMaxHold.
+// The block is called several times per test, one call per PLC cycle it models. Times are T#0S ("no hold"), T#1H ("never within
+// a test") or, in the one multi-cycle test, 100 ms of real time.
+FUNCTION_BLOCK FB_BrakeCloseHold_Tests EXTENDS TcUnit.FB_TestSuite
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Gate_Closes_Under_Motion_Keeps_Enable();
+Closed_Brake_Never_Enables();
+Disabled_Axis_Is_Not_Held();
+Standstill_Is_Not_Held();
+Hold_Ends_At_Standstill_And_Stays_Off();
+Gate_Opening_Ends_The_Hold();
+Disable_During_Hold_Drops_At_Once();
+Zero_Hold_Time_Is_The_Old_Behaviour();
+Hold_Ends_After_Max_Time();
+]]></ST>
+    </Implementation>
+    <Method Name="Gate_Closes_Under_Motion_Keeps_Enable" Id="{be5ebde8-a9b8-477b-889b-8ef7e8467529}">
+      <Declaration><![CDATA[// Enabled through the gate and moving, then the gate closes (the shared brake closed): the enable stays on, bHolding is set.
+METHOD PRIVATE Gate_Closes_Under_Motion_Keeps_Enable
+VAR
+	fb	: HalfBROT.FB_BrakeCloseHold;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Gate_Closes_Under_Motion_Keeps_Enable');
+fb(bEnable := TRUE, bBrakeEnable := TRUE, bMoving := TRUE, tMaxHold := T#1H);
+AssertTrue(Condition := fb.bAxisEnable, Message := 'enabled through the gate');
+AssertFalse(Condition := fb.bHolding, Message := 'no hold while the gate is open');
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#1H);
+AssertTrue(Condition := fb.bAxisEnable, Message := 'enable kept after the gate closed');
+AssertTrue(Condition := fb.bHolding, Message := 'holding');
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#1H);
+AssertTrue(Condition := fb.bAxisEnable, Message := 'still kept in the next cycle');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Closed_Brake_Never_Enables" Id="{e1460af5-5457-4823-be28-9bdba12e59a2}">
+      <Declaration><![CDATA[// An axis that was not enabled is not enabled against a closed brake, even if it is wanted and reported moving.
+METHOD PRIVATE Closed_Brake_Never_Enables
+VAR
+	fb	: HalfBROT.FB_BrakeCloseHold;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Closed_Brake_Never_Enables');
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#1H);
+AssertFalse(Condition := fb.bAxisEnable, Message := 'first cycle: not enabled');
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#1H);
+AssertFalse(Condition := fb.bAxisEnable, Message := 'second cycle: not enabled');
+AssertFalse(Condition := fb.bHolding, Message := 'no hold');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Disabled_Axis_Is_Not_Held" Id="{20033eb9-2fb6-4111-88a3-6f3d71ac9af4}">
+      <Declaration><![CDATA[// The controller disables the axis (the faulty one) in the cycle the gate closes: the enable drops at once.
+METHOD PRIVATE Disabled_Axis_Is_Not_Held
+VAR
+	fb	: HalfBROT.FB_BrakeCloseHold;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Disabled_Axis_Is_Not_Held');
+fb(bEnable := TRUE, bBrakeEnable := TRUE, bMoving := TRUE, tMaxHold := T#1H);
+fb(bEnable := FALSE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#1H);
+AssertFalse(Condition := fb.bAxisEnable, Message := 'not enabled');
+AssertFalse(Condition := fb.bHolding, Message := 'no hold');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Standstill_Is_Not_Held" Id="{39dfd522-8af7-4e8a-9f99-1f66c1fdf2c6}">
+      <Declaration><![CDATA[// The gate closes under an axis at standstill (a normal park, a pressure loss at rest): the enable drops at once, as before.
+METHOD PRIVATE Standstill_Is_Not_Held
+VAR
+	fb	: HalfBROT.FB_BrakeCloseHold;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Standstill_Is_Not_Held');
+fb(bEnable := TRUE, bBrakeEnable := TRUE, bMoving := FALSE, tMaxHold := T#1H);
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := FALSE, tMaxHold := T#1H);
+AssertFalse(Condition := fb.bAxisEnable, Message := 'not enabled');
+AssertFalse(Condition := fb.bHolding, Message := 'no hold');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Hold_Ends_At_Standstill_And_Stays_Off" Id="{7d0c9a1e-3b52-4f61-9e83-2a4c5d6e7f80}">
+      <Declaration><![CDATA[// The held axis comes to rest: the enable drops, and a later motion report does not bring it back while the gate is closed.
+METHOD PRIVATE Hold_Ends_At_Standstill_And_Stays_Off
+VAR
+	fb	: HalfBROT.FB_BrakeCloseHold;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Hold_Ends_At_Standstill_And_Stays_Off');
+fb(bEnable := TRUE, bBrakeEnable := TRUE, bMoving := TRUE, tMaxHold := T#1H);
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#1H);
+AssertTrue(Condition := fb.bHolding, Message := 'holding');
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := FALSE, tMaxHold := T#1H);
+AssertFalse(Condition := fb.bAxisEnable, Message := 'enable dropped at standstill');
+AssertFalse(Condition := fb.bHolding, Message := 'hold ended');
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#1H);
+AssertFalse(Condition := fb.bAxisEnable, Message := 'no new hold against the closed brake');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Gate_Opening_Ends_The_Hold" Id="{8e1dab2f-4c63-4072-af94-3b5d6e7f8091}">
+      <Declaration><![CDATA[// The brake opens again during the hold: the gate takes over, bHolding is cleared, the enable stays on.
+METHOD PRIVATE Gate_Opening_Ends_The_Hold
+VAR
+	fb	: HalfBROT.FB_BrakeCloseHold;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Gate_Opening_Ends_The_Hold');
+fb(bEnable := TRUE, bBrakeEnable := TRUE, bMoving := TRUE, tMaxHold := T#1H);
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#1H);
+fb(bEnable := TRUE, bBrakeEnable := TRUE, bMoving := TRUE, tMaxHold := T#1H);
+AssertTrue(Condition := fb.bAxisEnable, Message := 'enabled through the gate');
+AssertFalse(Condition := fb.bHolding, Message := 'hold ended');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Disable_During_Hold_Drops_At_Once" Id="{9f2ebc30-5d74-4183-b0a5-4c6e7f8091a2}">
+      <Declaration><![CDATA[// The controller disables the held axis (its stop is over, or another error): the enable drops in the same cycle.
+METHOD PRIVATE Disable_During_Hold_Drops_At_Once
+VAR
+	fb	: HalfBROT.FB_BrakeCloseHold;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Disable_During_Hold_Drops_At_Once');
+fb(bEnable := TRUE, bBrakeEnable := TRUE, bMoving := TRUE, tMaxHold := T#1H);
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#1H);
+fb(bEnable := FALSE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#1H);
+AssertFalse(Condition := fb.bAxisEnable, Message := 'enable dropped');
+AssertFalse(Condition := fb.bHolding, Message := 'hold ended');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Zero_Hold_Time_Is_The_Old_Behaviour" Id="{a03fcd41-6e85-4294-8c16-5d7f8091a2b3}">
+      <Declaration><![CDATA[// tMaxHold = T#0S: the enable follows the gate, as before #277.
+METHOD PRIVATE Zero_Hold_Time_Is_The_Old_Behaviour
+VAR
+	fb	: HalfBROT.FB_BrakeCloseHold;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Zero_Hold_Time_Is_The_Old_Behaviour');
+fb(bEnable := TRUE, bBrakeEnable := TRUE, bMoving := TRUE, tMaxHold := T#0S);
+AssertTrue(Condition := fb.bAxisEnable, Message := 'enabled through the gate');
+fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#0S);
+AssertFalse(Condition := fb.bAxisEnable, Message := 'enable dropped with the gate');
+AssertFalse(Condition := fb.bHolding, Message := 'no hold');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Hold_Ends_After_Max_Time" Id="{b140de52-7f96-43a5-9d27-6e8091a2b3c4}">
+      <Declaration><![CDATA[// A held axis that never reports standstill: the enable drops after tMaxHold (100 ms, real time; the test gives up after 2 s)
+// and does not come back. Multi-cycle: one call per PLC cycle, asserted once at the end.
+METHOD PRIVATE Hold_Ends_After_Max_Time
+VAR_INST
+	fb			: HalfBROT.FB_BrakeCloseHold;
+	nStep		: INT;
+	tonLimit	: TON;
+	tonEarly	: TON;
+	bDroppedEarly	: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF nStep >= 99 THEN
+	RETURN;
+END_IF
+TEST('Hold_Ends_After_Max_Time');
+CASE nStep OF
+0:
+	fb(bEnable := TRUE, bBrakeEnable := TRUE, bMoving := TRUE, tMaxHold := T#100MS);
+	fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#100MS);
+	nStep := 10;
+10:
+	fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#100MS);
+	tonLimit(IN := TRUE, PT := T#2S);
+	tonEarly(IN := TRUE, PT := T#50MS);
+	IF NOT fb.bAxisEnable AND NOT tonEarly.Q THEN
+		bDroppedEarly := TRUE;
+	END_IF
+	IF NOT fb.bAxisEnable OR tonLimit.Q THEN
+		fb(bEnable := TRUE, bBrakeEnable := FALSE, bMoving := TRUE, tMaxHold := T#100MS);
+		AssertFalse(Condition := fb.bAxisEnable, Message := 'enable dropped after tMaxHold and stays off');
+		AssertFalse(Condition := bDroppedEarly, Message := 'not dropped within the first 50 ms');
+		AssertFalse(Condition := fb.bHolding, Message := 'hold ended');
+		nStep := 99;
+		TEST_FINISHED();
+	END_IF
+END_CASE
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>
