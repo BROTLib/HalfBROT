@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.15">
+  <POU Name="F_FocusHoldOnStop_Tests" Id="{1dad3b79-03ae-430d-92b4-8e008ec60437}" SpecialFunc="None">
+    <Declaration><![CDATA[// HalfBROT.F_FocusHoldOnStop (MONETcommon#278): the hold of FB_FocusControl.Stop() takes the actual position only while the target
+// is still the one of the Stop(); a new target set during the stop is kept.
+FUNCTION_BLOCK F_FocusHoldOnStop_Tests EXTENDS TcUnit.FB_TestSuite
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[Unchanged_Target_Is_Held();
+Change_Within_Tolerance_Is_Held();
+New_Target_After_Stop_Is_Kept();
+Uncalibrated_Focus_Is_Not_Held();
+]]></ST>
+    </Implementation>
+    <Method Name="Unchanged_Target_Is_Held" Id="{137ca571-241b-4047-94e0-ebb3c80faedb}">
+      <Declaration><![CDATA[METHOD PRIVATE Unchanged_Target_Is_Held
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Unchanged_Target_Is_Held');
+AssertTrue(Condition := HalfBROT.F_FocusHoldOnStop(bCalibrated := TRUE, fTarget := 53.7786, fStopTarget := 53.7786, fTolerance := 0.005),
+	Message := 'the target of the Stop(): hold the position reached');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Change_Within_Tolerance_Is_Held" Id="{2761aaac-c81f-49f9-9505-0acca53bb8a2}">
+      <Declaration><![CDATA[METHOD PRIVATE Change_Within_Tolerance_Is_Held
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Change_Within_Tolerance_Is_Held');
+AssertTrue(Condition := HalfBROT.F_FocusHoldOnStop(bCalibrated := TRUE, fTarget := 53.782, fStopTarget := 53.7786, fTolerance := 0.005),
+	Message := 'within the tolerance it is the same target');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="New_Target_After_Stop_Is_Kept" Id="{fd968eb6-00bf-42dd-983b-0fff52b40d86}">
+      <Declaration><![CDATA[// MONET/N 2026-11-13 run A of MONETcommon#277: the park sets the focus park position right after the stop of the ramp.
+METHOD PRIVATE New_Target_After_Stop_Is_Kept
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('New_Target_After_Stop_Is_Kept');
+AssertFalse(Condition := HalfBROT.F_FocusHoldOnStop(bCalibrated := TRUE, fTarget := 50.0, fStopTarget := 53.7786, fTolerance := 0.005),
+	Message := 'a target set after the Stop() is not overwritten');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Uncalibrated_Focus_Is_Not_Held" Id="{c032a571-442d-4a71-ba6d-b039814e1f58}">
+      <Declaration><![CDATA[METHOD PRIVATE Uncalibrated_Focus_Is_Not_Held
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[TEST('Uncalibrated_Focus_Is_Not_Held');
+AssertFalse(Condition := HalfBROT.F_FocusHoldOnStop(bCalibrated := FALSE, fTarget := 53.7786, fStopTarget := 53.7786, fTolerance := 0.005),
+	Message := 'an uncalibrated position is not a target');
+TEST_FINISHED();
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

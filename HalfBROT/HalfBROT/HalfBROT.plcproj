@@ -113,6 +113,9 @@
     <Compile Include="POUs\F_FocusTargetFollowsActual.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="POUs\F_FocusHoldOnStop.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="POUs\F_FocusTrackStoredPosition.TcPOU">
       <SubType>Code</SubType>
     </Compile>
