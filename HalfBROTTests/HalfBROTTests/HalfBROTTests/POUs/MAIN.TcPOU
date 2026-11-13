@@ -9,6 +9,7 @@ VAR
 	fbPendantTests		: FB_PendantControl_Tests;
 	fbFocusUnlockTests	: FB_FocusUnlock_Tests;
 	fbBrakeCloseHoldTests	: FB_BrakeCloseHold_Tests;	// MONETcommon#277
+	fbFocusHoldOnStopTests	: F_FocusHoldOnStop_Tests;	// MONETcommon#278
 END_VAR
 ]]></Declaration>
     <Implementation>
