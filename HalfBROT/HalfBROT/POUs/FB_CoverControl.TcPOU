@@ -364,7 +364,7 @@ END_VAR
     </Property>
     <Method Name="Stop" Id="{a629af58-a9b5-42c2-bd4a-a3fa7ce8e787}">
       <Declaration><![CDATA[// Drops a running open or close; the outputs go off in the next call of the block (no dead time on a stop).
-// Not part of I_MirrorCovers: used by the pendant (hold-to-run), an application may use it too.
+// Part of I_MirrorCovers since BROTLib 0.26.0 (X6, the HMI gateway stops the covers through it); also used by the pendant (hold-to-run).
 METHOD Stop : BOOL
 VAR_INPUT
 END_VAR

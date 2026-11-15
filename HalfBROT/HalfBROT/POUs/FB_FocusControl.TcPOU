@@ -316,6 +316,7 @@ fbAxis(
 	enable_Negative := NOT IbLimitNear,
 	Jog_Forward 	:= fbJogRequest.bJogPos,
 	Jog_Backwards 	:= fbJogRequest.bJogNeg,
+	Jog_Slow		:= bJogSlow,
 	bCalibrationCam := IbLimitFar,
 	ActualPosition 	=> fActualPosition,
 	Error 			=> bError,

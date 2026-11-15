@@ -70,6 +70,7 @@ fbAxis(
 	Enable_Negative := fbAxis.ActualPosition > fMinPosition,
 	Jog_Forward 	:= fbJogRequest.bJogPos,
 	Jog_Backwards 	:= fbJogRequest.bJogNeg,
+	Jog_Slow		:= bJogSlow,
 	//bCalibrationCam := inDigitalInputs.0,
 	isModuloAxis 	:= FALSE,
 	Tracking 		:= bTracking,

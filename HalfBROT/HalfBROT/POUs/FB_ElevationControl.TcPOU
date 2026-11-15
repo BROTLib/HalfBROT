@@ -119,6 +119,7 @@ fbAxis(
 	Enable_Negative := inDigitalInputs.1,
 	Jog_Forward 	:= fbJogRequest.bJogPos,
 	Jog_Backwards 	:= fbJogRequest.bJogNeg,
+	Jog_Slow		:= bJogSlow,
 	bCalibrationCam := NOT inDigitalInputs.0,
 	ActualPosition 	=> fActualPosition,
 	Error 			=> bError,
