@@ -21,6 +21,7 @@ VAR_INPUT
 	fMaxStep		: LREAL := 1.0;		// largest real change in one cycle; a larger change is an NC jump (+/-1e10, reference)
 	bSetDone		: BOOL;		// MC_SetPosition.Done
 	bSetError		: BOOL;		// MC_SetPosition.Error
+	tSettle			: TIME := T#0S;		// the axis must be able to take the restore for this long before bRestore (the NC refused it in the cycle the stop ended, 0x425D)
 END_VAR
 VAR_OUTPUT
 	bRestore			: BOOL;		// level: run MC_SetPosition now (Execute)
@@ -33,6 +34,7 @@ END_VAR
 VAR
 	fStart				: LREAL;	// last real position before the homing
 	fTravel				: LREAL;	// real travel since the homing started
+	tonSettle			: TON;
 	fLast				: LREAL;
 	bPending			: BOOL;		// a restore is wanted
 	bBusy				: BOOL;
@@ -79,7 +81,8 @@ IF bPending THEN
 	fEstimate := fStart + fTravel;
 	fRestorePosition := LIMIT(fMin + fMargin, fEstimate, fMax - fMargin);
 	bClamped := fRestorePosition <> fEstimate;
-	bRestore := bCanSet AND NOT bBusy;
+	tonSettle(IN := bCanSet AND NOT bBusy, PT := tSettle);
+	bRestore := tonSettle.Q;
 	IF bSetDone THEN
 		bRestored := TRUE;
 		bPending := FALSE;
@@ -90,6 +93,7 @@ IF bPending THEN
 		bRestore := FALSE;
 	END_IF
 ELSE
+	tonSettle(IN := FALSE, PT := tSettle);
 	bRestore := FALSE;
 END_IF
 ]]></ST>

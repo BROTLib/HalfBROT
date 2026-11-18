@@ -64,6 +64,8 @@ VAR
 	homeRestoreFailedEvent	: FB_EventLog;
 	sRestoreMessage			: STRING(255);
 	sRestoreFailedMessage	: STRING(255);
+	tRestoreSettle			: TIME := T#1S;		// standstill time before MC_SetPosition after a failed homing (#147); ADS-writable for tuning
+	nRestoreErrorID			: UDINT;			// ErrorID of the last failed restore (MC_SetPosition clears it with Execute)
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[]]></ST>
@@ -159,7 +161,12 @@ VAR_INPUT
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[fbHomeFailPosition(
+        <ST><![CDATA[// MC_SetPosition clears ErrorID when Execute drops, which happens in the cycle the block sees the error: keep it
+IF fbSetPosition.Error THEN
+	nRestoreErrorID := fbSetPosition.ErrorID;
+END_IF
+
+fbHomeFailPosition(
 	fActualPosition := fbAxis.ActualPosition,
 	bHomeActive 	:= fbAxis.HomeActive,
 	bHomePending 	:= fbAxis.HomePending,
@@ -169,7 +176,8 @@ END_VAR
 	fMin 			:= fMin,
 	fMax 			:= fMax,
 	bSetDone 		:= fbSetPosition.Done,
-	bSetError 		:= fbSetPosition.Error);
+	bSetError 		:= fbSetPosition.Error,
+	tSettle 		:= tRestoreSettle);
 
 // absolute, no motion; the axis stays uncalibrated
 fbSetPosition(
@@ -197,7 +205,7 @@ homeRestoreEvent(
 
 IF fbHomeFailPosition.bRestoreFailed THEN
 	sRestoreFailedMessage := CONCAT(sAxis, ': position restore after the failed homing failed (error ');
-	sRestoreFailedMessage := CONCAT(sRestoreFailedMessage, UDINT_TO_STRING(fbSetPosition.ErrorID));
+	sRestoreFailedMessage := CONCAT(sRestoreFailedMessage, UDINT_TO_STRING(nRestoreErrorID));
 	sRestoreFailedMessage := CONCAT(sRestoreFailedMessage, '), the position is virtual: Set Actual Position in XAE.');
 END_IF
 homeRestoreFailedEvent(
