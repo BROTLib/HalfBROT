@@ -1,6 +1,6 @@
 # Commands through methods, explicit state machines, I/O through structs
 
-**Status: draft.** Nothing implemented. Updated 2026-11-09: the three open questions are decided (see
+**Status: partly implemented (2026-11-19).** Steps 1 and 2 are in 0.14.0; explicit state machines for cover, brake, pump and pendant are in 0.15.0 (`E_CoverState`, `E_BrakeState`, `E_PumpState`, `E_PendantState`); `HalfBROTTests` exists. Run on MONET/N 0.17.1 (test plan T21, HalfBROT #167, closed): cover order, stop, timeout and Reset, pump error and Reset, manual pump stop, brake timing, `CloseBrake()`, pan maximum, manual brake re-arm; not run: pendant covers, limit switch fault, real pressure loss, azimuth limit, MONET/S. **Not done:** state machines and tests for the axis and focus blocks (need a simulated NC axis). The text below is the original plan. Updated 2026-11-09: the three open questions are decided (see
 "Decisions"), steps 1–3 adjusted. Updated 2026-11-06: VISU bindings added to the current state and to step 1.
 Facts below were read from `develop` @ `4ef3b7b` (v0.5.1) and the consumers' `develop` on 2026-10-11 (`AT`
 counts re-checked on `develop` 2026-11-09); nothing was run on a PLC or a telescope.
