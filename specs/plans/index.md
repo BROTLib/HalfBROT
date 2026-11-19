@@ -7,8 +7,7 @@ Dated `YYYY-MM-DD-<slug>.md` investigation and work logs, one per unit of work.
   against BROTLib, MONETcommon, MONETN and MONETS, not run on a PLC or a telescope.
 - [2026-10-11-commands-state-machines-io.md](2026-10-11-commands-state-machines-io.md): plan for #31/#32:
   commands only through methods, I/O through structs (no `AT` in the library), TcUnit
-  tests, then one explicit state machine per block. **draft**, nothing implemented; three open questions (manual brake semantics,
-  `FB_BaseAxis` inputs, struct layout).
+  tests, then one explicit state machine per block. **partly implemented** (steps 1 and 2 in 0.14.0, cover/brake/pump/pendant state machines in 0.15.0, run on MONET/N 2026-11-19); axis and focus state machines and tests not done.
 - [2026-10-12-soe-reset-and-restore-in-base.md](2026-10-12-soe-reset-and-restore-in-base.md): #14, SoE reset
   and position restore once in `FB_AxisControl` (`_SoEReset`, `_RestoreLastPosition`); the SoE reset now waits
   for `Busy` to rise and drop, logs `Error` and no longer resets the axis after a failed reset.
